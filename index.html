@@ -4,102 +4,226 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NovaX Edu - Sri Lanka's #1 Education Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-primary: #f5f7fa;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #eef1f6;
-            --bg-card: #ffffff;
-            --fg-primary: #1a1d26;
-            --fg-secondary: #5c6370;
-            --fg-muted: #9da3af;
-            --accent: #4f46e5;
-            --accent-light: #818cf8;
-            --accent-success: #10b981;
-            --accent-warning: #f59e0b;
-            --accent-danger: #ef4444;
-            --border: #e2e6ed;
-            --shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #0d0f14;
-            --bg-secondary: #151921;
-            --bg-tertiary: #1c2029;
-            --bg-card: #1a1e27;
-            --fg-primary: #f0f2f5;
-            --fg-secondary: #a0a6b0;
-            --fg-muted: #5c6370;
+            --bg: #0f1419;
+            --bg-card: #1a2027;
+            --bg-hover: #242d38;
+            --fg: #e7e9ea;
+            --fg-muted: #71767b;
             --accent: #6366f1;
-            --accent-light: #818cf8;
-            --border: #2a2f3a;
-            --shadow: 0 4px 20px rgba(0,0,0,0.4);
+            --accent-hover: #818cf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2f3336;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--fg-primary);
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
             min-height: 100vh;
-            transition: all 0.3s ease;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-tertiary); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--fg-muted); }
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+        .toast.info { border-left: 4px solid var(--accent); }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--danger); }
+        .toast.warning .toast-icon { color: var(--warning); }
+        .toast.info .toast-icon { color: var(--accent); }
+
+        .toast-content { flex: 1; }
+        .toast-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+        .toast-message { font-size: 13px; color: var(--fg-muted); }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--fg-muted);
+            cursor: pointer;
+            padding: 0;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .toast-close:hover { color: var(--fg); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
 
         /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            padding: 0.7rem 1.25rem;
+            gap: 8px;
+            padding: 10px 20px;
             font-family: inherit;
-            font-size: 0.875rem;
+            font-size: 14px;
             font-weight: 600;
             border-radius: 10px;
             border: none;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             text-decoration: none;
         }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { background: var(--accent-light); transform: translateY(-1px); }
-        .btn-secondary { background: var(--bg-tertiary); color: var(--fg-primary); border: 1px solid var(--border); }
-        .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent); }
-        .btn-danger { background: var(--accent-danger); color: white; }
-        .btn-success { background: var(--accent-success); color: white; }
-        .btn-sm { padding: 0.5rem 0.9rem; font-size: 0.8rem; }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-hover);
+            color: var(--fg);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--border);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
 
         /* Inputs */
-        .input-group { margin-bottom: 1rem; }
-        .input-label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--fg-secondary); margin-bottom: 0.4rem; }
+        .input-group { margin-bottom: 16px; }
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--fg-muted);
+            margin-bottom: 6px;
+        }
         .input-field {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 12px 14px;
             font-family: inherit;
-            font-size: 0.9rem;
-            background: var(--bg-tertiary);
-            border: 1.5px solid var(--border);
+            font-size: 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            color: var(--fg-primary);
-            transition: all 0.2s ease;
+            color: var(--fg);
+            transition: all 0.2s;
         }
-        .input-field:focus { outline: none; border-color: var(--accent); background: var(--bg-card); }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
         .input-field::placeholder { color: var(--fg-muted); }
-        select.input-field { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239da3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2.5rem; }
+
+        select.input-field {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2371767b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
 
         /* Cards */
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; transition: all 0.2s ease; }
-        .card:hover { box-shadow: var(--shadow); }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        /* Class Selector */
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .class-item {
+            padding: 16px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .class-item:hover { border-color: var(--accent); }
+
+        .class-item.selected {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .class-item.selected .class-price { color: rgba(255,255,255,0.8); }
+
+        .class-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+        .class-price { font-size: 12px; color: var(--fg-muted); }
 
         /* Sidebar */
         .sidebar {
@@ -108,381 +232,479 @@
             top: 0;
             width: 260px;
             height: 100vh;
-            background: var(--bg-secondary);
+            background: var(--bg-card);
             border-right: 1px solid var(--border);
             z-index: 100;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
         }
-        .sidebar.collapsed, .sidebar.hidden { transform: translateX(-100%); }
-        @media (max-width: 1024px) { .sidebar { transform: translateX(-100%); } .sidebar.active { transform: translateX(0); } }
 
-        .sidebar-header { padding: 1.25rem; border-bottom: 1px solid var(--border); }
-        .logo { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
-        .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; color: white; }
-        .logo-text { display: flex; flex-direction: column; }
-        .logo-name { font-size: 1.2rem; font-weight: 700; color: var(--fg-primary); }
-        .logo-tagline { font-size: 0.6rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        .sidebar.hidden { transform: translateX(-100%); }
 
-        .nav-section { padding: 0.75rem 0; flex: 1; overflow-y: auto; }
-        .nav-label { padding: 0.5rem 1.25rem; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); }
-        .nav-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.75rem 1.25rem; color: var(--fg-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: all 0.15s ease; position: relative; cursor: pointer; }
-        .nav-item::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background: var(--accent); border-radius: 0 3px 3px 0; transform: scaleY(0); transition: transform 0.15s ease; }
-        .nav-item:hover, .nav-item.active { color: var(--fg-primary); background: var(--bg-tertiary); }
-        .nav-item.active::before { transform: scaleY(1); }
-        .nav-item svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0; }
-        .nav-badge { margin-left: auto; background: var(--accent-danger); color: white; font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 8px; }
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+        }
 
-        .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
-        .user-card { display: flex; align-items: center; gap: 0.65rem; padding: 0.6rem; border-radius: 10px; transition: background 0.15s ease; cursor: pointer; }
-        .user-card:hover { background: var(--bg-tertiary); }
-        .user-avatar { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: white; }
-        .user-info { flex: 1; min-width: 0; }
-        .user-name { font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-role { font-size: 0.7rem; color: var(--fg-muted); }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: white;
+        }
+
+        .logo-text { font-size: 18px; font-weight: 700; color: var(--fg); }
+        .logo-tagline { font-size: 10px; color: var(--fg-muted); }
+
+        .nav-section { padding: 12px 0; flex: 1; overflow-y: auto; }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--fg-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: var(--fg);
+            background: var(--bg-hover);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
+        }
+
+        .nav-item svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .user-card:hover { background: var(--bg-hover); }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+        }
+
+        .user-name { font-weight: 600; font-size: 14px; }
+        .user-role { font-size: 12px; color: var(--fg-muted); }
 
         /* Main Content */
-        .main-content { margin-left: 260px; min-height: 100vh; transition: margin-left 0.3s ease; }
-        @media (max-width: 1024px) { .main-content { margin-left: 0; } }
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
 
-        /* Header */
-        .top-header { position: sticky; top: 0; background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-        .header-left { display: flex; align-items: center; gap: 0.75rem; }
-        .mobile-toggle { display: none; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; cursor: pointer; color: var(--fg-primary); }
-        @media (max-width: 1024px) { .mobile-toggle { display: flex; } }
-        .mobile-toggle svg { width: 20px; height: 20px; stroke: currentColor; }
+        @media (max-width: 1024px) {
+            .main-content { margin-left: 0; }
+        }
 
-        .search-bar { position: relative; width: 320px; }
-        @media (max-width: 768px) { .search-bar { display: none; } }
-        .search-bar input { width: 100%; padding: 0.6rem 0.9rem 0.6rem 2.4rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.8rem; color: var(--fg-primary); }
-        .search-bar input:focus { outline: none; border-color: var(--accent); }
-        .search-bar svg { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; stroke: var(--fg-muted); }
+        .top-header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-        .header-actions { display: flex; align-items: center; gap: 0.4rem; }
-        .icon-btn { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem; cursor: pointer; color: var(--fg-secondary); transition: all 0.15s ease; position: relative; }
-        .icon-btn:hover { color: var(--fg-primary); border-color: var(--accent); }
-        .icon-btn svg { width: 18px; height: 18px; stroke: currentColor; }
-        .notification-dot { position: absolute; top: 5px; right: 5px; width: 6px; height: 6px; background: var(--accent-danger); border-radius: 50%; }
+        .mobile-toggle {
+            display: none;
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--fg);
+        }
 
-        .theme-toggle .sun { display: none; }
-        [data-theme="dark"] .theme-toggle .sun { display: block; }
-        [data-theme="dark"] .theme-toggle .moon { display: none; }
+        @media (max-width: 1024px) {
+            .mobile-toggle { display: flex; }
+        }
 
-        /* Page Container */
-        .page-container { padding: 1.5rem; }
-        @media (max-width: 768px) { .page-container { padding: 1rem; } }
+        .mobile-toggle svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+        }
 
-        .page-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .page-subtitle { color: var(--fg-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .page-container { padding: 24px; }
+
+        .page-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+        .page-subtitle { color: var(--fg-muted); font-size: 14px; margin-bottom: 24px; }
 
         /* Stats */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; position: relative; overflow: hidden; }
-        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-light)); }
-        .stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.6rem; }
-        .stat-icon svg { width: 20px; height: 20px; stroke: white; }
-        .stat-icon.purple { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
-        .stat-icon.green { background: linear-gradient(135deg, #10b981, #34d399); }
-        .stat-icon.orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-        .stat-icon.blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-        .stat-value { font-size: 1.5rem; font-weight: 700; }
-        .stat-label { font-size: 0.8rem; color: var(--fg-muted); }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
 
-        /* Filter Bar */
-        .filter-bar { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; }
-        .filter-item { flex: 1; min-width: 140px; }
-        .filter-item label { display: block; font-size: 0.7rem; font-weight: 500; color: var(--fg-muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.03em; }
-        .filter-item select { width: 100%; padding: 0.5rem 0.65rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; font-family: inherit; font-size: 0.8rem; color: var(--fg-primary); cursor: pointer; }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-label { font-size: 13px; color: var(--fg-muted); margin-top: 4px; }
 
         /* Video Grid */
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-        .video-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s ease; }
-        .video-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--accent); }
-        .video-thumbnail { position: relative; height: 150px; background: linear-gradient(135deg, #1a1d26, #2a2f3a); display: flex; align-items: center; justify-content: center; }
-        .video-play-btn { width: 50px; height: 50px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
-        .video-card:hover .video-play-btn { background: var(--accent); transform: scale(1.1); }
-        .video-play-btn svg { width: 22px; height: 22px; stroke: white; fill: white; margin-left: 3px; }
-        .video-duration { position: absolute; bottom: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.8); padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.7rem; color: white; font-family: monospace; }
-        .video-badge { position: absolute; top: 0.5rem; left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase; }
-        .video-badge.free { background: var(--accent-success); color: white; }
-        .video-badge.paid { background: var(--accent-warning); color: #000; }
-        .video-badge.locked { background: var(--fg-muted); color: white; }
-        .video-content { padding: 1rem; }
-        .video-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .video-meta { display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 0.75rem; color: var(--fg-muted); }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .video-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+        }
+
+        .video-thumb {
+            height: 160px;
+            background: linear-gradient(135deg, #1a1d26, #2a2f3a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .play-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .video-card:hover .play-btn {
+            background: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .play-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+            margin-left: 3px;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .video-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .video-badge.locked { background: var(--danger); color: white; }
+        .video-badge.unlocked { background: var(--success); color: white; }
+
+        .video-info { padding: 16px; }
+        .video-title { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+        .video-meta { font-size: 12px; color: var(--fg-muted); display: flex; gap: 12px; }
 
         /* Table */
-        .table-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 0.7rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-        th { background: var(--bg-tertiary); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fg-muted); }
+        .table-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow-x: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { font-size: 12px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; background: var(--bg); }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: var(--bg-tertiary); }
-        .status-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.7rem; font-weight: 600; }
-        .status-badge.approved, .status-badge.active, .status-badge.paid { background: rgba(16, 185, 129, 0.12); color: var(--accent-success); }
-        .status-badge.pending { background: rgba(245, 158, 11, 0.12); color: var(--accent-warning); }
-        .status-badge.rejected, .status-badge.blocked { background: rgba(239, 68, 68, 0.12); color: var(--accent-danger); }
 
-        /* Live Banner */
-        .live-banner { background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; animation: livePulse 2s ease-in-out infinite; }
-        @keyframes livePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); } }
-        .live-banner-left { display: flex; align-items: center; gap: 0.75rem; }
-        .live-indicator { display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem; border-radius: 5px; font-size: 0.7rem; font-weight: 600; color: white; text-transform: uppercase; }
-        .live-dot { width: 6px; height: 6px; background: white; border-radius: 50%; animation: pulse 1s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .live-info { color: white; }
-        .live-class-name { font-weight: 600; font-size: 0.9rem; }
-        .live-teacher { font-size: 0.75rem; opacity: 0.9; }
-        .live-join-btn { background: white; color: #ef4444; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: transform 0.15s ease; }
-        .live-join-btn:hover { transform: scale(1.05); }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
 
-        /* Notice */
-        .notice-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem; border-left: 3px solid var(--accent); transition: all 0.15s ease; }
-        .notice-item:hover { transform: translateX(3px); }
-        .notice-item.urgent { border-left-color: var(--accent-danger); }
-        .notice-item.info { border-left-color: #3b82f6; }
-        .notice-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
-        .notice-content { font-size: 0.8rem; color: var(--fg-secondary); margin-bottom: 0.4rem; }
-        .notice-meta { font-size: 0.7rem; color: var(--fg-muted); }
+        .badge.success { background: rgba(16,185,129,0.15); color: var(--success); }
+        .badge.warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .badge.danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+        /* Auth */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .auth-header { text-align: center; margin-bottom: 28px; }
+        .auth-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+        .auth-subtitle { color: var(--fg-muted); font-size: 14px; }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--fg-muted);
+        }
+
+        .auth-footer a { color: var(--accent); text-decoration: none; font-weight: 500; }
 
         /* Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
         .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; animation: modalSlide 0.25s ease; }
-        @keyframes modalSlide { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; border-bottom: 1px solid var(--border); }
-        .modal-title { font-size: 1.1rem; font-weight: 600; }
-        .modal-close { background: var(--bg-tertiary); border: none; border-radius: 6px; padding: 0.4rem; cursor: pointer; color: var(--fg-secondary); transition: all 0.15s ease; }
-        .modal-close:hover { background: var(--accent-danger); color: white; }
-        .modal-close svg { width: 18px; height: 18px; stroke: currentColor; }
-        .modal-body { padding: 1.25rem; }
-        .modal-footer { display: flex; gap: 0.75rem; padding: 1.25rem; border-top: 1px solid var(--border); }
 
-        /* Video Player Modal */
-        .video-player-modal { max-width: 800px; }
-        .video-player-container { position: relative; width: 100%; background: #000; border-radius: 10px 10px 0 0; overflow: hidden; }
-        .video-player-container iframe { width: 100%; aspect-ratio: 16/9; border: none; }
-        .video-controls { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 0 0 10px 10px; }
-        .video-controls select { padding: 0.35rem 0.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 5px; font-family: inherit; font-size: 0.75rem; color: var(--fg-primary); }
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
 
-        /* Auth Pages */
-        .auth-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; position: relative; }
-        .auth-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%), var(--bg-primary); z-index: 0; }
-        .auth-card { position: relative; z-index: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; width: 100%; max-width: 420px; padding: 2rem; box-shadow: var(--shadow); }
-        .auth-header { text-align: center; margin-bottom: 1.5rem; }
-        .auth-logo { display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-bottom: 0.75rem; }
-        .auth-logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; color: white; }
-        .auth-logo-text { font-size: 1.6rem; font-weight: 700; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .auth-subtitle { color: var(--fg-muted); font-size: 0.85rem; }
-        .auth-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0; color: var(--fg-muted); font-size: 0.8rem; }
-        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-        .auth-footer { text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--fg-secondary); }
-        .auth-footer a { color: var(--accent); text-decoration: none; font-weight: 500; }
-        .auth-footer a:hover { text-decoration: underline; }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
 
-        /* Landing Page */
-        .hero-section { padding: 5rem 2rem; text-align: center; position: relative; overflow: hidden; }
-        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%); z-index: 0; }
-        .hero-content { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
-        .hero-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--bg-card); border: 1px solid var(--border); padding: 0.4rem 0.85rem; border-radius: 50px; font-size: 0.8rem; color: var(--accent); margin-bottom: 1rem; }
-        .hero-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 0.75rem; line-height: 1.15; }
-        .hero-subtitle { font-size: 1rem; color: var(--fg-secondary); margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
-        .hero-buttons { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; padding: 3rem 2rem; max-width: 1100px; margin: 0 auto; }
-        .feature-card { text-align: center; padding: 1.5rem; }
-        .feature-icon { width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
-        .feature-icon svg { width: 28px; height: 28px; stroke: white; }
-        .feature-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
-        .feature-desc { color: var(--fg-secondary); font-size: 0.9rem; line-height: 1.5; }
+        .modal-title { font-size: 18px; font-weight: 600; }
 
-        /* Tabs */
-        .tabs-list { display: flex; gap: 0.25rem; border-bottom: 2px solid var(--border); margin-bottom: 1rem; overflow-x: auto; }
-        .tab-btn { padding: 0.7rem 1.25rem; background: none; border: none; font-family: inherit; font-size: 0.85rem; font-weight: 500; color: var(--fg-secondary); cursor: pointer; position: relative; transition: color 0.15s ease; white-space: nowrap; }
-        .tab-btn::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--accent); transform: scaleX(0); transition: transform 0.15s ease; }
-        .tab-btn:hover { color: var(--fg-primary); }
-        .tab-btn.active { color: var(--accent); }
-        .tab-btn.active::after { transform: scaleX(1); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .modal-close {
+            background: var(--bg-hover);
+            border: none;
+            border-radius: 8px;
+            padding: 6px;
+            cursor: pointer;
+            color: var(--fg-muted);
+        }
 
-        /* Sidebar Overlay */
-        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 90; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+        .modal-close:hover { color: var(--fg); }
 
-        /* Utility */
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Video Player */
+        .player-modal { max-width: 800px; }
+        .player-wrap { position: relative; background: #000; }
+        .player-wrap iframe { width: 100%; aspect-ratio: 16/9; border: none; }
+
+        /* Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 90;
+            display: none;
+        }
+
+        .sidebar-overlay.active { display: block; }
+
         .hidden { display: none !important; }
-        .text-center { text-align: center; }
-        .mb-1 { margin-bottom: 0.5rem; }
-        .mb-2 { margin-bottom: 1rem; }
-        .mb-3 { margin-bottom: 1.5rem; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
 
-        /* Reduced Motion */
-        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--fg-muted);
+        }
 
-        /* Focus */
-        a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .empty-state svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
     <!-- Sidebar Overlay -->
     <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <!-- Auth Pages -->
-    <div id="auth-pages">
-        <!-- Landing Page -->
-        <div id="landing-page">
-            <div class="hero-section">
-                <div class="hero-bg"></div>
-                <div class="hero-content">
-                    <div class="hero-badge">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                        </svg>
-                        Sri Lanka's #1 Education Platform
-                    </div>
-                    <h1 class="hero-title">Learn Smarter with NovaX Edu</h1>
-                    <p class="hero-subtitle">Access high-quality classes, recordings, notes, and more from anywhere. Join thousands of students achieving their dreams.</p>
-                    <div class="hero-buttons">
-                        <button class="btn btn-primary" onclick="showAuth('login')">Sign In</button>
-                        <button class="btn btn-secondary" onclick="showAuth('register')">Create Account</button>
-                    </div>
+    <div id="auth-section">
+        <!-- Landing -->
+        <div id="landing-page" class="auth-page" style="display: flex;">
+            <div style="text-align: center; max-width: 600px;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 24px; font-weight: 800; color: white;">NX</div>
+                <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 12px;">NovaX Edu</h1>
+                <p style="font-size: 16px; color: var(--fg-muted); margin-bottom: 32px;">Sri Lanka's #1 Education Platform</p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="showPage('login-page')">Sign In</button>
+                    <button class="btn btn-secondary" onclick="showPage('register-page')">Create Account</button>
                 </div>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polygon points="23 7 16 12 23 17 23 7"/>
-                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">Live Classes</h3>
-                    <p class="feature-desc">Join interactive live classes with expert teachers. Ask questions and learn in real-time.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">Class Recordings</h3>
-                    <p class="feature-desc">Missed a class? Watch recordings anytime, anywhere at your own pace.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                            <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">MCQ Tests</h3>
-                    <p class="feature-desc">Test your knowledge with practice quizzes and track your progress.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                    </div>
-                    <h3 class="feature-title">PDF Notes</h3>
-                    <p class="feature-desc">Download comprehensive notes and study materials for each subject.</p>
-                </div>
-            </div>
-
-            <!-- Contact Section -->
-            <div style="padding: 3rem 2rem; max-width: 800px; margin: 0 auto;">
-                <h2 class="text-center" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem;">Contact Us</h2>
-                <div class="grid-2">
-                    <div class="card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.75rem; color: var(--fg-muted);">WhatsApp</div>
-                                <div style="font-weight: 600;">077 504 8455</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                    <polyline points="22,6 12,13 2,6"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.75rem; color: var(--fg-muted);">Email</div>
-                                <div style="font-weight: 600;">nova.x.team001@gmail.com</div>
-                            </div>
-                        </div>
-                    </div>
+                <div style="margin-top: 40px; padding: 20px; background: var(--bg-card); border-radius: 14px; border: 1px solid var(--border);">
+                    <p style="font-size: 14px; color: var(--fg-muted); margin-bottom: 8px;">Contact Us</p>
+                    <p style="font-weight: 600;">WhatsApp: 077 504 8455</p>
+                    <p style="font-weight: 600;">Email: nova.x.team001@gmail.com</p>
                 </div>
             </div>
         </div>
 
-        <!-- Login Page -->
-        <div id="login-page" class="auth-container hidden">
-            <div class="auth-bg"></div>
+        <!-- Login -->
+        <div id="login-page" class="auth-page" style="display: none;">
             <div class="auth-card">
                 <div class="auth-header">
-                    <div class="auth-logo">
-                        <div class="auth-logo-icon">NX</div>
-                        <span class="auth-logo-text">NovaX Edu</span>
-                    </div>
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 20px; font-weight: 800; color: white;">NX</div>
+                    <h2 class="auth-title">Welcome Back</h2>
                     <p class="auth-subtitle">Sign in to continue learning</p>
                 </div>
                 <form id="login-form">
                     <div class="input-group">
                         <label class="input-label">Email Address</label>
-                        <input type="email" class="input-field" id="login-email" placeholder="Enter your email" required>
+                        <input type="email" class="input-field" id="login-email" placeholder="you@example.com" required>
                     </div>
                     <div class="input-group">
                         <label class="input-label">Password</label>
-                        <input type="password" class="input-field" id="login-password" placeholder="Enter your password" required>
+                        <input type="password" class="input-field" id="login-password" placeholder="Your password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;" id="login-btn">Sign In</button>
                 </form>
-                <div class="auth-divider">Quick Login</div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
-                    <button class="btn btn-secondary" onclick="quickLogin('student')">Student</button>
-                    <button class="btn btn-secondary" onclick="quickLogin('teacher')">Teacher</button>
-                    <button class="btn btn-secondary" onclick="quickLogin('admin')">Admin</button>
+                <div style="margin: 20px 0; text-align: center; color: var(--fg-muted); font-size: 13px;">— or continue with —</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <button class="btn btn-secondary btn-sm" onclick="demoLogin('student')">Student</button>
+                    <button class="btn btn-secondary btn-sm" onclick="demoLogin('teacher')">Teacher</button>
+                    <button class="btn btn-secondary btn-sm" onclick="demoLogin('admin')">Admin</button>
                 </div>
-                <div class="auth-footer">
-                    Don't have an account? <a href="#" onclick="showAuth('register')">Create Account</a>
-                </div>
+                <div class="auth-footer">No account? <a href="#" onclick="showPage('register-page')">Register</a></div>
             </div>
         </div>
 
-        <!-- Register Page -->
-        <div id="register-page" class="auth-container hidden">
-            <div class="auth-bg"></div>
+        <!-- Register -->
+        <div id="register-page" class="auth-page" style="display: none;">
             <div class="auth-card" style="max-width: 520px;">
                 <div class="auth-header">
-                    <div class="auth-logo">
-                        <div class="auth-logo-icon">NX</div>
-                        <span class="auth-logo-text">NovaX Edu</span>
-                    </div>
-                    <p class="auth-subtitle">Create your student account</p>
+                    <h2 class="auth-title">Create Account</h2>
+                    <p class="auth-subtitle">Join NovaX Edu today</p>
                 </div>
                 <form id="register-form">
                     <div class="grid-2">
                         <div class="input-group">
                             <label class="input-label">Full Name *</label>
-                            <input type="text" class="input-field" id="reg-name" placeholder="Full name" required>
+                            <input type="text" class="input-field" id="reg-name" required>
                         </div>
                         <div class="input-group">
                             <label class="input-label">Birthday *</label>
@@ -491,7 +713,7 @@
                     </div>
                     <div class="input-group">
                         <label class="input-label">Address *</label>
-                        <input type="text" class="input-field" id="reg-address" placeholder="Your address" required>
+                        <input type="text" class="input-field" id="reg-address" required>
                     </div>
                     <div class="grid-2">
                         <div class="input-group">
@@ -511,139 +733,101 @@
                         </div>
                         <div class="input-group">
                             <label class="input-label">City *</label>
-                            <input type="text" class="input-field" id="reg-city" placeholder="City" required>
+                            <input type="text" class="input-field" id="reg-city" required>
                         </div>
                     </div>
                     <div class="grid-2">
                         <div class="input-group">
-                            <label class="input-label">WhatsApp Number *</label>
+                            <label class="input-label">WhatsApp *</label>
                             <input type="tel" class="input-field" id="reg-whatsapp" placeholder="07XXXXXXXX" required>
                         </div>
                         <div class="input-group">
                             <label class="input-label">Student ID (Optional)</label>
-                            <input type="text" class="input-field" id="reg-student-id" placeholder="If you have one">
+                            <input type="text" class="input-field" id="reg-student-id">
                         </div>
                     </div>
                     <div class="input-group">
-                        <label class="input-label">Email Address *</label>
-                        <input type="email" class="input-field" id="reg-email" placeholder="Your email" required>
+                        <label class="input-label">Email *</label>
+                        <input type="email" class="input-field" id="reg-email" required>
                     </div>
                     <div class="grid-2">
                         <div class="input-group">
-                            <label class="input-label">Subject *</label>
-                            <select class="input-field" id="reg-subject" required>
-                                <option value="">Select Subject</option>
-                                <option>Korean</option>
-                                <option>Media</option>
-                                <option>ICT</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-label">Grade *</label>
+                            <label class="input-label">Grade Category *</label>
                             <select class="input-field" id="reg-grade" required>
-                                <option value="">Select Grade</option>
-                                <option>Grade 6</option><option>Grade 7</option><option>Grade 8</option>
-                                <option>Grade 9</option><option>Grade 10</option><option>Grade 11</option>
-                                <option>Grade 12</option><option>Grade 13</option>
+                                <option value="">Select</option>
+                                <option value="1-5">Grade 1-5</option>
+                                <option value="6-9">Grade 6-9</option>
+                                <option value="O/L">O/L (Grade 10-11)</option>
+                                <option value="A/L">A/L (Grade 12-13)</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="grid-2">
                         <div class="input-group">
                             <label class="input-label">Password *</label>
-                            <input type="password" class="input-field" id="reg-password" placeholder="Create password" required>
-                        </div>
-                        <div class="input-group">
-                            <label class="input-label">Confirm Password *</label>
-                            <input type="password" class="input-field" id="reg-confirm" placeholder="Confirm password" required>
+                            <input type="password" class="input-field" id="reg-password" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+                    <div class="input-group">
+                        <label class="input-label">Select Classes to Enroll * (Rs. 4,000/month per class)</label>
+                        <div class="class-grid" id="reg-classes">
+                            <div class="class-item" data-class="korean" onclick="selectClass(this)">
+                                <div class="class-name">Korean</div>
+                                <div class="class-price">Rs. 4,000/mo</div>
+                            </div>
+                            <div class="class-item" data-class="media" onclick="selectClass(this)">
+                                <div class="class-name">Media</div>
+                                <div class="class-price">Rs. 4,000/mo</div>
+                            </div>
+                            <div class="class-item" data-class="ict" onclick="selectClass(this)">
+                                <div class="class-name">ICT</div>
+                                <div class="class-price">Rs. 4,000/mo</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;" id="register-btn">Create Account</button>
                 </form>
-                <div class="auth-footer">
-                    Already have an account? <a href="#" onclick="showAuth('login')">Sign In</a>
-                </div>
+                <div class="auth-footer">Have an account? <a href="#" onclick="showPage('login-page')">Sign In</a></div>
             </div>
         </div>
     </div>
 
     <!-- Main App -->
-    <div id="main-app" class="hidden">
-        <!-- Sidebar -->
+    <div id="app-section" style="display: none;">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <a href="#" class="logo" onclick="navigateTo('dashboard')">
+                <div class="logo" onclick="navigate('dashboard')">
                     <div class="logo-icon">NX</div>
-                    <div class="logo-text">
-                        <span class="logo-name">NovaX Edu</span>
-                        <span class="logo-tagline">Sri Lanka's #1 Platform</span>
-                    </div>
-                </a>
+                    <div><div class="logo-text">NovaX Edu</div><div class="logo-tagline">Sri Lanka's #1</div></div>
+                </div>
             </div>
             <nav class="nav-section" id="nav-menu"></nav>
             <div class="sidebar-footer">
-                <div class="user-card" onclick="navigateTo('profile')">
+                <div class="user-card" onclick="navigate('profile')">
                     <div class="user-avatar" id="user-avatar">ST</div>
-                    <div class="user-info">
-                        <div class="user-name" id="user-name">Student</div>
-                        <div class="user-role" id="user-role">Student</div>
-                    </div>
+                    <div><div class="user-name" id="user-name">Student</div><div class="user-role" id="user-role">Student</div></div>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <div class="header-left">
-                    <button class="mobile-toggle" id="mobile-toggle">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-                        </svg>
-                    </button>
-                    <div class="search-bar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <input type="search" placeholder="Search classes, recordings, notes..." id="search-input">
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-                        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                    </button>
-                    <button class="icon-btn" id="notification-btn" aria-label="Notifications">
-                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                        <span class="notification-dot"></span>
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Logout</button>
-                </div>
+                <button class="mobile-toggle" id="menu-toggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
             </header>
-            <div class="page-container" id="page-container"></div>
+            <div class="page-container" id="page-content"></div>
         </main>
     </div>
 
     <!-- Video Modal -->
     <div class="modal-overlay" id="video-modal">
-        <div class="modal video-player-modal">
+        <div class="modal player-modal">
             <div class="modal-header">
-                <h3 class="modal-title" id="video-title">Video Title</h3>
-                <button class="modal-close" onclick="closeModal('video-modal')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+                <h3 class="modal-title" id="video-title">Video</h3>
+                <button class="modal-close" onclick="closeModal('video-modal')">&times;</button>
             </div>
-            <div class="video-player-container">
-                <iframe id="video-iframe" src="" allowfullscreen></iframe>
-            </div>
-            <div class="video-controls">
-                <span style="font-size: 0.75rem; color: var(--fg-muted);">Speed:</span>
-                <select id="video-speed">
-                    <option value="0.5">0.5x</option>
-                    <option value="0.75">0.75x</option>
-                    <option value="1" selected>1x</option>
-                    <option value="1.25">1.25x</option>
-                    <option value="1.5">1.5x</option>
-                    <option value="2">2x</option>
-                </select>
+            <div class="player-wrap">
+                <iframe id="video-frame" src="" allowfullscreen></iframe>
             </div>
         </div>
     </div>
@@ -652,205 +836,331 @@
     <div class="modal-overlay" id="payment-modal">
         <div class="modal">
             <div class="modal-header">
-                <h3 class="modal-title">Request Payment Approval</h3>
-                <button class="modal-close" onclick="closeModal('payment-modal')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+                <h3 class="modal-title">Request Payment</h3>
+                <button class="modal-close" onclick="closeModal('payment-modal')">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="input-group">
-                    <label class="input-label">Subject</label>
-                    <select class="input-field" id="pay-subject"><option>Korean</option><option>Media</option><option>ICT</option></select>
-                </div>
-                <div class="input-group">
-                    <label class="input-label">Batch</label>
-                    <select class="input-field" id="pay-batch"><option>2026</option><option>2027</option><option>2028</option></select>
+                    <label class="input-label">Class</label>
+                    <select class="input-field" id="pay-class"></select>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Month</label>
                     <select class="input-field" id="pay-month">
-                        <option>January</option><option>February</option><option>March</option><option>April</option>
-                        <option>May</option><option>June</option><option>July</option><option>August</option>
-                        <option>September</option><option>October</option><option>November</option><option>December</option>
+                        <option>January</option><option>February</option><option>March</option>
+                        <option>April</option><option>May</option><option>June</option>
+                        <option>July</option><option>August</option><option>September</option>
+                        <option>October</option><option>November</option><option>December</option>
                     </select>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Amount (LKR)</label>
-                    <input type="number" class="input-field" id="pay-amount" placeholder="Enter amount">
+                    <input type="text" class="input-field" id="pay-amount" value="4,000" readonly>
                 </div>
                 <div class="input-group">
                     <label class="input-label">Payment Slip</label>
-                    <input type="file" class="input-field" accept="image/*">
+                    <input type="file" class="input-field" id="pay-slip" accept="image/*">
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('payment-modal')">Cancel</button>
-                <button class="btn btn-primary" onclick="submitPayment()">Submit</button>
+                <button class="btn btn-primary" onclick="submitPayment()">Submit Request</button>
             </div>
         </div>
     </div>
 
-    <!-- Notification Modal -->
-    <div class="modal-overlay" id="notification-modal">
+    <!-- Edit Classes Modal -->
+    <div class="modal-overlay" id="classes-modal">
         <div class="modal">
             <div class="modal-header">
-                <h3 class="modal-title">Notifications</h3>
-                <button class="modal-close" onclick="closeModal('notification-modal')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
+                <h3 class="modal-title">Edit Enrolled Classes</h3>
+                <button class="modal-close" onclick="closeModal('classes-modal')">&times;</button>
             </div>
-            <div class="modal-body" id="notification-list"></div>
+            <div class="modal-body">
+                <p style="font-size: 14px; color: var(--fg-muted); margin-bottom: 16px;">Monthly fee: Rs. 4,000 per class</p>
+                <div class="class-grid" id="edit-classes">
+                    <div class="class-item" data-class="korean" onclick="selectClass(this)">
+                        <div class="class-name">Korean</div>
+                        <div class="class-price">Rs. 4,000/mo</div>
+                    </div>
+                    <div class="class-item" data-class="media" onclick="selectClass(this)">
+                        <div class="class-name">Media</div>
+                        <div class="class-price">Rs. 4,000/mo</div>
+                    </div>
+                    <div class="class-item" data-class="ict" onclick="selectClass(this)">
+                        <div class="class-name">ICT</div>
+                        <div class="class-price">Rs. 4,000/mo</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('classes-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveClasses()">Save Changes</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // ============ CONFIGURATION ============
-        const SUPABASE_URL = 'sb_publishable_mDWDbyoQ8crrc95Xjs9_8A_yL0GcBWx';
+        // ============ SUPABASE ============
+        const SUPABASE_URL = 'https://vegemuqhinyyxeojfbdxd.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk';
-        let supabaseClient = null;
-        
-        // Initialize Supabase
-        if (SUPABASE_URL !== 'sb_publishable_mDWDbyoQ8crrc95Xjs9_8A_yL0GcBWx') {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        }
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ============ STATE ============
-        let currentUser = null;
+        let user = null;
+        let profile = null;
+        let myClasses = [];
         let currentPage = 'dashboard';
+        let fee = 4000;
 
-        // ============ SAMPLE DATA ============
-        const sampleRecordings = [
-            { id: 1, title: 'Korean Grammar - Basic Sentence Structure', subject: 'Korean', batch: '2026', year: '2024', month: 'January', duration: '45:30', status: 'paid' },
-            { id: 2, title: 'Korean Vocabulary - Daily Life Words', subject: 'Korean', batch: '2026', year: '2024', month: 'January', duration: '38:15', status: 'paid' },
-            { id: 3, title: 'Media Studies - Film Analysis', subject: 'Media', batch: '2027', year: '2024', month: 'January', duration: '52:00', status: 'paid' },
-            { id: 4, title: 'ICT - Programming Fundamentals', subject: 'ICT', batch: '2028', year: '2024', month: 'January', duration: '41:45', status: 'free' },
-            { id: 5, title: 'Korean Listening Practice', subject: 'Korean', batch: '2026', year: '2024', month: 'February', duration: '35:20', status: 'locked' },
-            { id: 6, title: 'Media Production Techniques', subject: 'Media', batch: '2027', year: '2024', month: 'February', duration: '48:10', status: 'paid' }
-        ];
+        // ============ TOAST ============
+        function toast(type, title, message) {
+            const container = document.getElementById('toast-container');
+            const icons = {
+                success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
+                error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>',
+                warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+            };
 
-        const samplePayments = [
-            { date: '2024-01-15', subject: 'Korean', batch: '2026', month: 'January', amount: 2500, status: 'approved' },
-            { date: '2024-01-10', subject: 'ICT', batch: '2028', month: 'January', amount: 3000, status: 'approved' },
-            { date: '2024-01-20', subject: 'Media', batch: '2027', month: 'January', amount: 2000, status: 'pending' }
-        ];
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+            `;
+            container.appendChild(t);
 
-        const sampleNotes = [
-            { title: 'Korean Grammar Notes - January 2024', subject: 'Korean', pages: 24, size: '2.4 MB' },
-            { title: 'Media Analysis Workbook', subject: 'Media', pages: 18, size: '1.8 MB' },
-            { title: 'ICT Programming Guide', subject: 'ICT', pages: 32, size: '3.2 MB' }
-        ];
+            setTimeout(() => {
+                t.style.animation = 'slideOut 0.3s ease forwards';
+                setTimeout(() => t.remove(), 300);
+            }, 5000);
+        }
 
-        // ============ NAVIGATION ITEMS ============
+        // ============ PAGE NAVIGATION ============
+        function showPage(pageId) {
+            document.querySelectorAll('#auth-section > div').forEach(p => p.style.display = 'none');
+            document.getElementById(pageId).style.display = 'flex';
+        }
+
+        // ============ CLASS SELECTION ============
+        function selectClass(el) {
+            el.classList.toggle('selected');
+        }
+
+        function getSelectedClasses(containerId) {
+            const selected = [];
+            document.querySelectorAll(`#${containerId} .class-item.selected`).forEach(el => {
+                selected.push(el.dataset.class);
+            });
+            return selected;
+        }
+
+        function setSelectedClasses(containerId, classes) {
+            document.querySelectorAll(`#${containerId} .class-item`).forEach(el => {
+                if (classes.includes(el.dataset.class)) {
+                    el.classList.add('selected');
+                } else {
+                    el.classList.remove('selected');
+                }
+            });
+        }
+
+        // ============ REGISTER ============
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const birthday = document.getElementById('reg-birthday').value;
+            const address = document.getElementById('reg-address').value.trim();
+            const district = document.getElementById('reg-district').value;
+            const city = document.getElementById('reg-city').value.trim();
+            const whatsapp = document.getElementById('reg-whatsapp').value.trim();
+            const studentId = document.getElementById('reg-student-id').value.trim();
+            const grade = document.getElementById('reg-grade').value;
+            const classes = getSelectedClasses('reg-classes');
+
+            if (classes.length === 0) {
+                toast('error', 'Error', 'Please select at least one class');
+                return;
+            }
+
+            const btn = document.getElementById('register-btn');
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                // Create auth user
+                const { data: authData, error: authErr } = await sb.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: { data: { full_name: name } }
+                });
+
+                if (authErr) throw authErr;
+
+                // Create profile
+                const { error: profErr } = await sb.from('profiles').insert([{
+                    id: authData.user.id,
+                    full_name: name,
+                    email: email,
+                    birthday: birthday,
+                    address: address,
+                    district: district,
+                    city: city,
+                    whatsapp: whatsapp,
+                    student_id: studentId || null,
+                    grade: grade,
+                    enrolled_classes: classes,
+                    role: 'student'
+                }]);
+
+                if (profErr) throw profErr;
+
+                toast('success', 'Account Created', 'Please check your email to verify your account');
+                showPage('login-page');
+            } catch (err) {
+                toast('error', 'Registration Failed', err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        });
+
+        // ============ LOGIN ============
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+
+            try {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
+                user = data.user;
+                await loadProfile();
+                showApp();
+                toast('success', 'Welcome Back', `Hello, ${profile?.full_name || 'User'}!`);
+            } catch (err) {
+                toast('error', 'Login Failed', err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        });
+
+        // ============ DEMO LOGIN ============
+        function demoLogin(role) {
+            const names = { student: 'Demo Student', teacher: 'Demo Teacher', admin: 'Admin' };
+            user = { id: 'demo', email: role + '@demo.com' };
+            profile = {
+                full_name: names[role],
+                email: role + '@demo.com',
+                role: role,
+                enrolled_classes: ['korean', 'media'],
+                grade: 'O/L',
+                district: 'Colombo',
+                city: 'Colombo',
+                whatsapp: '0771234567',
+                address: '123 Main St'
+            };
+            myClasses = ['korean', 'media'];
+            showApp();
+            toast('info', 'Demo Mode', `Logged in as ${names[role]}`);
+        }
+
+        // ============ LOGOUT ============
+        async function logout() {
+            if (user?.id !== 'demo') {
+                await sb.auth.signOut();
+            }
+            user = null;
+            profile = null;
+            myClasses = [];
+            document.getElementById('app-section').style.display = 'none';
+            document.getElementById('auth-section').style.display = 'block';
+            showPage('landing-page');
+            toast('info', 'Logged Out', 'See you soon!');
+        }
+
+        // ============ LOAD PROFILE ============
+        async function loadProfile() {
+            if (!user || user.id === 'demo') return;
+
+            try {
+                const { data, error } = await sb.from('profiles').select('*').eq('id', user.id).single();
+                if (error) throw error;
+                profile = data;
+                myClasses = data.enrolled_classes || [];
+            } catch (err) {
+                toast('error', 'Error', 'Could not load profile');
+                console.error(err);
+            }
+        }
+
+        // ============ SHOW APP ============
+        function showApp() {
+            document.getElementById('auth-section').style.display = 'none';
+            document.getElementById('app-section').style.display = 'block';
+            updateUI();
+            buildNav();
+            navigate('dashboard');
+        }
+
+        function updateUI() {
+            const name = profile?.full_name || 'User';
+            const role = profile?.role || 'student';
+            document.getElementById('user-name').textContent = name;
+            document.getElementById('user-role').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+            document.getElementById('user-avatar').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        // ============ NAVIGATION ============
         const navItems = {
             student: [
-                { id: 'dashboard', label: 'Dashboard', icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
-                { id: 'my-classes', label: 'My Classes', icon: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>' },
-                { id: 'classes', label: 'Classes', icon: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>' },
-                { id: 'tutorials', label: 'Tutorials', icon: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>' },
-                { id: 'notes', label: 'Notes', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' },
-                { id: 'timetable', label: 'Timetable', icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
-                { id: 'mcq', label: 'MCQ Tests', icon: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
-                { id: 'payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
+                { id: 'dashboard', label: 'Dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
+                { id: 'classes', label: 'My Classes', icon: '<polygon points="5 3 19 12 5 21 5 3"/>' },
+                { id: 'payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
                 { id: 'profile', label: 'Profile', icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
             ],
             teacher: [
-                { id: 'dashboard', label: 'Dashboard', icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
-                { id: 'manage-students', label: 'Students', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-                { id: 'manage-recordings', label: 'Recordings', icon: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>' },
-                { id: 'manage-notes', label: 'Notes', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
-                { id: 'manage-payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
-                { id: 'live-classes', label: 'Live Classes', icon: '<circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>' },
-                { id: 'timetable', label: 'Timetable', icon: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
-                { id: 'bank-details', label: 'Bank Details', icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
+                { id: 'dashboard', label: 'Dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
+                { id: 'students', label: 'Students', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
+                { id: 'payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
                 { id: 'profile', label: 'Profile', icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
             ],
             admin: [
-                { id: 'dashboard', label: 'Dashboard', icon: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
-                { id: 'manage-users', label: 'Users', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-                { id: 'manage-students', label: 'Students', icon: '<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>' },
-                { id: 'manage-teachers', label: 'Teachers', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/>' },
-                { id: 'manage-recordings', label: 'Recordings', icon: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>' },
-                { id: 'manage-payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
-                { id: 'settings', label: 'Settings', icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
+                { id: 'dashboard', label: 'Dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
+                { id: 'students', label: 'Students', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+                { id: 'payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
+                { id: 'settings', label: 'Settings', icon: '<circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>' },
                 { id: 'profile', label: 'Profile', icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
             ]
         };
 
-        // ============ THEME ============
-        function initTheme() {
-            const theme = localStorage.getItem('novax-theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('novax-theme', next);
-        }
-
-        // ============ AUTH ============
-        function showAuth(page) {
-            document.getElementById('landing-page').classList.add('hidden');
-            document.getElementById('login-page').classList.add('hidden');
-            document.getElementById('register-page').classList.add('hidden');
-            document.getElementById(page + '-page').classList.remove('hidden');
-        }
-
-        function showLanding() {
-            document.getElementById('landing-page').classList.remove('hidden');
-            document.getElementById('login-page').classList.add('hidden');
-            document.getElementById('register-page').classList.add('hidden');
-        }
-
-        function quickLogin(role) {
-            const names = { student: 'Kasun Chathuranga', teacher: 'Dr. Kamal Perera', admin: 'Admin User' };
-            currentUser = {
-                id: 'demo-' + role,
-                name: names[role],
-                email: role + '@novax.edu',
-                role: role,
-                initials: names[role].split(' ').map(n => n[0]).join('')
-            };
-            localStorage.setItem('novax-user', JSON.stringify(currentUser));
-            showMainApp();
-        }
-
-        function handleLogout() {
-            currentUser = null;
-            localStorage.removeItem('novax-user');
-            document.getElementById('main-app').classList.add('hidden');
-            document.getElementById('auth-pages').classList.remove('hidden');
-            showLanding();
-        }
-
-        function showMainApp() {
-            document.getElementById('auth-pages').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            updateUserUI();
-            buildNav();
-            navigateTo('dashboard');
-        }
-
-        function updateUserUI() {
-            document.getElementById('user-name').textContent = currentUser.name;
-            document.getElementById('user-role').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
-            document.getElementById('user-avatar').textContent = currentUser.initials;
-        }
-
-        // ============ NAVIGATION ============
         function buildNav() {
-            const menu = document.getElementById('nav-menu');
-            const items = navItems[currentUser.role] || navItems.student;
-            menu.innerHTML = items.map(item => `
-                <a href="#" class="nav-item ${item.id === currentPage ? 'active' : ''}" onclick="navigateTo('${item.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${item.icon}</svg>
+            const role = profile?.role || 'student';
+            const items = navItems[role];
+            document.getElementById('nav-menu').innerHTML = items.map(item => `
+                <div class="nav-item ${item.id === currentPage ? 'active' : ''}" onclick="navigate('${item.id}')">
+                    <svg viewBox="0 0 24 24">${item.icon}</svg>
                     ${item.label}
-                </a>
+                </div>
             `).join('');
         }
 
-        function navigateTo(page) {
+        function navigate(page) {
             currentPage = page;
             buildNav();
             renderPage(page);
@@ -862,218 +1172,100 @@
             document.getElementById('sidebar-overlay').classList.remove('active');
         }
 
-        // ============ PAGE RENDERERS ============
+        // ============ PAGES ============
         function renderPage(page) {
-            const container = document.getElementById('page-container');
-            const renderers = {
-                'dashboard': renderDashboard,
-                'my-classes': renderMyClasses,
-                'classes': renderClasses,
-                'tutorials': renderTutorials,
-                'notes': renderNotes,
-                'timetable': renderTimetable,
-                'mcq': renderMCQ,
-                'payments': renderPayments,
-                'profile': renderProfile,
-                'manage-students': renderManageStudents,
-                'manage-recordings': renderManageRecordings,
-                'manage-teachers': renderManageTeachers,
-                'manage-users': renderManageUsers,
-                'manage-payments': renderManagePaymentsAdmin,
-                'live-classes': renderLiveClasses,
-                'bank-details': renderBankDetails,
-                'settings': renderSettings
+            const pages = {
+                dashboard: renderDashboard,
+                classes: renderClasses,
+                payments: renderPayments,
+                profile: renderProfile,
+                students: renderStudents,
+                settings: renderSettings
             };
-            container.innerHTML = (renderers[page] || renderDashboard)();
-            animateCards();
-        }
-
-        function animateCards() {
-            setTimeout(() => {
-                document.querySelectorAll('.stat-card, .video-card, .card, .notice-item, .table-container').forEach((el, i) => {
-                    el.style.opacity = '0';
-                    el.style.transform = 'translateY(15px)';
-                    setTimeout(() => {
-                        el.style.transition = 'all 0.35s ease';
-                        el.style.opacity = '1';
-                        el.style.transform = 'translateY(0)';
-                    }, i * 40);
-                });
-            }, 50);
+            document.getElementById('page-content').innerHTML = (pages[page] || pages.dashboard)();
         }
 
         function renderDashboard() {
+            const classBadges = myClasses.length > 0 
+                ? myClasses.map(c => `<span class="badge success">${c.charAt(0).toUpperCase() + c.slice(1)}</span>`).join(' ')
+                : '<span style="color: var(--fg-muted);">No classes enrolled</span>';
+
             return `
-                <div class="live-banner">
-                    <div class="live-banner-left">
-                        <div class="live-indicator"><span class="live-dot"></span>LIVE</div>
-                        <div class="live-info">
-                            <div class="live-class-name">Korean Language - Grammar Session</div>
-                            <div class="live-teacher">with Dr. Kamal Perera</div>
-                        </div>
-                    </div>
-                    <button class="live-join-btn" onclick="joinLive()">Join Now</button>
-                </div>
-                <h1 class="page-title">Welcome back, ${currentUser.name.split(' ')[0]}!</h1>
-                <p class="page-subtitle">Here's what's happening with your learning today.</p>
+                <h1 class="page-title">Welcome, ${profile?.full_name?.split(' ')[0] || 'User'}!</h1>
+                <p class="page-subtitle">Your learning dashboard</p>
+                
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="10 8 16 12 10 16 10 8"/></svg></div><div class="stat-value">47</div><div class="stat-label">Videos Watched</div></div>
-                    <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="stat-value">12</div><div class="stat-label">MCQ Tests</div></div>
-                    <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="stat-value">5</div><div class="stat-label">Upcoming Classes</div></div>
-                    <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="stat-value">8</div><div class="stat-label">Notes Downloaded</div></div>
-                </div>
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-                    <div>
-                        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;">Recent Activity</h2>
-                        <div class="card">
-                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #10b981, #34d399); display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
-                                <div style="flex: 1;"><div style="font-weight: 500; font-size: 0.85rem;">Completed "Korean Grammar Basics"</div><div style="font-size: 0.75rem; color: var(--fg-muted);">2 hours ago</div></div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg></div>
-                                <div style="flex: 1;"><div style="font-weight: 500; font-size: 0.85rem;">Scored 92% on "Media Quiz"</div><div style="font-size: 0.75rem; color: var(--fg-muted);">Yesterday</div></div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0;">
-                                <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #f59e0b, #fbbf24); display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-                                <div style="flex: 1;"><div style="font-weight: 500; font-size: 0.85rem;">Downloaded "ICT Notes - Chapter 5"</div><div style="font-size: 0.75rem; color: var(--fg-muted);">2 days ago</div></div>
-                            </div>
-                        </div>
-                        <h2 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.75rem;">Payment History</h2>
-                        <div class="table-container">
-                            <table><thead><tr><th>Date</th><th>Class</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
-                            <tbody>
-                                <tr><td style="font-family: monospace; font-size: 0.8rem;">2024-01-15</td><td>Korean 2026</td><td>January</td><td style="font-family: monospace;">Rs. 2,500</td><td><span class="status-badge approved">Approved</span></td></tr>
-                                <tr><td style="font-family: monospace; font-size: 0.8rem;">2024-01-10</td><td>ICT 2028</td><td>January</td><td style="font-family: monospace;">Rs. 3,000</td><td><span class="status-badge approved">Approved</span></td></tr>
-                                <tr><td style="font-family: monospace; font-size: 0.8rem;">2024-01-20</td><td>Media 2027</td><td>January</td><td style="font-family: monospace;">Rs. 2,000</td><td><span class="status-badge pending">Pending</span></td></tr>
-                            </tbody></table>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${myClasses.length}</div>
+                        <div class="stat-label">Enrolled Classes</div>
                     </div>
-                    <div>
-                        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem;">Notice Board</h2>
-                        <div class="notice-item urgent"><div class="notice-title">Live Class Today!</div><div class="notice-content">Korean class at 4:00 PM. Don't forget to join!</div><div class="notice-meta">Posted 2 hours ago</div></div>
-                        <div class="notice-item"><div class="notice-title">New Recordings Available</div><div class="notice-content">January week 3 recordings are now uploaded.</div><div class="notice-meta">Posted 1 day ago</div></div>
-                        <div class="notice-item info"><div class="notice-title">Fee Reminder</div><div class="notice-content">February month fees due by 5th February.</div><div class="notice-meta">Posted 3 days ago</div></div>
-                        <h2 style="font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.75rem;">Next Class</h2>
-                        <div class="card" style="text-align: center; padding: 1.5rem;">
-                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent);">16:00</div>
-                            <div style="color: var(--fg-muted); margin-bottom: 0.75rem;">Today</div>
-                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.35rem;">Korean Language</div>
-                            <div style="color: var(--fg-secondary); font-size: 0.85rem;">2026 Batch - Dr. Kamal Perera</div>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-value">Rs. ${fee.toLocaleString()}</div>
+                        <div class="stat-label">Monthly Fee/Class</div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Your Classes</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                        ${classBadges}
+                        <button class="btn btn-secondary btn-sm" onclick="openEditClasses()">Edit</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Quick Actions</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="navigate('classes')">View Recordings</button>
+                        <button class="btn btn-secondary" onclick="navigate('payments')">Make Payment</button>
                     </div>
                 </div>
             `;
         }
 
-        function renderMyClasses() {
-            return `
-                <h1 class="page-title">My Classes</h1>
-                <p class="page-subtitle">Access your enrolled classes and recordings.</p>
-                <div class="filter-bar">
-                    <div class="filter-item"><label>Subject</label><select id="f-subject" onchange="filterVideos()"><option value="all">All</option><option>Korean</option><option>Media</option><option>ICT</option></select></div>
-                    <div class="filter-item"><label>Batch</label><select id="f-batch" onchange="filterVideos()"><option value="all">All</option><option>2026</option><option>2027</option><option>2028</option></select></div>
-                    <div class="filter-item"><label>Year</label><select id="f-year" onchange="filterVideos()"><option value="all">All</option><option>2024</option><option>2025</option><option>2026</option></select></div>
-                    <div class="filter-item"><label>Month</label><select id="f-month" onchange="filterVideos()"><option value="all">All</option><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div>
-                </div>
-                <div class="video-grid" id="video-grid">${renderVideoCards(sampleRecordings)}</div>
-            `;
-        }
-
-        function renderVideoCards(videos) {
-            return videos.map(v => `
-                <div class="video-card" onclick="openVideo('${v.id}', '${v.status}')">
-                    <div class="video-thumbnail">
-                        <div class="video-play-btn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
-                        <span class="video-duration">${v.duration}</span>
-                        <span class="video-badge ${v.status}">${v.status === 'locked' ? 'Locked' : v.status}</span>
-                    </div>
-                    <div class="video-content">
-                        <h3 class="video-title">${v.title}</h3>
-                        <div class="video-meta"><span>${v.subject}</span><span>Batch ${v.batch}</span><span>${v.month} ${v.year}</span></div>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function filterVideos() {
-            const subject = document.getElementById('f-subject').value;
-            const batch = document.getElementById('f-batch').value;
-            const year = document.getElementById('f-year').value;
-            const month = document.getElementById('f-month').value;
-            let filtered = sampleRecordings.filter(v => {
-                if (subject !== 'all' && v.subject !== subject) return false;
-                if (batch !== 'all' && v.batch !== batch) return false;
-                if (year !== 'all' && v.year !== year) return false;
-                if (month !== 'all' && v.month !== month) return false;
-                return true;
-            });
-            document.getElementById('video-grid').innerHTML = renderVideoCards(filtered);
-        }
+        // Sample recordings data
+        const recordings = [
+            { id: 1, title: 'Korean Grammar Basics', subject: 'korean', month: 'January', year: '2024', duration: '45:30', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+            { id: 2, title: 'Korean Vocabulary', subject: 'korean', month: 'January', year: '2024', duration: '38:15', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+            { id: 3, title: 'Media Film Analysis', subject: 'media', month: 'January', year: '2024', duration: '52:00', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+            { id: 4, title: 'ICT Programming Intro', subject: 'ict', month: 'January', year: '2024', duration: '41:45', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+            { id: 5, title: 'Korean Listening Practice', subject: 'korean', month: 'February', year: '2024', duration: '35:20', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+            { id: 6, title: 'Media Production', subject: 'media', month: 'February', year: '2024', duration: '48:10', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' }
+        ];
 
         function renderClasses() {
-            return `
-                <h1 class="page-title">Classes</h1>
-                <p class="page-subtitle">Browse available classes and request access.</p>
-                <div class="filter-bar">
-                    <div class="filter-item"><label>Subject</label><select><option>All</option><option>Korean</option><option>Media</option><option>ICT</option></select></div>
-                    <div class="filter-item"><label>Batch</label><select><option>All</option><option>2026</option><option>2027</option><option>2028</option></select></div>
-                    <div class="filter-item"><label>Month</label><select><option>All</option><option>January</option><option>February</option></select></div>
-                    <div class="filter-item" style="flex: 0;"><label>&nbsp;</label><button class="btn btn-primary" onclick="openModal('payment-modal')">Request Payment</button></div>
-                </div>
-                <div class="table-container">
-                    <table><thead><tr><th>Subject</th><th>Batch</th><th>Year</th><th>Month</th><th>Fee</th><th>Status</th><th>Action</th></tr></thead>
-                    <tbody>
-                        <tr><td><strong>Korean</strong></td><td>2026</td><td>2024</td><td>January</td><td style="font-family: monospace;">Rs. 2,500</td><td><span class="status-badge approved">Approved</span></td><td><button class="btn btn-primary btn-sm" onclick="navigateTo('my-classes')">View</button></td></tr>
-                        <tr><td><strong>Media</strong></td><td>2027</td><td>2024</td><td>January</td><td style="font-family: monospace;">Rs. 2,000</td><td><span class="status-badge pending">Pending</span></td><td><button class="btn btn-secondary btn-sm">Waiting</button></td></tr>
-                        <tr><td><strong>ICT</strong></td><td>2028</td><td>2024</td><td>January</td><td style="font-family: monospace;">Rs. 3,000</td><td><span class="status-badge rejected">Rejected</span></td><td><button class="btn btn-secondary btn-sm" onclick="openModal('payment-modal')">Re-apply</button></td></tr>
-                    </tbody></table>
-                </div>
-            `;
-        }
+            const myRecs = recordings.filter(r => myClasses.includes(r.subject));
 
-        function renderTutorials() {
-            return `
-                <h1 class="page-title">Tutorials</h1>
-                <p class="page-subtitle">Access your tutorial materials and track shipments.</p>
-                <div class="tabs-list"><button class="tab-btn active" onclick="switchTab(event, 'tab-materials')">Materials</button><button class="tab-btn" onclick="switchTab(event, 'tab-shipments')">Shipments</button></div>
-                <div id="tab-materials" class="tab-content active">
-                    <div class="filter-bar">
-                        <div class="filter-item"><label>Subject</label><select><option>All</option><option>Korean</option><option>Media</option><option>ICT</option></select></div>
-                        <div class="filter-item"><label>Batch</label><select><option>All</option><option>2026</option><option>2027</option><option>2028</option></select></div>
+            if (myRecs.length === 0) {
+                return `
+                    <h1 class="page-title">My Classes</h1>
+                    <p class="page-subtitle">Access your class recordings</p>
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                        <p>No recordings available for your enrolled classes</p>
                     </div>
-                    <div class="video-grid">
-                        <div class="video-card"><div class="video-thumbnail" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);"><div class="video-play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="video-badge paid">Available</span></div><div class="video-content"><h3 class="video-title">Korean Tutorial Pack - January 2024</h3><div class="video-meta"><span>Korean</span><span>Batch 2026</span></div></div></div>
-                        <div class="video-card"><div class="video-thumbnail" style="background: linear-gradient(135deg, #10b981, #34d399);"><div class="video-play-btn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="video-badge free">Free</span></div><div class="video-content"><h3 class="video-title">Media Study Guide - Basics</h3><div class="video-meta"><span>Media</span><span>All Batches</span></div></div></div>
-                    </div>
-                </div>
-                <div id="tab-shipments" class="tab-content">
-                    <div class="table-container">
-                        <table><thead><tr><th>Material</th><th>Shipped</th><th>Tracking</th><th>Status</th><th>Action</th></tr></thead>
-                        <tbody>
-                            <tr><td>Korean Tutorial Pack - January</td><td style="font-family: monospace; font-size: 0.8rem;">2024-01-20</td><td>NP123456789LK</td><td><span class="status-badge approved">Delivered</span></td><td><button class="btn btn-success btn-sm" onclick="alert('Shipment confirmed!')">Confirm</button></td></tr>
-                            <tr><td>ICT Workbook - January</td><td style="font-family: monospace; font-size: 0.8rem;">2024-01-25</td><td>NP987654321LK</td><td><span class="status-badge pending">In Transit</span></td><td><button class="btn btn-secondary btn-sm" disabled>Waiting</button></td></tr>
-                        </tbody></table>
-                    </div>
-                </div>
-            `;
-        }
+                `;
+            }
 
-        function renderNotes() {
             return `
-                <h1 class="page-title">Notes</h1>
-                <p class="page-subtitle">Download PDF notes for your classes.</p>
-                <div class="filter-bar">
-                    <div class="filter-item"><label>Subject</label><select><option>All</option><option>Korean</option><option>Media</option><option>ICT</option></select></div>
-                    <div class="filter-item"><label>Batch</label><select><option>All</option><option>2026</option><option>2027</option><option>2028</option></select></div>
-                </div>
+                <h1 class="page-title">My Classes</h1>
+                <p class="page-subtitle">Access recordings (payment required for each month)</p>
                 <div class="video-grid">
-                    ${sampleNotes.map(n => `
-                        <div class="card" style="cursor: pointer;" onclick="alert('Downloading: ${n.title}')">
-                            <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                                <div style="width: 42px; height: 52px; background: linear-gradient(135deg, #ef4444, #f87171); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-                                <div style="flex: 1;"><h3 style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem;">${n.title}</h3><div style="display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--fg-muted);"><span>${n.pages} pages</span><span>${n.size}</span><span>${n.subject}</span></div></div>
-                                <button class="btn btn-primary btn-sm">Download</button>
+                    ${myRecs.map(r => `
+                        <div class="video-card" onclick="openVideo('${r.subject}', '${r.month}', '${r.url}', '${r.title}')">
+                            <div class="video-thumb">
+                                <div class="play-btn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+                                <span class="video-duration">${r.duration}</span>
+                                <span class="video-badge locked">Locked</span>
+                            </div>
+                            <div class="video-info">
+                                <h3 class="video-title">${r.title}</h3>
+                                <div class="video-meta">
+                                    <span>${r.subject}</span>
+                                    <span>${r.month} ${r.year}</span>
+                                </div>
                             </div>
                         </div>
                     `).join('')}
@@ -1081,199 +1273,322 @@
             `;
         }
 
-        function renderTimetable() {
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            const data = { 'Monday': [{ time: '16:00 - 17:30', subject: 'Korean Language', teacher: 'Dr. Kamal Perera' }], 'Wednesday': [{ time: '15:00 - 16:30', subject: 'Media Studies', teacher: 'Mrs. Sarah Fernando' }], 'Friday': [{ time: '16:00 - 17:30', subject: 'ICT', teacher: 'Mr. Nuwan Silva' }], 'Saturday': [{ time: '09:00 - 10:30', subject: 'Korean Language', teacher: 'Dr. Kamal Perera' }] };
-            return `
-                <h1 class="page-title">Timetable</h1>
-                <p class="page-subtitle">Your weekly class schedule.</p>
-                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; overflow-x: auto;">
-                    ${days.map(d => `
-                        <div class="card" style="min-width: 120px; padding: 0.75rem;">
-                            <div style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);">${d}</div>
-                            ${data[d] ? data[d].map(s => `<div style="padding: 0.5rem 0; border-bottom: 1px solid var(--border);"><div style="font-family: monospace; font-size: 0.65rem; color: var(--accent);">${s.time}</div><div style="font-weight: 500; font-size: 0.75rem;">${s.subject}</div><div style="font-size: 0.65rem; color: var(--fg-muted);">${s.teacher}</div></div>`).join('') : '<div style="color: var(--fg-muted); font-size: 0.75rem; padding: 0.5rem 0;">No classes</div>'}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+        async function openVideo(subject, month, url, title) {
+            // Check payment
+            const hasAccess = await checkPayment(subject, month);
+
+            if (!hasAccess) {
+                toast('warning', 'Access Denied', `Please pay for ${subject} - ${month} to unlock this recording`);
+                return;
+            }
+
+            document.getElementById('video-title').textContent = title;
+            document.getElementById('video-frame').src = url;
+            openModal('video-modal');
         }
 
-        function renderMCQ() {
-            const quizzes = [{ title: 'Korean Grammar Quiz', questions: 20, duration: '30 mins', status: 'completed', score: 85 }, { title: 'Media Analysis Test', questions: 15, duration: '25 mins', status: 'pending', score: null }, { title: 'ICT Programming Basics', questions: 25, duration: '40 mins', status: 'completed', score: 92 }];
-            return `
-                <h1 class="page-title">MCQ Tests</h1>
-                <p class="page-subtitle">Test your knowledge with practice quizzes.</p>
-                <div class="video-grid">
-                    ${quizzes.map(q => `
-                        <div class="card">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                                <div><h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.35rem;">${q.title}</h3><div style="display: flex; gap: 0.75rem; font-size: 0.8rem; color: var(--fg-muted);"><span>${q.questions} questions</span><span>${q.duration}</span></div></div>
-                                ${q.status === 'completed' ? `<span class="status-badge approved">${q.score}%</span>` : q.status === 'pending' ? `<span class="status-badge pending">In Progress</span>` : `<span class="status-badge">New</span>`}
-                            </div>
-                            <button class="btn ${q.status === 'completed' ? 'btn-secondary' : 'btn-primary'}" style="width: 100%;">${q.status === 'completed' ? 'View Results' : q.status === 'pending' ? 'Continue' : 'Start Test'}</button>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+        async function checkPayment(subject, month) {
+            if (user?.id === 'demo') return true;
+
+            try {
+                const { data } = await sb
+                    .from('payments')
+                    .select('*')
+                    .eq('student_id', user.id)
+                    .eq('class_name', subject)
+                    .eq('month', month)
+                    .eq('status', 'approved')
+                    .single();
+                return !!data;
+            } catch {
+                return false;
+            }
         }
+
+        let paymentHistory = [];
 
         function renderPayments() {
             return `
                 <h1 class="page-title">Payments</h1>
-                <p class="page-subtitle">Manage your class payments.</p>
+                <p class="page-subtitle">Manage your class payments</p>
+
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="stat-value">Rs. 7,500</div><div class="stat-label">Total Paid</div></div>
-                    <div class="stat-card"><div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-value">Rs. 2,000</div><div class="stat-label">Pending</div></div>
-                </div>
-                <div class="card mb-3">
-                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem;">Bank Details</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem;">
-                        <div><div style="font-size: 0.75rem; color: var(--fg-muted);">Bank Name</div><div style="font-weight: 500;">Commercial Bank</div></div>
-                        <div><div style="font-size: 0.75rem; color: var(--fg-muted);">Account Name</div><div style="font-weight: 500;">NovaX Education</div></div>
-                        <div><div style="font-size: 0.75rem; color: var(--fg-muted);">Account Number</div><div style="font-weight: 500; font-family: monospace;">1234567890</div></div>
-                        <div><div style="font-size: 0.75rem; color: var(--fg-muted);">Branch</div><div style="font-weight: 500;">Colombo 03</div></div>
+                    <div class="stat-card">
+                        <div class="stat-value">Rs. ${fee.toLocaleString()}</div>
+                        <div class="stat-label">Monthly Fee/Class</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${myClasses.length}</div>
+                        <div class="stat-label">Enrolled Classes</div>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table><thead><tr><th>Date</th><th>Class</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
-                    <tbody>
-                        ${samplePayments.map(p => `<tr><td style="font-family: monospace; font-size: 0.8rem;">${p.date}</td><td>${p.subject} ${p.batch}</td><td>${p.month}</td><td style="font-family: monospace;">Rs. ${p.amount.toLocaleString()}</td><td><span class="status-badge ${p.status}">${p.status}</span></td></tr>`).join('')}
-                    </tbody></table>
+
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Bank Details</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                        <div><div style="font-size: 12px; color: var(--fg-muted);">Bank</div><div style="font-weight: 500;">Commercial Bank</div></div>
+                        <div><div style="font-size: 12px; color: var(--fg-muted);">Account</div><div style="font-weight: 500;">NovaX Education</div></div>
+                        <div><div style="font-size: 12px; color: var(--fg-muted);">Account No</div><div style="font-weight: 500; font-family: monospace;">1234567890</div></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; font-weight: 600;">Payment History</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openPaymentModal()">Request Payment</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Date</th><th>Class</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody id="payment-table">
+                            <tr><td colspan="5" style="text-align: center; padding: 40px;">Loading...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             `;
+        }
+
+        async function loadPayments() {
+            const tbody = document.getElementById('payment-table');
+            if (!tbody) return;
+
+            if (user?.id === 'demo') {
+                tbody.innerHTML = `
+                    <tr><td>2024-01-15</td><td>Korean</td><td>January</td><td>Rs. 4,000</td><td><span class="badge success">Approved</span></td></tr>
+                    <tr><td>2024-01-20</td><td>Media</td><td>January</td><td>Rs. 4,000</td><td><span class="badge warning">Pending</span></td></tr>
+                `;
+                return;
+            }
+
+            try {
+                const { data, error } = await sb
+                    .from('payments')
+                    .select('*')
+                    .eq('student_id', user.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                paymentHistory = data || [];
+
+                if (paymentHistory.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--fg-muted);">No payment history</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = paymentHistory.map(p => `
+                    <tr>
+                        <td style="font-family: monospace; font-size: 13px;">${new Date(p.created_at).toLocaleDateString()}</td>
+                        <td>${p.class_name}</td>
+                        <td>${p.month}</td>
+                        <td style="font-family: monospace;">Rs. ${p.amount?.toLocaleString()}</td>
+                        <td><span class="badge ${p.status === 'approved' ? 'success' : p.status === 'pending' ? 'warning' : 'danger'}">${p.status}</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--danger);">Error loading payments</td></tr>';
+            }
+        }
+
+        function openPaymentModal() {
+            document.getElementById('pay-class').innerHTML = myClasses.map(c => 
+                `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`
+            ).join('');
+            openModal('payment-modal');
+        }
+
+        async function submitPayment() {
+            const className = document.getElementById('pay-class').value;
+            const month = document.getElementById('pay-month').value;
+
+            if (!className) {
+                toast('error', 'Error', 'Please select a class');
+                return;
+            }
+
+            if (user?.id === 'demo') {
+                toast('success', 'Demo Mode', 'Payment request submitted (demo)');
+                closeModal('payment-modal');
+                return;
+            }
+
+            try {
+                const { error } = await sb.from('payments').insert([{
+                    student_id: user.id,
+                    class_name: className,
+                    month: month,
+                    amount: fee,
+                    status: 'pending'
+                }]);
+
+                if (error) throw error;
+
+                toast('success', 'Success', 'Payment request submitted!');
+                closeModal('payment-modal');
+                loadPayments();
+            } catch (err) {
+                toast('error', 'Error', err.message);
+            }
         }
 
         function renderProfile() {
             return `
                 <h1 class="page-title">Profile</h1>
-                <p class="page-subtitle">View and manage your account details.</p>
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem;">
+                <p class="page-subtitle">Your account information</p>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
                     <div class="card" style="text-align: center;">
-                        <div style="width: 80px; height: 80px; border-radius: 16px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 2rem; font-weight: 700; color: white;">${currentUser.initials}</div>
-                        <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem;">${currentUser.name}</h2>
-                        <p style="color: var(--fg-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">${currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}</p>
-                        <p style="color: var(--fg-secondary); font-size: 0.8rem;">${currentUser.email}</p>
-                    </div>
-                    <div class="card">
-                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Personal Information</h3>
-                        <div class="grid-2">
-                            <div class="input-group"><label class="input-label">Full Name</label><input type="text" class="input-field" value="${currentUser.name}"></div>
-                            <div class="input-group"><label class="input-label">Email</label><input type="email" class="input-field" value="${currentUser.email}"></div>
-                            <div class="input-group"><label class="input-label">WhatsApp</label><input type="tel" class="input-field" value="0775048455"></div>
-                            <div class="input-group"><label class="input-label">Birthday</label><input type="date" class="input-field" value="2000-01-15"></div>
-                            <div class="input-group" style="grid-column: 1 / -1;"><label class="input-label">Address</label><input type="text" class="input-field" value="123 Main Street, Colombo 03"></div>
+                        <div style="width: 80px; height: 80px; border-radius: 16px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; font-weight: 700; color: white;">
+                            ${(profile?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
                         </div>
-                        <div style="margin-top: 1rem; display: flex; gap: 0.75rem;"><button class="btn btn-primary">Save Changes</button><button class="btn btn-secondary">Change Password</button></div>
+                        <h2 style="font-size: 18px; font-weight: 600;">${profile?.full_name || 'User'}</h2>
+                        <p style="color: var(--fg-muted); font-size: 14px;">${profile?.role || 'Student'}</p>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Personal Information</h3>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                            <div><div style="font-size: 12px; color: var(--fg-muted);">Full Name</div><div style="font-weight: 500;">${profile?.full_name || '-'}</div></div>
+                            <div><div style="font-size: 12px; color: var(--fg-muted);">Email</div><div style="font-weight: 500;">${profile?.email || user?.email || '-'}</div></div>
+                            <div><div style="font-size: 12px; color: var(--fg-muted);">WhatsApp</div><div style="font-weight: 500;">${profile?.whatsapp || '-'}</div></div>
+                            <div><div style="font-size: 12px; color: var(--fg-muted);">Grade</div><div style="font-weight: 500;">${profile?.grade || '-'}</div></div>
+                            <div><div style="font-size: 12px; color: var(--fg-muted);">District</div><div style="font-weight: 500;">${profile?.district || '-'}</div></div>
+                            <div><div style="font-size: 12px; color: var(--fg-muted);">City</div><div style="font-weight: 500;">${profile?.city || '-'}</div></div>
+                            <div style="grid-column: 1 / -1;"><div style="font-size: 12px; color: var(--fg-muted);">Address</div><div style="font-weight: 500;">${profile?.address || '-'}</div></div>
+                        </div>
+
+                        <h3 style="font-size: 16px; font-weight: 600; margin: 24px 0 12px;">Enrolled Classes</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            ${myClasses.map(c => `<span class="badge success">${c.charAt(0).toUpperCase() + c.slice(1)}</span>`).join('')}
+                            <button class="btn btn-secondary btn-sm" onclick="openEditClasses()">Change</button>
+                        </div>
                     </div>
                 </div>
             `;
         }
 
-        // Teacher/Admin pages
-        function renderManageStudents() {
-            const students = [{ name: 'Kasun Chathuranga', email: 'kasun@email.com', phone: '0771234567', subject: 'Korean', batch: '2026', payments: 'Up to date', status: 'active' }, { name: 'Sachini Amarasinghe', email: 'sachini@email.com', phone: '0772345678', subject: 'Media', batch: '2027', payments: 'Pending', status: 'active' }];
-            return `<h1 class="page-title">Manage Students</h1><p class="page-subtitle">View and manage student accounts.</p>
-                <div class="filter-bar"><div class="filter-item" style="flex: 2;"><label>Search</label><input type="text" class="input-field" placeholder="Search by name, email..."></div><div class="filter-item"><label>Status</label><select class="input-field"><option>All</option><option>Active</option><option>Blocked</option></select></div></div>
-                <div class="table-container"><table><thead><tr><th>Student</th><th>Contact</th><th>Subject</th><th>Batch</th><th>Payments</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody>${students.map(s => `<tr><td><div style="display: flex; align-items: center; gap: 0.5rem;"><div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.7rem; color: white;">${s.name.split(' ').map(n=>n[0]).join('')}</div><div><div style="font-weight: 500; font-size: 0.85rem;">${s.name}</div></div></div></td><td><div style="font-size: 0.8rem;">${s.email}</div><div style="font-size: 0.7rem; color: var(--fg-muted);">${s.phone}</div></td><td>${s.subject}</td><td>${s.batch}</td><td><span class="status-badge ${s.payments === 'Up to date' ? 'approved' : 'pending'}">${s.payments}</span></td><td><span class="status-badge ${s.status}">${s.status}</span></td><td><button class="btn btn-secondary btn-sm">Edit</button> <button class="btn btn-danger btn-sm">Block</button></td></tr>`).join('')}</tbody></table></div>`;
+        function openEditClasses() {
+            setSelectedClasses('edit-classes', myClasses);
+            openModal('classes-modal');
         }
 
-        function renderManageRecordings() {
-            return `<h1 class="page-title">Manage Recordings</h1><p class="page-subtitle">Add and manage class recordings.</p><div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;"><button class="btn btn-primary" onclick="alert('Add recording form')">Add Recording</button></div>
-                <div class="table-container"><table><thead><tr><th>Title</th><th>Subject</th><th>Batch</th><th>Date</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody>${sampleRecordings.slice(0,4).map(r => `<tr><td><strong>${r.title}</strong></td><td>${r.subject}</td><td>${r.batch}</td><td style="font-family: monospace; font-size: 0.8rem;">2024-01-${10+r.id}</td><td style="font-family: monospace;">${r.duration}</td><td><span class="status-badge ${r.status === 'paid' ? 'approved' : 'pending'}">${r.status}</span></td><td><button class="btn btn-secondary btn-sm">Edit</button> <button class="btn btn-danger btn-sm">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+        async function saveClasses() {
+            myClasses = getSelectedClasses('edit-classes');
+
+            if (user?.id !== 'demo') {
+                try {
+                    await sb.from('profiles').update({ enrolled_classes: myClasses }).eq('id', user.id);
+                    toast('success', 'Success', 'Classes updated');
+                } catch (err) {
+                    toast('error', 'Error', 'Could not update classes');
+                    return;
+                }
+            }
+
+            closeModal('classes-modal');
+            navigate(currentPage);
         }
 
-        function renderManageTeachers() { return renderManageStudents().replace('Students', 'Teachers').replace('students', 'teachers'); }
-        function renderManageUsers() { return renderManageStudents().replace('Students', 'Users').replace('students', 'users'); }
-        function renderManagePaymentsAdmin() { return renderPayments().replace('Payments', 'All Payments'); }
-        function renderLiveClasses() {
-            return `<h1 class="page-title">Live Classes</h1><p class="page-subtitle">Schedule and manage live sessions.</p><div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;"><button class="btn btn-primary">Schedule Live Class</button></div>
-                <div class="table-container"><table><thead><tr><th>Class</th><th>Subject / Batch</th><th>Date & Time</th><th>Link</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody>
-                    <tr><td><strong>Korean Grammar Session</strong></td><td>Korean / 2026</td><td><div style="font-family: monospace; font-size: 0.8rem;">2024-01-20</div><div style="font-size: 0.75rem; color: var(--fg-muted);">16:00 - 17:30</div></td><td><a href="#" style="color: var(--accent);">Zoom Link</a></td><td><span class="status-badge approved">Scheduled</span></td><td><button class="btn btn-secondary btn-sm">Edit</button> <button class="btn btn-danger btn-sm">Cancel</button></td></tr>
-                </tbody></table></div>`;
-        }
-        function renderBankDetails() { return `<h1 class="page-title">Bank Details</h1><p class="page-subtitle">Manage your bank account for payments.</p><div class="card"><div class="input-group"><label class="input-label">Bank Name</label><input type="text" class="input-field" value="Commercial Bank"></div><div class="grid-2"><div class="input-group"><label class="input-label">Account Name</label><input type="text" class="input-field" value="Dr. Kamal Perera"></div><div class="input-group"><label class="input-label">Account Number</label><input type="text" class="input-field" value="1234567890"></div></div><div class="input-group"><label class="input-label">Branch</label><input type="text" class="input-field" value="Colombo 03"></div><button class="btn btn-primary">Save Changes</button></div>`; }
-        function renderSettings() { return `<h1 class="page-title">Settings</h1><p class="page-subtitle">System configuration.</p><div class="card"><h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">General Settings</h3><div class="input-group"><label class="input-label">Site Name</label><input type="text" class="input-field" value="NovaX Edu"></div><div class="input-group"><label class="input-label">Contact Email</label><input type="email" class="input-field" value="nova.x.team001@gmail.com"></div><div class="input-group"><label class="input-label">Contact WhatsApp</label><input type="tel" class="input-field" value="0775048455"></div><button class="btn btn-primary">Save Settings</button></div>`; }
-
-        // ============ MODAL FUNCTIONS ============
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); if (id === 'video-modal') document.getElementById('video-iframe').src = ''; }
-
-        function openVideo(id, status) {
-            if (status === 'locked') { alert('This video is locked. Please make the required payment.'); return; }
-            document.getElementById('video-title').textContent = 'Class Recording';
-            document.getElementById('video-iframe').src = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-            openModal('video-modal');
+        function renderStudents() {
+            return `
+                <h1 class="page-title">Students</h1>
+                <p class="page-subtitle">Manage student accounts</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Name</th><th>Email</th><th>Classes</th><th>Grade</th></tr></thead>
+                        <tbody>
+                            <tr><td>Kasun Perera</td><td>kasun@email.com</td><td>Korean, Media</td><td>O/L</td></tr>
+                            <tr><td>Sachini Silva</td><td>sachini@email.com</td><td>ICT</td><td>A/L</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
         }
 
-        function submitPayment() { alert('Payment request submitted!'); closeModal('payment-modal'); }
+        function renderSettings() {
+            return `
+                <h1 class="page-title">Settings</h1>
+                <p class="page-subtitle">System configuration</p>
+                <div class="card">
+                    <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">Fee Settings</h3>
+                    <div class="input-group" style="max-width: 300px;">
+                        <label class="input-label">Monthly Fee (LKR)</label>
+                        <input type="number" class="input-field" id="fee-input" value="${fee}">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveFee()">Save Settings</button>
+                </div>
+            `;
+        }
 
-        function joinLive() { window.open('https://zoom.us', '_blank'); }
+        function saveFee() {
+            const newFee = parseInt(document.getElementById('fee-input').value);
+            if (newFee > 0) {
+                fee = newFee;
+                toast('success', 'Saved', `Monthly fee set to Rs. ${fee.toLocaleString()}`);
+            }
+        }
 
-        function switchTab(e, id) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            e.target.classList.add('active');
+        // ============ MODALS ============
+        function openModal(id) {
             document.getElementById(id).classList.add('active');
         }
 
-        // ============ NOTIFICATIONS ============
-        function showNotifications() {
-            document.getElementById('notification-list').innerHTML = `
-                <div class="notice-item"><div class="notice-title">New Recording Available</div><div class="notice-content">Korean class recording for January 15th is now available.</div><div class="notice-meta">2 hours ago</div></div>
-                <div class="notice-item urgent"><div class="notice-title">Payment Reminder</div><div class="notice-content">Your February payment is due in 5 days.</div><div class="notice-meta">1 day ago</div></div>
-            `;
-            openModal('notification-modal');
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            if (id === 'video-modal') {
+                document.getElementById('video-frame').src = '';
+            }
         }
 
-        // ============ INITIALIZATION ============
-        function init() {
-            initTheme();
+        // ============ INIT ============
+        async function init() {
+            // Check session
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                user = session.user;
+                await loadProfile();
+                showApp();
+            }
 
-            // Theme toggle
-            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            // Listen for auth changes
+            sb.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    user = session.user;
+                    await loadProfile();
+                    showApp();
+                } else if (event === 'SIGNED_OUT') {
+                    user = null;
+                    profile = null;
+                    myClasses = [];
+                }
+            });
 
-            // Mobile sidebar
-            document.getElementById('mobile-toggle').addEventListener('click', () => {
+            // Mobile menu
+            document.getElementById('menu-toggle').addEventListener('click', () => {
                 document.getElementById('sidebar').classList.toggle('active');
                 document.getElementById('sidebar-overlay').classList.toggle('active');
             });
+
             document.getElementById('sidebar-overlay').addEventListener('click', closeSidebar);
 
-            // Notification button
-            document.getElementById('notification-btn').addEventListener('click', showNotifications);
-
-            // Check saved session
-            const savedUser = localStorage.getItem('novax-user');
-            if (savedUser) { currentUser = JSON.parse(savedUser); showMainApp(); }
-
-            // Login form
-            document.getElementById('login-form').addEventListener('submit', e => { e.preventDefault(); quickLogin('student'); });
-
-            // Register form
-            document.getElementById('register-form').addEventListener('submit', e => {
-                e.preventDefault();
-                const pw = document.getElementById('reg-password').value;
-                const confirm = document.getElementById('reg-confirm').value;
-                if (pw !== confirm) { alert('Passwords do not match!'); return; }
-                alert('Registration successful! Please login.');
-                showAuth('login');
+            // Close modals on overlay click
+            document.querySelectorAll('.modal-overlay').forEach(m => {
+                m.addEventListener('click', (e) => {
+                    if (e.target === m) closeModal(m.id);
+                });
             });
 
-            // Close modals on overlay click
-            document.querySelectorAll('.modal-overlay').forEach(o => { o.addEventListener('click', e => { if (e.target === o) o.classList.remove('active'); }); });
-
-            // Landing page buttons
-            const landingBtns = document.querySelectorAll('#landing-page .hero-buttons .btn');
-            if (landingBtns[0]) landingBtns[0].addEventListener('click', () => showAuth('login'));
-            if (landingBtns[1]) landingBtns[1].addEventListener('click', () => showAuth('register'));
+            // Load payments when on that page
+            const originalRender = renderPage;
+            window.renderPage = function(page) {
+                originalRender(page);
+                if (page === 'payments') {
+                    setTimeout(loadPayments, 100);
+                }
+            };
         }
 
-        // Run
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-        else init();
+        init();
     </script>
 </body>
 </html>
