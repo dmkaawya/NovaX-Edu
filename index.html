@@ -1,1387 +1,2169 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovaX Edu - Sri Lanka's #1 Education Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --bg: #0a0c10;
-            --bg-card: #12151c;
-            --bg-elevated: #1a1e28;
-            --fg: #e8eaed;
-            --fg-muted: #7a8290;
-            --accent: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.3);
-            --success: #22c55e;
-            --warning: #eab308;
-            --danger: #ef4444;
-            --border: #232830;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>EduFlow LMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ===== THEME VARIABLES ===== */
+[data-theme="dark"]{
+  --bg:#07080f;--surface:#0f1019;--surface2:#161724;--surface3:#1d1e2e;
+  --border:#252638;--border2:#2e3050;
+  --text:#e8eaf5;--muted:#6b7099;--muted2:#9096c0;
+  --card-shadow:0 4px 24px rgba(0,0,0,.4);
+  --nav-bg:rgba(7,8,15,.92);
+  --sidebar-bg:#0f1019;
+  --input-bg:#161724;
+  --modal-bg:#0f1019;
+}
+[data-theme="light"]{
+  --bg:#f0f2fa;--surface:#ffffff;--surface2:#f4f5fb;--surface3:#eaecf8;
+  --border:#dde0f0;--border2:#c8ccec;
+  --text:#1a1d3a;--muted:#8890c0;--muted2:#5560a0;
+  --card-shadow:0 4px 24px rgba(79,142,247,.08);
+  --nav-bg:rgba(255,255,255,.92);
+  --sidebar-bg:#ffffff;
+  --input-bg:#f4f5fb;
+  --modal-bg:#ffffff;
+}
+:root{
+  --accent:#4f8ef7;--accent2:#f7664f;--accent3:#4ff7a8;--accent4:#f7c94f;
+  --radius:12px;--radius-lg:18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+[data-theme="dark"] body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 15% 10%,rgba(79,142,247,.07),transparent 60%),radial-gradient(ellipse 50% 60% at 85% 85%,rgba(247,102,79,.05),transparent 60%);pointer-events:none;z-index:0}
+.page{display:none;position:relative;z-index:1;min-height:100vh}
+.page.active{display:block}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg);
-            color: var(--fg);
-            min-height: 100vh;
-            line-height: 1.5;
-        }
+/* ===== NAV ===== */
+.top-nav{position:sticky;top:0;z-index:300;background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;gap:.5rem;transition:background .3s}
+.logo{font-size:1.3rem;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;white-space:nowrap}
+.nav-links{display:flex;gap:1.5rem;align-items:center}
+.nav-links a{color:var(--muted2);text-decoration:none;font-size:.82rem;font-weight:500;cursor:pointer;transition:color .2s;white-space:nowrap}
+.nav-links a:hover{color:var(--text)}
+.nav-right{display:flex;gap:.5rem;align-items:center;flex-shrink:0}
+@media(max-width:640px){.nav-links{display:none}}
 
-        /* Toast */
-        .toast-wrap {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+/* ===== THEME TOGGLE ===== */
+.theme-toggle{width:44px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;cursor:pointer;position:relative;transition:all .3s;flex-shrink:0}
+.theme-toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--accent);transition:transform .3s}
+[data-theme="light"] .theme-toggle::after{transform:translateX(20px);background:var(--accent4)}
+.theme-icon{font-size:.9rem;line-height:1}
 
-        .toast {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 16px;
-            min-width: 280px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: toastIn 0.3s ease;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        }
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:8px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;border:none;text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:rgba(247,102,79,.12);border:1px solid rgba(247,102,79,.3);color:var(--accent2)}
+.btn-danger:hover{background:var(--accent2);color:#fff}
+.btn-success{background:rgba(79,247,168,.12);border:1px solid rgba(79,247,168,.3);color:var(--accent3)}
+.btn-success:hover{background:var(--accent3);color:#07080f}
+.btn-sm{padding:.3rem .75rem;font-size:.74rem}
+.btn-lg{padding:.75rem 1.8rem;font-size:.95rem;border-radius:12px}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted2)}
+.btn-icon:hover{color:var(--text);border-color:var(--border2)}
+button:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 
-        .toast.success { border-left: 3px solid var(--success); }
-        .toast.error { border-left: 3px solid var(--danger); }
-        .toast.warning { border-left: 3px solid var(--warning); }
+/* ===== CARDS ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--card-shadow)}
+.card-body{padding:1.25rem}
+.card:hover{border-color:var(--border2)}
 
-        .toast-icon { width: 18px; height: 18px; flex-shrink: 0; }
-        .toast.success .toast-icon { color: var(--success); }
-        .toast.error .toast-icon { color: var(--danger); }
-        .toast.warning .toast-icon { color: var(--warning); }
+/* ===== BADGES ===== */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .65rem;border-radius:100px;font-size:.68rem;font-weight:700;letter-spacing:.4px}
+.badge-free{background:rgba(79,247,168,.12);color:var(--accent3);border:1px solid rgba(79,247,168,.25)}
+.badge-paid{background:rgba(247,102,79,.12);color:var(--accent2);border:1px solid rgba(247,102,79,.25)}
+.badge-blue{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.25)}
+.badge-yellow{background:rgba(247,201,79,.12);color:var(--accent4);border:1px solid rgba(247,201,79,.25)}
+.badge-green{background:rgba(79,247,168,.12);color:var(--accent3);border:1px solid rgba(79,247,168,.25)}
 
-        .toast-msg { font-size: 13px; flex: 1; }
-        .toast-close { background: none; border: none; color: var(--fg-muted); cursor: pointer; font-size: 16px; padding: 0; }
+/* ===== FORMS ===== */
+.form-group{margin-bottom:1.1rem}
+.form-label{display:block;font-size:.75rem;font-weight:600;color:var(--muted2);margin-bottom:.4rem;letter-spacing:.3px}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--input-bg);border:1px solid var(--border2);color:var(--text);padding:.65rem .9rem;border-radius:8px;font-family:inherit;font-size:.87rem;transition:all .2s;outline:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,247,.12)}
+.form-textarea{resize:vertical;min-height:75px}
+.form-select{cursor:pointer}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
 
-        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:600;display:none;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--modal-bg);border:1px solid var(--border2);border-radius:20px;padding:1.5rem;width:100%;max-width:520px;margin:auto;position:relative;animation:modalIn .25s ease;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.modal-lg{max-width:680px}
+.modal-xl{max-width:900px}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal-title{font-size:1.15rem;font-weight:700;margin-bottom:1.3rem;letter-spacing:-.4px;padding-right:2rem}
+.modal-close{position:absolute;top:1rem;right:1rem;background:var(--surface2);border:1px solid var(--border);color:var(--muted2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.modal-close:hover{color:var(--text);border-color:var(--border2)}
 
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px 18px;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
+/* ===== ALERTS ===== */
+.alert{padding:.7rem .9rem;border-radius:8px;font-size:.82rem;margin-bottom:.9rem}
+.alert-error{background:rgba(247,102,79,.1);border:1px solid rgba(247,102,79,.3);color:var(--accent2)}
+.alert-success{background:rgba(79,247,168,.1);border:1px solid rgba(79,247,168,.3);color:var(--accent3)}
+.alert-info{background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.3);color:var(--accent)}
 
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* ===== LAYOUT ===== */
+.sidebar-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
+.sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border);padding:1rem .75rem;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;transition:all .3s}
+.sidebar-section{font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:.4rem .75rem;margin:.6rem 0 .2rem}
+.sidebar-item{display:flex;align-items:center;gap:.65rem;padding:.6rem .8rem;border-radius:9px;font-size:.83rem;font-weight:500;color:var(--muted2);cursor:pointer;transition:all .2s;margin-bottom:.1rem;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.sidebar-item:hover{background:var(--surface2);color:var(--text)}
+.sidebar-item.active{background:rgba(79,142,247,.1);color:var(--accent);font-weight:600}
+.sidebar-item .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar-badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:100px;font-size:.62rem;font-weight:700;padding:.1rem .45rem;min-width:18px;text-align:center}
+.main-content{padding:1.5rem;overflow-y:auto;min-width:0}
 
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+/* MOBILE SIDEBAR */
+.sidebar-toggle{display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1rem;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250}
+@media(max-width:768px){
+  .sidebar-layout{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-260px;top:60px;height:calc(100vh - 60px);width:240px;z-index:260;transition:left .3s;box-shadow:none}
+  .sidebar.open{left:0;box-shadow:4px 0 24px rgba(0,0,0,.3)}
+  .sidebar-overlay.open{display:block}
+  .sidebar-toggle{display:flex}
+  .main-content{padding:1rem}
+}
 
-        .btn-secondary { background: var(--bg-elevated); color: var(--fg); border: 1px solid var(--border); }
-        .btn-secondary:hover:not(:disabled) { background: var(--border); }
+/* ===== GRID ===== */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:400px){.g3,.g4{grid-template-columns:1fr}}
 
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
+/* ===== STAT CARD ===== */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem;transition:all .3s}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat-icon{font-size:1.6rem;margin-bottom:.6rem}
+.stat-val{font-size:1.8rem;font-weight:800;letter-spacing:-1px;line-height:1}
+.stat-label{font-size:.72rem;color:var(--muted2);margin-top:.25rem}
 
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
+/* ===== SECTION HEADER ===== */
+.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;gap:.75rem;flex-wrap:wrap}
+.sec-title{font-size:1.1rem;font-weight:700;letter-spacing:-.4px}
+.sec-tag{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem}
 
-        /* Inputs */
-        .form-group { margin-bottom: 14px; }
-        .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--fg-muted); margin-bottom: 5px; }
-        .form-input {
-            width: 100%;
-            padding: 10px 12px;
-            font-family: inherit;
-            font-size: 13px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--fg);
-            transition: border-color 0.15s;
-        }
-        .form-input:focus { outline: none; border-color: var(--accent); }
-        .form-input::placeholder { color: var(--fg-muted); }
+/* ===== TABLE ===== */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;min-width:500px}
+th{background:var(--surface2);padding:.65rem .9rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--muted2);letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.7rem .9rem;font-size:.82rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(79,142,247,.03)}
 
-        select.form-input {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%237a8290' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 30px;
-        }
+/* ===== TABS ===== */
+.tabs{display:flex;gap:.3rem;background:var(--surface2);border-radius:10px;padding:.3rem;flex-wrap:wrap}
+.tab-btn{padding:.42rem 1rem;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted2);font-family:inherit;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:var(--accent);color:#fff}
 
-        /* Cards */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 18px;
-        }
+/* ===== PROGRESS ===== */
+.progress{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width .8s ease}
 
-        /* Class Selector */
-        .class-options { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-        .class-opt {
-            padding: 14px 18px;
-            background: var(--bg);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.15s;
-            text-align: center;
-            min-width: 120px;
-        }
-        .class-opt:hover { border-color: var(--accent); }
-        .class-opt.active { background: var(--accent); border-color: var(--accent); color: white; }
-        .class-opt.active .class-price { color: rgba(255,255,255,0.7); }
-        .class-name { font-weight: 600; font-size: 14px; }
-        .class-price { font-size: 11px; color: var(--fg-muted); margin-top: 2px; }
+/* ===== TOAST ===== */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:900;display:flex;flex-direction:column;gap:.5rem;max-width:320px;width:calc(100% - 3rem)}
+.toast{background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:.8rem 1rem;font-size:.82rem;animation:toastIn .3s ease;display:flex;align-items:center;gap:.6rem;box-shadow:var(--card-shadow)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
 
-        /* Layout */
-        .app-layout { display: flex; min-height: 100vh; }
+/* ===== LIVE PULSE ===== */
+.live-dot{width:8px;height:8px;border-radius:50%;background:#ff4444;animation:livepulse 1.5s infinite;flex-shrink:0}
+@keyframes livepulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
 
-        /* Sidebar */
-        .sidebar {
-            width: 240px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            z-index: 100;
-            transition: transform 0.2s;
-        }
+/* ===== VIDEO / REC CARDS ===== */
+.rec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .25s;cursor:pointer;position:relative}
+.rec-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,142,247,.12)}
+.rec-card.viewed{border-color:var(--accent3)}
+.rec-thumb{height:130px;background:linear-gradient(135deg,#0d1b2e,#1a2e4a);display:flex;align-items:center;justify-content:center;font-size:2rem;position:relative;overflow:hidden}
+[data-theme="light"] .rec-thumb{background:linear-gradient(135deg,#dde8ff,#c8d8ff)}
+.rec-play-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.rec-card:hover .rec-play-overlay{opacity:1}
+.rec-play-btn{width:48px;height:48px;border-radius:50%;background:rgba(79,142,247,.9);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fff}
+.rec-body{padding:.9rem}
+.rec-title{font-size:.88rem;font-weight:700;margin-bottom:.35rem;line-height:1.35}
+.rec-desc{font-size:.75rem;color:var(--muted2);line-height:1.5;margin-bottom:.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rec-meta{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.7rem;color:var(--muted);margin-bottom:.6rem}
+.rec-footer{display:flex;align-items:center;justify-content:space-between;gap:.4rem;flex-wrap:wrap}
+.viewed-check{position:absolute;top:.6rem;right:.6rem;background:var(--accent3);color:#07080f;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700}
+.lock-badge{position:absolute;top:.6rem;left:.6rem;background:rgba(247,102,79,.85);color:#fff;border-radius:6px;padding:.15rem .5rem;font-size:.65rem;font-weight:700}
 
-        @media (max-width: 900px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .main-area { margin-left: 0 !important; }
-        }
+/* ===== YEAR/MONTH TREE ===== */
+.year-block{margin-bottom:.75rem;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.year-hdr{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;background:var(--surface2);cursor:pointer;user-select:none;transition:background .2s}
+.year-hdr:hover{background:var(--surface3)}
+.year-hdr.open{background:rgba(79,142,247,.08);border-bottom:1px solid var(--border)}
+.year-hdr-title{font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:.6rem}
+.year-body{display:none;padding:.75rem}
+.year-body.open{display:block}
+.month-block{margin-bottom:.5rem;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.month-hdr{display:flex;align-items:center;justify-content:space-between;padding:.65rem .9rem;background:var(--surface2);cursor:pointer;user-select:none;transition:background .2s;font-size:.85rem;font-weight:600}
+.month-hdr:hover,.month-hdr.open{background:var(--surface3)}
+.month-body{display:none;padding:.75rem .75rem .5rem;background:var(--surface)}
+.month-body.open{display:block}
+.type-tabs{display:flex;gap:.35rem;margin-bottom:.75rem;flex-wrap:wrap}
+.type-tab{padding:.28rem .8rem;border-radius:100px;font-size:.7rem;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--muted2);font-family:inherit;transition:all .2s;white-space:nowrap}
+.type-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.videos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem}
+@media(max-width:480px){.videos-grid{grid-template-columns:1fr}}
 
-        .sidebar-head { padding: 18px; border-bottom: 1px solid var(--border); }
-        .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .brand-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 13px;
-            color: white;
-        }
-        .brand-text { font-size: 16px; font-weight: 700; }
-        .brand-tag { font-size: 9px; color: var(--fg-muted); }
+/* ===== NOTE CARD ===== */
+.note-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;gap:.8rem;align-items:center;transition:all .2s;margin-bottom:.6rem}
+.note-card:hover{border-color:var(--accent4)}
+.note-icon{width:42px;height:42px;border-radius:10px;background:rgba(247,201,79,.12);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.note-info{flex:1;min-width:0}
+.note-title{font-size:.88rem;font-weight:700;margin-bottom:.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.note-meta{font-size:.72rem;color:var(--muted2)}
 
-        .nav-area { padding: 10px 0; flex: 1; overflow-y: auto; }
-        .nav-section { padding: 6px 14px; font-size: 10px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+/* ===== LIVE CLASS CARD ===== */
+.live-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;transition:all .2s;margin-bottom:.75rem}
+.live-card.live-now{border-color:rgba(255,68,68,.5);background:rgba(255,68,68,.04)}
+.live-card.upcoming{border-color:rgba(79,142,247,.3)}
 
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            color: var(--fg-muted);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.1s;
-            position: relative;
-        }
-        .nav-link:hover, .nav-link.active { color: var(--fg); background: var(--bg-elevated); }
-        .nav-link.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--accent);
-        }
-        .nav-link svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+/* ===== QUIZ ===== */
+.quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;margin-bottom:.75rem;transition:all .2s}
+.quiz-opt{background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:.8rem 1rem;cursor:pointer;transition:all .2s;font-size:.88rem;margin-bottom:.5rem}
+.quiz-opt:hover{border-color:var(--accent);background:rgba(79,142,247,.06)}
+.quiz-opt.selected{border-color:var(--accent);background:rgba(79,142,247,.12)}
+.quiz-opt.correct{border-color:var(--accent3)!important;background:rgba(79,247,168,.1)!important;color:var(--accent3)}
+.quiz-opt.wrong{border-color:var(--accent2)!important;background:rgba(247,102,79,.1)!important;color:var(--accent2)}
 
-        .sidebar-foot { padding: 14px; border-top: 1px solid var(--border); }
-        .user-info { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; cursor: pointer; }
-        .user-info:hover { background: var(--bg-elevated); }
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 12px;
-            color: white;
-        }
-        .user-name { font-weight: 600; font-size: 13px; }
-        .user-role { font-size: 11px; color: var(--fg-muted); }
+/* ===== PROFILE ===== */
+.profile-av{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#fff;flex-shrink:0}
 
-        /* Main */
-        .main-area {
-            flex: 1;
-            margin-left: 240px;
-            display: flex;
-            flex-direction: column;
-        }
+/* ===== LANDING ===== */
+.hero{padding:5rem 1.5rem 3.5rem;max-width:900px;margin:0 auto;text-align:center}
+.hero h1{font-size:clamp(2.2rem,6vw,4.2rem);font-weight:800;letter-spacing:-2px;line-height:1.06;margin-bottom:1rem}
+.grad-text{background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:1rem;color:var(--muted2);max-width:480px;margin:0 auto 2rem;line-height:1.7}
+.hero-btns{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+.hero-stats{display:flex;gap:2.5rem;justify-content:center;margin-top:2.5rem;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat-val{font-size:1.6rem;font-weight:800;letter-spacing:-1px}
+.hero-stat-label{font-size:.72rem;color:var(--muted2);margin-top:.1rem}
+.section-wrap{max-width:1200px;margin:0 auto;padding:3rem 1.5rem}
+.section-wrap h2{font-size:1.8rem;font-weight:800;letter-spacing:-1px;margin-bottom:.4rem}
+.section-sub{color:var(--muted2);margin-bottom:1.8rem;font-size:.9rem}
+.courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1.25rem}
+.course-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all .3s}
+.course-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:var(--card-shadow)}
+.course-thumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;position:relative}
+.course-body{padding:1.1rem}
+.teacher-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;text-align:center;transition:all .3s}
+.teacher-card:hover{border-color:var(--border2);transform:translateY(-3px)}
+.teacher-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;margin:0 auto .9rem;color:#fff}
+.footer-bar{background:var(--surface);border-top:1px solid var(--border);padding:1.5rem;text-align:center;color:var(--muted2);font-size:.8rem}
 
-        .topbar {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
+/* ===== YOUTUBE MODAL ===== */
+.yt-modal{background:#000;border:1px solid var(--border2);border-radius:20px;padding:0;width:100%;max-width:800px;margin:auto;position:relative;overflow:hidden}
+.yt-modal-header{background:var(--surface2);padding:.9rem 1.2rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+.yt-modal-title{font-size:.9rem;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yt-frame-wrap{position:relative;padding-bottom:56.25%;height:0;overflow:hidden}
+.yt-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.yt-modal-info{background:var(--surface2);padding:1rem 1.2rem}
+.yt-info-row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;font-size:.78rem;color:var(--muted2)}
 
-        .menu-btn {
-            display: none;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 6px;
-            cursor: pointer;
-            color: var(--fg);
-        }
-        @media (max-width: 900px) { .menu-btn { display: flex; } }
-        .menu-btn svg { width: 18px; height: 18px; stroke: currentColor; }
+/* ===== ACCESS BADGE ===== */
+.pill{display:inline-block;padding:.15rem .6rem;border-radius:100px;font-size:.67rem;font-weight:700}
+.pill-blue{background:rgba(79,142,247,.12);color:var(--accent)}
+.pill-green{background:rgba(79,247,168,.12);color:var(--accent3)}
+.pill-orange{background:rgba(247,102,79,.12);color:var(--accent2)}
+.pill-yellow{background:rgba(247,201,79,.12);color:var(--accent4)}
 
-        .page-body { padding: 20px; flex: 1; }
+/* ===== EMPTY STATE ===== */
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted2)}
+.empty .ei{font-size:2.5rem;margin-bottom:.75rem;opacity:.35}
 
-        .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-        .page-desc { font-size: 13px; color: var(--fg-muted); margin-bottom: 20px; }
+/* ===== DIVIDER ===== */
+hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
 
-        /* Stats */
-        .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 20px; }
-        .stat-box { padding: 16px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--border); }
-        .stat-num { font-size: 24px; font-weight: 700; }
-        .stat-text { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
+/* ===== CONFIRM MODAL ===== */
+.confirm-actions{display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem}
 
-        /* Month Grid */
-        .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+/* ===== TEACHER BANNER ===== */
+.teacher-banner{background:linear-gradient(135deg,rgba(79,142,247,.1),rgba(79,247,168,.05));border:1px solid rgba(79,142,247,.2);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 
-        .month-card {
-            background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            transition: all 0.15s;
-            cursor: pointer;
-        }
+/* ===== ACCESS CONTROL GRID ===== */
+.access-grid{display:grid;gap:.4rem}
+.access-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem .9rem;background:var(--surface2);border-radius:8px;font-size:.82rem;gap:.5rem;flex-wrap:wrap}
+.access-row-label{font-weight:600;color:var(--text);display:flex;align-items:center;gap:.4rem}
+.access-toggles{display:flex;gap:.4rem;flex-wrap:wrap}
+.access-toggle{padding:.22rem .65rem;border-radius:6px;font-size:.68rem;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:transparent;font-family:inherit;transition:all .2s;color:var(--muted2)}
+.access-toggle.on{background:var(--accent3);color:#07080f;border-color:var(--accent3)}
+.access-toggle:hover{border-color:var(--accent)}
 
-        .month-card.locked { opacity: 0.7; }
-        .month-card.locked:hover { border-color: var(--danger); }
-        .month-card.unlocked { border-color: var(--success); background: rgba(34, 197, 94, 0.05); }
-        .month-card.unlocked:hover { border-color: var(--success); }
-        .month-card.pending { border-color: var(--warning); background: rgba(234, 179, 8, 0.05); }
-
-        .month-name { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
-        .month-status { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-block; }
-        .month-status.locked { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-        .month-status.unlocked { background: rgba(34, 197, 94, 0.15); color: var(--success); }
-        .month-status.pending { background: rgba(234, 179, 8, 0.15); color: var(--warning); }
-
-        .month-action { margin-top: 10px; }
-
-        /* Video List */
-        .video-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-top: 16px; }
-
-        .video-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-
-        .video-item:hover { transform: translateY(-2px); border-color: var(--accent); }
-        .video-item.locked { opacity: 0.6; cursor: not-allowed; }
-
-        .video-thumb {
-            height: 140px;
-            background: linear-gradient(135deg, #1a1d24, #252a34);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .video-play {
-            width: 44px;
-            height: 44px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-        }
-        .video-item:hover .video-play { background: var(--accent); transform: scale(1.1); }
-        .video-play svg { width: 18px; height: 18px; fill: white; margin-left: 2px; }
-
-        .video-len {
-            position: absolute;
-            bottom: 6px;
-            right: 6px;
-            background: rgba(0,0,0,0.85);
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-family: monospace;
-        }
-
-        .video-lock-badge {
-            position: absolute;
-            top: 6px;
-            left: 6px;
-            background: var(--danger);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .video-info { padding: 12px; }
-        .video-title { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-        .video-meta { font-size: 11px; color: var(--fg-muted); }
-
-        /* Table */
-        .table-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
-        th { font-size: 11px; font-weight: 600; color: var(--fg-muted); background: var(--bg-elevated); text-transform: uppercase; }
-        tr:last-child td { border-bottom: none; }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .badge.success { background: rgba(34, 197, 94, 0.15); color: var(--success); }
-        .badge.warning { background: rgba(234, 179, 8, 0.15); color: var(--warning); }
-        .badge.danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-
-        /* Auth */
-        .auth-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .auth-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 28px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .auth-head { text-align: center; margin-bottom: 24px; }
-        .auth-title { font-size: 20px; font-weight: 700; }
-        .auth-sub { font-size: 13px; color: var(--fg-muted); margin-top: 4px; }
-
-        .auth-foot { text-align: center; margin-top: 18px; font-size: 13px; color: var(--fg-muted); }
-        .auth-foot a { color: var(--accent); text-decoration: none; font-weight: 500; }
-
-        /* Modal */
-        .modal-bg {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.75);
-            z-index: 200;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-        }
-        .modal-bg.show { display: flex; }
-
-        .modal-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            width: 100%;
-            max-width: 420px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-        .modal-title { font-size: 16px; font-weight: 600; }
-        .modal-x { background: var(--bg-elevated); border: none; border-radius: 6px; padding: 4px 8px; cursor: pointer; color: var(--fg-muted); font-size: 14px; }
-        .modal-x:hover { color: var(--fg); }
-
-        .modal-body { padding: 16px; }
-        .modal-foot { display: flex; gap: 10px; padding: 16px; border-top: 1px solid var(--border); }
-
-        /* Player */
-        .player-modal { max-width: 700px; }
-        .player-wrap { background: #000; }
-        .player-wrap iframe { width: 100%; aspect-ratio: 16/9; border: none; display: block; }
-
-        /* Overlay */
-        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 90; display: none; }
-        .sidebar-overlay.show { display: block; }
-
-        .hide { display: none !important; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        @media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
-
-        .empty-msg { text-align: center; padding: 50px 20px; color: var(--fg-muted); }
-    </style>
+/* ===== MOBILE BOTTOM NAV (Student only) ===== */
+.mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:.5rem 0;z-index:250;grid-template-columns:repeat(6,1fr)}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.4rem .2rem;cursor:pointer;font-size:.6rem;color:var(--muted2);transition:color .2s;border:none;background:none;font-family:inherit}
+.mobile-nav-item.active{color:var(--accent)}
+.mobile-nav-item .mni{font-size:1.2rem}
+@media(max-width:640px){
+  .mobile-bottom-nav{display:grid}
+  #studentPage .sidebar-layout{padding-bottom:60px}
+  #teacherPage .sidebar-layout,#adminPage .sidebar-layout{padding-bottom:0}
+}
+</style>
 </head>
 <body>
-    <div class="toast-wrap" id="toastWrap"></div>
-    <div class="sidebar-overlay" id="overlay"></div>
 
-    <!-- Auth -->
-    <div id="authArea">
-        <!-- Landing -->
-        <div id="landing" class="auth-page">
-            <div style="text-align: center; max-width: 500px;">
-                <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 22px; font-weight: 800; color: white;">NX</div>
-                <h1 style="font-size: 28px; font-weight: 800; margin-bottom: 8px;">NovaX Edu</h1>
-                <p style="color: var(--fg-muted); margin-bottom: 28px;">Sri Lanka's #1 Education Platform</p>
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 32px;">
-                    <button class="btn btn-primary" onclick="goPage('login')">Sign In</button>
-                    <button class="btn btn-secondary" onclick="goPage('register')">Register</button>
-                </div>
-                <div class="card">
-                    <p style="font-size: 12px; color: var(--fg-muted); margin-bottom: 6px;">Contact</p>
-                    <p style="font-weight: 600;">WhatsApp: 077 504 8455</p>
-                    <p style="font-weight: 600;">Email: nova.x.team001@gmail.com</p>
-                </div>
-            </div>
-        </div>
+<!-- ============================================================ -->
+<!-- GLOBAL UI ELEMENTS -->
+<!-- ============================================================ -->
+<div class="toast-container" id="toastCont"></div>
 
-        <!-- Login -->
-        <div id="login" class="auth-page hide">
-            <div class="auth-box">
-                <div class="auth-head">
-                    <h2 class="auth-title">Welcome Back</h2>
-                    <p class="auth-sub">Sign in to continue</p>
-                </div>
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-input" id="loginEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-input" id="loginPass" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;" id="loginBtn">Sign In</button>
-                </form>
-                <div style="margin: 16px 0; text-align: center; color: var(--fg-muted); font-size: 12px;">or use demo accounts</div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                    <button class="btn btn-secondary btn-sm" onclick="demoLogin('student')">Student</button>
-                    <button class="btn btn-secondary btn-sm" onclick="demoLogin('teacher')">Teacher</button>
-                    <button class="btn btn-secondary btn-sm" onclick="demoLogin('admin')">Admin</button>
-                </div>
-                <div class="auth-foot">No account? <a href="#" onclick="goPage('register')">Register</a></div>
-            </div>
-        </div>
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-        <!-- Register -->
-        <div id="register" class="auth-page hide">
-            <div class="auth-box" style="max-width: 480px;">
-                <div class="auth-head">
-                    <h2 class="auth-title">Create Account</h2>
-                    <p class="auth-sub">Join NovaX Edu</p>
-                </div>
-                <form id="regForm">
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label class="form-label">Full Name *</label>
-                            <input type="text" class="form-input" id="regName" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Birthday *</label>
-                            <input type="date" class="form-input" id="regBday" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Address *</label>
-                        <input type="text" class="form-input" id="regAddr" required>
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label class="form-label">District *</label>
-                            <select class="form-input" id="regDist" required>
-                                <option value="">Select</option>
-                                <option>Colombo</option><option>Gampaha</option><option>Kalutara</option>
-                                <option>Kandy</option><option>Matale</option><option>Nuwara Eliya</option>
-                                <option>Galle</option><option>Matara</option><option>Hambantota</option>
-                                <option>Jaffna</option><option>Kilinochchi</option><option>Mannar</option>
-                                <option>Vavuniya</option><option>Mullaitivu</option><option>Batticaloa</option>
-                                <option>Ampara</option><option>Trincomalee</option><option>Kurunegala</option>
-                                <option>Puttalam</option><option>Anuradhapura</option><option>Polonnaruwa</option>
-                                <option>Badulla</option><option>Moneragala</option><option>Ratnapura</option>
-                                <option>Kegalle</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">City *</label>
-                            <input type="text" class="form-input" id="regCity" required>
-                        </div>
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label class="form-label">WhatsApp *</label>
-                            <input type="tel" class="form-input" id="regWa" placeholder="07XXXXXXXX" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Student ID</label>
-                            <input type="text" class="form-input" id="regSid" placeholder="Optional">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email *</label>
-                        <input type="email" class="form-input" id="regEmail" required>
-                    </div>
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label class="form-label">Grade *</label>
-                            <select class="form-input" id="regGrade" required>
-                                <option value="">Select</option>
-                                <option value="1-5">Grade 1-5</option>
-                                <option value="6-9">Grade 6-9</option>
-                                <option value="O/L">O/L</option>
-                                <option value="A/L">A/L</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Password *</label>
-                            <input type="password" class="form-input" id="regPass" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Select Classes (Rs. 4,000/month each)</label>
-                        <div class="class-options" id="regClasses">
-                            <div class="class-opt" data-cls="korean" onclick="pickClass(this)">
-                                <div class="class-name">Korean</div>
-                                <div class="class-price">Rs. 4,000/mo</div>
-                            </div>
-                            <div class="class-opt" data-cls="media" onclick="pickClass(this)">
-                                <div class="class-name">Media</div>
-                                <div class="class-price">Rs. 4,000/mo</div>
-                            </div>
-                            <div class="class-opt" data-cls="ict" onclick="pickClass(this)">
-                                <div class="class-name">ICT</div>
-                                <div class="class-price">Rs. 4,000/mo</div>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;" id="regBtn">Create Account</button>
-                </form>
-                <div class="auth-foot">Have an account? <a href="#" onclick="goPage('login')">Sign In</a></div>
-            </div>
-        </div>
+<!-- MODALS -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
+    <div class="modal-title">Welcome Back 👋</div>
+    <div id="loginAlert"></div>
+    <div class="form-group"><label class="form-label">Username or Email</label><input class="form-input" id="li_user" placeholder="Enter username or email" autocomplete="username"/></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="li_pass" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="doLogin()">Sign In</button>
+    <p style="text-align:center;margin-top:1rem;font-size:.8rem;color:var(--muted2)">No account? <span class="link" onclick="switchModal('loginModal','registerModal')">Register Free</span></p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
+    <div class="modal-title">Create Account 🚀</div>
+    <div id="regAlert"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="rg_name" placeholder="Your name"/></div>
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="rg_user" placeholder="username"/></div>
     </div>
-
-    <!-- App -->
-    <div id="appArea" class="app-layout hide">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-head">
-                <div class="brand" onclick="nav('dashboard')">
-                    <div class="brand-icon">NX</div>
-                    <div><div class="brand-text">NovaX Edu</div><div class="brand-tag">Sri Lanka's #1</div></div>
-                </div>
-            </div>
-            <nav class="nav-area" id="navArea"></nav>
-            <div class="sidebar-foot">
-                <div class="user-info" onclick="nav('profile')">
-                    <div class="user-avatar" id="userAv">ST</div>
-                    <div><div class="user-name" id="userName">Student</div><div class="user-role" id="userRole">Student</div></div>
-                </div>
-            </div>
-        </aside>
-
-        <main class="main-area">
-            <header class="topbar">
-                <button class="menu-btn" id="menuBtn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-                <button class="btn btn-secondary btn-sm" onclick="doLogout()">Logout</button>
-            </header>
-            <div class="page-body" id="pageBody"></div>
-        </main>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="rg_email" type="email" placeholder="email@example.com"/></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="rg_pass" placeholder="Min 6 characters"/></div>
+    <div class="form-group"><label class="form-label">Subject</label>
+      <select class="form-select" id="rg_sub" onchange="regSubChange()">
+        <option value="">-- Select Subject --</option>
+      </select>
     </div>
+    <div class="form-group" id="rg_grade_group" style="display:none"><label class="form-label">Grade</label><select class="form-select" id="rg_grade" onchange="regGradeChange()"><option value="">-- Select Grade --</option></select></div>
+    <div class="form-group" id="rg_batch_group" style="display:none"><label class="form-label">Batch</label><select class="form-select" id="rg_batch"><option value="">-- Select Batch --</option></select></div>
+    <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="doRegister()">Create Account</button>
+    <p style="text-align:center;margin-top:1rem;font-size:.8rem;color:var(--muted2)">Have account? <span class="link" onclick="switchModal('registerModal','loginModal')">Sign In</span></p>
+  </div>
+</div>
 
-    <!-- Video Modal -->
-    <div class="modal-bg" id="videoModal">
-        <div class="modal-box player-modal">
-            <div class="modal-head">
-                <h3 class="modal-title" id="vidTitle">Video</h3>
-                <button class="modal-x" onclick="hideModal('videoModal')">&times;</button>
-            </div>
-            <div class="player-wrap">
-                <iframe id="vidFrame" src="" allowfullscreen></iframe>
-            </div>
-        </div>
+<!-- CONTENT MODAL (Add/Edit) -->
+<div class="modal-overlay" id="cModal">
+  <div class="modal modal-lg" id="cModalBox">
+    <button class="modal-close" onclick="closeModal('cModal')">✕</button>
+    <div class="modal-title" id="cModalTitle"></div>
+    <div id="cModalBody"></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">Confirm</div>
+    <p id="confirmMsg" style="color:var(--muted2);font-size:.88rem"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk">Delete</button>
     </div>
+  </div>
+</div>
 
-    <!-- Payment Modal -->
-    <div class="modal-bg" id="payModal">
-        <div class="modal-box">
-            <div class="modal-head">
-                <h3 class="modal-title">Request Payment</h3>
-                <button class="modal-x" onclick="hideModal('payModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Class</label>
-                    <select class="form-input" id="payClass"></select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Month</label>
-                    <select class="form-input" id="payMonth">
-                        <option value="">Select Month</option>
-                        <option>January</option><option>February</option><option>March</option>
-                        <option>April</option><option>May</option><option>June</option>
-                        <option>July</option><option>August</option><option>September</option>
-                        <option>October</option><option>November</option><option>December</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Amount (LKR)</label>
-                    <input type="text" class="form-input" value="4,000" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Payment Slip</label>
-                    <input type="file" class="form-input" id="paySlip" accept="image/*">
-                </div>
-            </div>
-            <div class="modal-foot">
-                <button class="btn btn-secondary" style="flex:1" onclick="hideModal('payModal')">Cancel</button>
-                <button class="btn btn-primary" style="flex:1" onclick="submitPay()">Submit</button>
-            </div>
-        </div>
+<!-- YT VIDEO MODAL -->
+<div class="modal-overlay" id="ytModal">
+  <div class="modal yt-modal modal-xl">
+    <div class="yt-modal-header">
+      <div class="yt-modal-title" id="ytModalTitle">Video</div>
+      <button class="modal-close" style="position:static;margin-left:.5rem" onclick="closeYtModal()">✕</button>
     </div>
-
-    <!-- Class Edit Modal -->
-    <div class="modal-bg" id="classModal">
-        <div class="modal-box">
-            <div class="modal-head">
-                <h3 class="modal-title">Edit Classes</h3>
-                <button class="modal-x" onclick="hideModal('classModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="font-size: 13px; color: var(--fg-muted); margin-bottom: 12px;">Rs. 4,000 per class per month</p>
-                <div class="class-options" id="editClasses">
-                    <div class="class-opt" data-cls="korean" onclick="pickClass(this)">
-                        <div class="class-name">Korean</div>
-                        <div class="class-price">Rs. 4,000/mo</div>
-                    </div>
-                    <div class="class-opt" data-cls="media" onclick="pickClass(this)">
-                        <div class="class-name">Media</div>
-                        <div class="class-price">Rs. 4,000/mo</div>
-                    </div>
-                    <div class="class-opt" data-cls="ict" onclick="pickClass(this)">
-                        <div class="class-name">ICT</div>
-                        <div class="class-price">Rs. 4,000/mo</div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-foot">
-                <button class="btn btn-secondary" style="flex:1" onclick="hideModal('classModal')">Cancel</button>
-                <button class="btn btn-primary" style="flex:1" onclick="saveClasses()">Save</button>
-            </div>
-        </div>
+    <div class="yt-frame-wrap"><iframe id="ytFrame" allowfullscreen allow="autoplay;encrypted-media" loading="lazy"></iframe></div>
+    <div class="yt-modal-info">
+      <div style="font-size:.88rem;font-weight:700;margin-bottom:.35rem" id="ytInfoTitle"></div>
+      <div class="yt-info-row" id="ytInfoMeta"></div>
+      <div style="font-size:.8rem;color:var(--muted2);margin-top:.5rem;line-height:1.6" id="ytInfoDesc"></div>
     </div>
+  </div>
+</div>
 
-    <script>
-        // Supabase
-        const SB_URL = 'https://vegemuqhinyyxeojfbdxd.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk';
-        const sb = supabase.createClient(SB_URL, SB_KEY);
+<!-- ============================================================ -->
+<!-- LANDING PAGE -->
+<!-- ============================================================ -->
+<div id="landingPage" class="page active">
+  <nav class="top-nav">
+    <div class="logo" onclick="goHome()">EduFlow</div>
+    <div class="nav-links">
+      <a onclick="scrollSec('lCourses')">Courses</a>
+      <a onclick="scrollSec('lTeachers')">Teachers</a>
+      <a onclick="scrollSec('lAbout')">About</a>
+    </div>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme"></button>
+      <span class="theme-icon" id="themeIcon">🌙</span>
+      <button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">Sign In</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('registerModal')">Register</button>
+    </div>
+  </nav>
+  <div class="hero">
+    <div class="badge badge-blue" style="margin-bottom:1rem">✨ Sri Lanka's Premier Online Learning</div>
+    <h1>Master <span class="grad-text">Korean & Media</span><br/>From Anywhere.</h1>
+    <p>Expert-led O/L, A/L & Professional courses. Preview free, unlock premium with enrollment.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary btn-lg" onclick="openModal('registerModal')">Start Free →</button>
+      <button class="btn btn-ghost btn-lg" onclick="scrollSec('lCourses')">Browse Courses</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-val">20K+</div><div class="hero-stat-label">Students</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">500+</div><div class="hero-stat-label">Videos</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">2</div><div class="hero-stat-label">Expert Teachers</div></div>
+      <div class="hero-stat"><div class="hero-stat-val">4.9★</div><div class="hero-stat-label">Rating</div></div>
+    </div>
+  </div>
+  <!-- Free vs Paid -->
+  <div class="section-wrap">
+    <div class="sec-tag">// Access Levels</div>
+    <h2>Free Preview & Premium Access</h2>
+    <p class="section-sub">Explore before you enroll.</p>
+    <div class="g2" style="margin-bottom:2.5rem">
+      <div style="background:rgba(79,247,168,.05);border:1px solid rgba(79,247,168,.2);border-radius:var(--radius-lg);padding:1.5rem">
+        <div style="font-size:1.8rem;margin-bottom:.7rem">🆓</div>
+        <h3 style="color:var(--accent3);font-size:1rem;font-weight:700;margin-bottom:.8rem">Free Access</h3>
+        <ul style="list-style:none;font-size:.83rem;color:var(--muted2);line-height:2.1">
+          <li>✓ Browse all courses</li><li>✓ Free preview videos</li>
+          <li>✓ Free notes download</li><li>✓ Free quizzes</li>
+          <li style="opacity:.5">✗ Full video library</li>
+          <li style="opacity:.5">✗ Live class access</li>
+        </ul>
+        <button class="btn btn-success btn-sm" style="margin-top:1rem" onclick="openModal('registerModal')">Get Started Free</button>
+      </div>
+      <div style="background:rgba(79,142,247,.05);border:1px solid rgba(79,142,247,.3);border-radius:var(--radius-lg);padding:1.5rem">
+        <div style="font-size:1.8rem;margin-bottom:.7rem">💎</div>
+        <h3 style="color:var(--accent);font-size:1rem;font-weight:700;margin-bottom:.8rem">Premium (Enrolled)</h3>
+        <ul style="list-style:none;font-size:.83rem;color:var(--muted2);line-height:2.1">
+          <li>✓ All free features</li><li>✓ Full recorded classes</li>
+          <li>✓ Theory · Paper · Revision · Extra</li>
+          <li>✓ Live Zoom classes</li>
+          <li>✓ All notes & PDFs</li>
+          <li>✓ All quizzes & tests</li>
+        </ul>
+        <button class="btn btn-primary btn-sm" style="margin-top:1rem" onclick="openModal('registerModal')">Enroll Now</button>
+      </div>
+    </div>
+    <div id="lCourses"></div>
+    <div class="sec-tag">// Courses</div>
+    <h2>Available Courses</h2>
+    <p class="section-sub">Select your level and start learning today.</p>
+    <div class="courses-grid" id="landingCourses"></div>
+  </div>
+  <div class="section-wrap" id="lTeachers">
+    <div class="sec-tag">// Teachers</div>
+    <h2>Our Instructors</h2>
+    <p class="section-sub">Industry experts dedicated to your success.</p>
+    <div class="g2" id="landingTeachers"></div>
+  </div>
+  <div class="section-wrap" id="lAbout">
+    <div class="sec-tag">// Why EduFlow</div>
+    <h2>Built for Sri Lankan Students</h2>
+    <p class="section-sub">Quality education, accessible anywhere, anytime.</p>
+    <div class="g3">
+      <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-val">100%</div><div class="stat-label">Curriculum Aligned</div></div>
+      <div class="stat-card"><div class="stat-icon">📱</div><div class="stat-val">24/7</div><div class="stat-label">Mobile Access</div></div>
+      <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-val">Top</div><div class="stat-label">Exam Results</div></div>
+    </div>
+  </div>
+  <div class="footer-bar">© 2026 EduFlow LMS · All rights reserved · Made with ❤️ for Sri Lankan Students</div>
+</div>
 
-        // State
-        let curUser = null;
-        let curProfile = null;
-        let myClasses = [];
-        let curPage = 'dashboard';
-        let monthlyFee = 4000;
-        let paymentData = {};
+<!-- ============================================================ -->
+<!-- STUDENT PAGE -->
+<!-- ============================================================ -->
+<div id="studentPage" class="page">
+  <nav class="top-nav">
+    <button class="sidebar-toggle" onclick="toggleSidebar('studentSidebar')">☰</button>
+    <div class="logo" onclick="goHome()">EduFlow</div>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()"></button>
+      <span class="theme-icon" id="themeIconS">🌙</span>
+      <span id="sBatchBadge" class="badge badge-blue" style="display:none"></span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+  <div class="sidebar-layout">
+    <div class="sidebar" id="studentSidebar">
+      <div class="sidebar-section">Student Portal</div>
+      <button class="sidebar-item active" onclick="sNav('dashboard',this)"><span class="icon">🏠</span>Dashboard</button>
+      <button class="sidebar-item" onclick="sNav('live',this)"><span class="icon">📡</span>Live Classes</button>
+      <button class="sidebar-item" onclick="sNav('recordings',this)"><span class="icon">🎬</span>Recordings</button>
+      <button class="sidebar-item" onclick="sNav('notes',this)"><span class="icon">📄</span>Notes</button>
+      <button class="sidebar-item" onclick="sNav('quiz',this)"><span class="icon">🧠</span>Quizzes</button>
+      <button class="sidebar-item" onclick="sNav('profile',this)"><span class="icon">👤</span>My Profile</button>
+    </div>
+    <div class="main-content" id="sContent"></div>
+  </div>
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <button class="mobile-nav-item active" onclick="sNav('dashboard',this,true)" data-s="dashboard"><span class="mni">🏠</span>Home</button>
+    <button class="mobile-nav-item" onclick="sNav('live',this,true)" data-s="live"><span class="mni">📡</span>Live</button>
+    <button class="mobile-nav-item" onclick="sNav('recordings',this,true)" data-s="recordings"><span class="mni">🎬</span>Videos</button>
+    <button class="mobile-nav-item" onclick="sNav('notes',this,true)" data-s="notes"><span class="mni">📄</span>Notes</button>
+    <button class="mobile-nav-item" onclick="sNav('quiz',this,true)" data-s="quiz"><span class="mni">🧠</span>Quiz</button>
+    <button class="mobile-nav-item" onclick="sNav('profile',this,true)" data-s="profile"><span class="mni">👤</span>Profile</button>
+  </nav>
+</div>
 
-        // Months
-        const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+<!-- ============================================================ -->
+<!-- TEACHER PAGE -->
+<!-- ============================================================ -->
+<div id="teacherPage" class="page">
+  <nav class="top-nav">
+    <button class="sidebar-toggle" onclick="toggleSidebar('teacherSidebar')">☰</button>
+    <div class="logo" onclick="goHome()">EduFlow</div>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()"></button>
+      <span id="tName" style="font-size:.8rem;color:var(--muted2);display:none" class="hidden-mobile"></span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+  <div class="sidebar-layout">
+    <div class="sidebar" id="teacherSidebar">
+      <div class="sidebar-section">Teacher Portal</div>
+      <button class="sidebar-item active" onclick="tNav('dashboard',this)"><span class="icon">🏠</span>Dashboard</button>
+      <button class="sidebar-item" onclick="tNav('live',this)"><span class="icon">📡</span>Live Classes</button>
+      <button class="sidebar-item" onclick="tNav('recordings',this)"><span class="icon">🎬</span>Recordings</button>
+      <button class="sidebar-item" onclick="tNav('notes',this)"><span class="icon">📄</span>Notes</button>
+      <button class="sidebar-item" onclick="tNav('quiz',this)"><span class="icon">🧠</span>Quizzes</button>
+      <button class="sidebar-item" onclick="tNav('students',this)"><span class="icon">👥</span>Students</button>
+      <button class="sidebar-item" onclick="tNav('access',this)"><span class="icon">🔐</span>Access Control</button>
+    </div>
+    <div class="main-content" id="tContent"></div>
+  </div>
+</div>
 
-        // Sample recordings
-        const recordings = [
-            { id: 1, title: 'Korean Grammar Basics', cls: 'korean', month: 'January', dur: '45:30', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-            { id: 2, title: 'Korean Vocabulary', cls: 'korean', month: 'January', dur: '38:15', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-            { id: 3, title: 'Korean Listening', cls: 'korean', month: 'February', dur: '42:00', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-            { id: 4, title: 'Media Film Analysis', cls: 'media', month: 'January', dur: '52:00', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-            { id: 5, title: 'Media Production', cls: 'media', month: 'February', dur: '48:10', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-            { id: 6, title: 'ICT Programming', cls: 'ict', month: 'January', dur: '41:45', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-            { id: 7, title: 'ICT Databases', cls: 'ict', month: 'February', dur: '39:20', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
-        ];
+<!-- ============================================================ -->
+<!-- ADMIN PAGE -->
+<!-- ============================================================ -->
+<div id="adminPage" class="page">
+  <nav class="top-nav">
+    <button class="sidebar-toggle" onclick="toggleSidebar('adminSidebar')">☰</button>
+    <div class="logo" onclick="goHome()">EduFlow</div>
+    <div class="nav-right">
+      <button class="theme-toggle" onclick="toggleTheme()"></button>
+      <span class="badge badge-blue" style="flex-shrink:0">Admin</span>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+  <div class="sidebar-layout">
+    <div class="sidebar" id="adminSidebar">
+      <div class="sidebar-section">Admin Panel</div>
+      <button class="sidebar-item active" onclick="aNav('dashboard',this)"><span class="icon">📊</span>Dashboard</button>
+      <button class="sidebar-item" onclick="aNav('students',this)"><span class="icon">👥</span>Students</button>
+      <button class="sidebar-item" onclick="aNav('teachers',this)"><span class="icon">🎓</span>Teachers</button>
+      <button class="sidebar-item" onclick="aNav('subjects',this)"><span class="icon">📖</span>Subjects</button>
+      <button class="sidebar-item" onclick="aNav('batches',this)"><span class="icon">📚</span>Batches</button>
+      <button class="sidebar-item" onclick="aNav('content',this)"><span class="icon">🎬</span>Content</button>
+      <button class="sidebar-item" onclick="aNav('reports',this)"><span class="icon">📈</span>Reports</button>
+    </div>
+    <div class="main-content" id="aContent"></div>
+  </div>
+</div>
 
-        // Toast
-        function toast(type, msg) {
-            const icons = {
-                success: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
-                error: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>',
-                warning: '<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-            };
-            const t = document.createElement('div');
-            t.className = `toast ${type}`;
-            t.innerHTML = `${icons[type]}<span class="toast-msg">${msg}</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>`;
-            document.getElementById('toastWrap').appendChild(t);
-            setTimeout(() => t.remove(), 5000);
-        }
+<style>.link{color:var(--accent);cursor:pointer;font-weight:600}.hidden-mobile{display:block}@media(max-width:480px){.hidden-mobile{display:none}}</style>
 
-        // Page nav
-        function goPage(id) {
-            document.querySelectorAll('#authArea > div').forEach(p => p.classList.add('hide'));
-            document.getElementById(id).classList.remove('hide');
-        }
+<script>
+// ======================================================
+// DATABASE
+// ======================================================
+const DB = {
+  subjects: [
+    {id:'korean',name:'Korean',icon:'🇰🇷',color:'#4f8ef7',grades:['OL','AL','Course']},
+    {id:'media',name:'Media',icon:'📺',color:'#f7664f',grades:['AL']}
+  ],
 
-        // Class picker
-        function pickClass(el) {
-            el.classList.toggle('active');
-        }
+  batches: [
+    {id:'k-ol-2026',subjectId:'korean',grade:'OL',year:'2026',name:'Korean O/L 2026',teacherId:'u2',studentCount:450},
+    {id:'k-ol-2027',subjectId:'korean',grade:'OL',year:'2027',name:'Korean O/L 2027',teacherId:'u2',studentCount:380},
+    {id:'k-ol-2028',subjectId:'korean',grade:'OL',year:'2028',name:'Korean O/L 2028',teacherId:'u2',studentCount:210},
+    {id:'k-al-2026',subjectId:'korean',grade:'AL',year:'2026',name:'Korean A/L 2026',teacherId:'u2',studentCount:320},
+    {id:'k-al-2027',subjectId:'korean',grade:'AL',year:'2027',name:'Korean A/L 2027',teacherId:'u2',studentCount:290},
+    {id:'k-al-2028',subjectId:'korean',grade:'AL',year:'2028',name:'Korean A/L 2028',teacherId:'u2',studentCount:180},
+    {id:'k-c-2026m',subjectId:'korean',grade:'Course',year:'2026',name:'Korean Course 2026 March',teacherId:'u2',studentCount:155},
+    {id:'k-c-2026s',subjectId:'korean',grade:'Course',year:'2026',name:'Korean Course 2026 Sep',teacherId:'u2',studentCount:143},
+    {id:'k-c-2027a',subjectId:'korean',grade:'Course',year:'2027',name:'Korean Course 2027 April',teacherId:'u2',studentCount:198},
+    {id:'k-c-2027d',subjectId:'korean',grade:'Course',year:'2027',name:'Korean Course 2027 Dec',teacherId:'u2',studentCount:167},
+    {id:'m-al-2026',subjectId:'media',grade:'AL',year:'2026',name:'Media A/L 2026',teacherId:'u3',studentCount:275},
+    {id:'m-al-2027',subjectId:'media',grade:'AL',year:'2027',name:'Media A/L 2027',teacherId:'u3',studentCount:243},
+    {id:'m-al-2028',subjectId:'media',grade:'AL',year:'2028',name:'Media A/L 2028',teacherId:'u3',studentCount:189}
+  ],
 
-        function getSelected(container) {
-            return Array.from(document.querySelectorAll(`#${container} .class-opt.active`)).map(el => el.dataset.cls);
-        }
+  users: [
+    {id:'u1',username:'admin',email:'admin@gmail.com',password:'admin123',role:'admin',name:'Admin'},
+    {id:'u2',username:'tech1',email:'tech1@edu.lk',password:'pass123',role:'teacher',name:'Mr. Kasun Perera'},
+    {id:'u3',username:'tech2',email:'tech2@edu.lk',password:'pass123',role:'teacher',name:'Ms. Nimali Silva'},
+    {id:'u4',username:'student1',email:'s1@edu.lk',password:'pass123',role:'student',name:'Amal Perera',subjectId:'korean',grade:'OL',batchId:'k-ol-2026',enrolled:true,completedQuizzes:{},viewedVideos:[]},
+    {id:'u5',username:'student2',email:'s2@edu.lk',password:'pass123',role:'student',name:'Sanduni Fernando',subjectId:'korean',grade:'AL',batchId:'k-al-2027',enrolled:true,completedQuizzes:{},viewedVideos:[]},
+    {id:'u6',username:'student3',email:'s3@edu.lk',password:'pass123',role:'student',name:'Nuwan Jayantha',subjectId:'media',grade:'AL',batchId:'m-al-2026',enrolled:true,completedQuizzes:{},viewedVideos:[]}
+  ],
 
-        function setSelected(container, classes) {
-            document.querySelectorAll(`#${container} .class-opt`).forEach(el => {
-                el.classList.toggle('active', classes.includes(el.dataset.cls));
+  // Access rules: batchId → year → month → type → boolean
+  // If not set, default: free=everyone, paid=enrolled only
+  // Extra unlock: batchId → year → month → type → true (unlocked for all)
+  accessRules: {},
+
+  // Recordings
+  recordings: generateRecordings(),
+
+  liveClasses: [
+    {id:'lc1',batchId:'k-ol-2026',title:'Chapter 3 — Hangul Review',zoomLink:'https://zoom.us/j/123456789',date:'2026-03-10',time:'6:00 PM',duration:90,status:'upcoming',description:'Full review of Hangul consonants and vowels.'},
+    {id:'lc2',batchId:'k-al-2027',title:'Grammar — Advanced Particles',zoomLink:'https://zoom.us/j/987654321',date:'2026-03-11',time:'7:00 PM',duration:120,status:'upcoming',description:''},
+    {id:'lc3',batchId:'m-al-2026',title:'Media Ethics & Law',zoomLink:'https://zoom.us/j/456789123',date:'2026-03-09',time:'5:00 PM',duration:90,status:'live',description:''},
+    {id:'lc4',batchId:'k-c-2027a',title:'Pronunciation Workshop',zoomLink:'https://zoom.us/j/321654987',date:'2026-03-08',time:'4:00 PM',duration:60,status:'past',description:''}
+  ],
+
+  notes: [
+    {id:'n1',batchId:'k-ol-2026',title:'Hangul Complete Guide',driveLink:'https://drive.google.com/file/d/example1',size:'2.4 MB',isFree:true,description:'Complete Hangul alphabet guide for beginners.'},
+    {id:'n2',batchId:'k-ol-2026',title:'Chapter 1–5 Notes',driveLink:'https://drive.google.com/file/d/example2',size:'4.1 MB',isFree:false,description:''},
+    {id:'n3',batchId:'k-ol-2026',title:'Grammar Rules Cheatsheet',driveLink:'https://drive.google.com/file/d/example3',size:'1.2 MB',isFree:false,description:''},
+    {id:'n4',batchId:'k-ol-2026',title:'Vocabulary List 2024',driveLink:'https://drive.google.com/file/d/example4',size:'3.8 MB',isFree:false,description:''},
+    {id:'n5',batchId:'k-al-2027',title:'TOPIK Free Study Guide',driveLink:'https://drive.google.com/file/d/example5',size:'5.2 MB',isFree:true,description:''},
+    {id:'n6',batchId:'m-al-2026',title:'Media Studies Overview',driveLink:'https://drive.google.com/file/d/example6',size:'3.1 MB',isFree:true,description:''},
+    {id:'n7',batchId:'m-al-2026',title:'Film Techniques Complete',driveLink:'https://drive.google.com/file/d/example7',size:'6.5 MB',isFree:false,description:''}
+  ],
+
+  quizzes: [
+    {id:'q1',batchId:'k-ol-2026',title:'Hangul Basics Quiz',isFree:true,questions:[
+      {q:'What is the Korean alphabet called?',opts:['Hangul','Kanji','Hiragana','Katakana'],ans:0},
+      {q:'How many basic consonants are in Hangul?',opts:['10','14','19','21'],ans:1},
+      {q:'Which letter represents the "G" sound?',opts:['ㄱ','ㄴ','ㄷ','ㄹ'],ans:0}
+    ]},
+    {id:'q2',batchId:'k-ol-2026',title:'Chapter 1 Grammar Test',isFree:false,questions:[
+      {q:'What does "안녕하세요" mean?',opts:['Thank you','Hello','Goodbye','Sorry'],ans:1},
+      {q:'Which particle marks the subject?',opts:['을/를','이/가','에서','으로'],ans:1},
+      {q:'How to say "I am a student"?',opts:['저는 학생이에요','나는 선생님이다','저는 선생님이에요','나는 학생이다'],ans:0}
+    ]},
+    {id:'q3',batchId:'k-al-2027',title:'Advanced Grammar Quiz',isFree:false,questions:[
+      {q:'Which ending expresses "because"?',opts:['-(아/어)서','-(으)면','-(으)니까','Both A&C'],ans:3},
+      {q:'Honorific form of "먹다"?',opts:['드시다','잡수시다','먹으시다','Both A&B'],ans:3}
+    ]},
+    {id:'q4',batchId:'m-al-2026',title:'Media History Quiz',isFree:true,questions:[
+      {q:'First newspaper in Sri Lanka?',opts:['1802','1832','1856','1890'],ans:1},
+      {q:'Mass media refers to?',opts:['Social media only','Print only','Channels reaching large audiences','Govt media'],ans:2}
+    ]}
+  ]
+};
+
+function generateRecordings(){
+  const recs=[];
+  const years=['2024','2025','2026'];
+  const months=['01','02','03','04','05','06','07','08','09','10','11','12'];
+  const types=['theory','paper','revision','extra'];
+  const batches=['k-ol-2026','k-al-2027','m-al-2026'];
+  const typeNames={theory:'Theory Class',paper:'Paper Practice',revision:'Revision Class',extra:'Extra Class'};
+  const subjects={
+    'k-ol-2026':['Hangul','Grammar','Vocabulary','Reading','Listening','Speaking','Writing','Culture','TOPIK Prep','Sentence Structure','Particles','Expressions'],
+    'k-al-2027':['Advanced Grammar','TOPIK II','Composition','Literature','Listening','Reading','Writing','Culture','Debate','Presentation','Translation','Proverbs'],
+    'm-al-2026':['Media History','Film Theory','Journalism','Broadcasting','Ethics','New Media','Advertising','PR','Photography','Documentary','Digital Media','Media Law']
+  };
+  let idCounter=1;
+  batches.forEach(batchId=>{
+    years.forEach(year=>{
+      months.forEach(month=>{
+        const topics=subjects[batchId];
+        const mIdx=parseInt(month)-1;
+        types.forEach((type,ti)=>{
+          // 4 videos per type per month
+          for(let vi=0;vi<4;vi++){
+            const topicIdx=(mIdx*4+ti*3+vi)%topics.length;
+            const isFree=(ti===0&&vi===0)&&(parseInt(month)<=3); // first theory video of first 3 months is free
+            recs.push({
+              id:`r${idCounter++}`,
+              batchId,
+              title:`${typeNames[type]} — ${topics[topicIdx]} (${vi+1})`,
+              description:`${year} ${monthName(month)} ${typeNames[type]} session covering ${topics[topicIdx]}. Duration includes exercises and Q&A.`,
+              ytLink:`https://www.youtube.com/embed/dQw4w9WgXcQ`,
+              year, month, type,
+              isFree,
+              date:`${year}-${month}-${String((vi+1)*7).padStart(2,'0').slice(0,2)}`,
+              duration: type==='theory'?90:type==='paper'?120:type==='revision'?60:45
             });
-        }
-
-        // Register
-        document.getElementById('regForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const classes = getSelected('regClasses');
-            if (classes.length === 0) {
-                toast('error', 'Please select at least one class');
-                return;
-            }
-
-            const btn = document.getElementById('regBtn');
-            btn.disabled = true;
-            btn.textContent = 'Creating...';
-
-            try {
-                const { data: authData, error: authErr } = await sb.auth.signUp({
-                    email: document.getElementById('regEmail').value,
-                    password: document.getElementById('regPass').value,
-                    options: { data: { full_name: document.getElementById('regName').value } }
-                });
-                if (authErr) throw authErr;
-
-                const { error: profErr } = await sb.from('profiles').insert([{
-                    id: authData.user.id,
-                    full_name: document.getElementById('regName').value,
-                    email: document.getElementById('regEmail').value,
-                    birthday: document.getElementById('regBday').value,
-                    address: document.getElementById('regAddr').value,
-                    district: document.getElementById('regDist').value,
-                    city: document.getElementById('regCity').value,
-                    whatsapp: document.getElementById('regWa').value,
-                    student_id: document.getElementById('regSid').value || null,
-                    grade: document.getElementById('regGrade').value,
-                    enrolled_classes: classes,
-                    role: 'student'
-                }]);
-                if (profErr) throw profErr;
-
-                toast('success', 'Account created! Check your email to verify.');
-                goPage('login');
-            } catch (err) {
-                toast('error', err.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Create Account';
-            }
+          }
         });
+      });
+    });
+  });
+  return recs;
+}
 
-        // Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('loginBtn');
-            btn.disabled = true;
-            btn.textContent = 'Signing in...';
+// ======================================================
+// STATE
+// ======================================================
+let CU=null; // current user
+let theme='dark';
 
-            try {
-                const { data, error } = await sb.auth.signInWithPassword({
-                    email: document.getElementById('loginEmail').value,
-                    password: document.getElementById('loginPass').value
-                });
-                if (error) throw error;
-                curUser = data.user;
-                await loadProfile();
-                showApp();
-                toast('success', `Welcome, ${curProfile?.full_name?.split(' ')[0] || 'User'}!`);
-            } catch (err) {
-                toast('error', err.message);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Sign In';
-            }
-        });
+// ======================================================
+// THEME
+// ======================================================
+function toggleTheme(){
+  theme=theme==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+  const icons=document.querySelectorAll('.theme-icon');
+  icons.forEach(i=>i.textContent=theme==='dark'?'🌙':'☀️');
+}
 
-        // Demo login
-        function demoLogin(role) {
-            const names = { student: 'Demo Student', teacher: 'Demo Teacher', admin: 'Admin' };
-            curUser = { id: 'demo' };
-            curProfile = { full_name: names[role], email: role + '@demo.com', role, enrolled_classes: ['korean', 'media'], grade: 'O/L', district: 'Colombo', city: 'Colombo', whatsapp: '0771234567', address: '123 Main St' };
-            myClasses = ['korean', 'media'];
-            // Demo payment data
-            paymentData = { 'korean': { 'January': 'approved', 'February': 'pending' }, 'media': { 'January': 'approved' } };
-            showApp();
-            toast('success', `Logged in as ${names[role]}`);
-        }
+// ======================================================
+// SIDEBAR (MOBILE)
+// ======================================================
+function toggleSidebar(id){
+  const sb=document.getElementById(id);
+  const ov=document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+function closeSidebar(){
+  document.querySelectorAll('.sidebar').forEach(s=>s.classList.remove('open'));
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
 
-        // Logout
-        async function doLogout() {
-            if (curUser?.id !== 'demo') await sb.auth.signOut();
-            curUser = null;
-            curProfile = null;
-            myClasses = [];
-            paymentData = {};
-            document.getElementById('appArea').classList.add('hide');
-            document.getElementById('authArea').classList.remove('hide');
-            goPage('landing');
-        }
+// ======================================================
+// MODAL
+// ======================================================
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function switchModal(c,o){closeModal(c);setTimeout(()=>openModal(o),150)}
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id)})
+});
 
-        // Load profile
-        async function loadProfile() {
-            if (!curUser || curUser.id === 'demo') return;
-            try {
-                const { data, error } = await sb.from('profiles').select('*').eq('id', curUser.id).single();
-                if (error) throw error;
-                curProfile = data;
-                myClasses = data.enrolled_classes || [];
-                await loadPayments();
-            } catch (err) {
-                toast('error', 'Could not load profile');
-            }
-        }
+// ======================================================
+// TOAST
+// ======================================================
+function toast(msg,type='info'){
+  const el=document.createElement('div');
+  el.className='toast';
+  const icon={success:'✅',error:'❌',info:'ℹ️'}[type]||'ℹ️';
+  el.innerHTML=`${icon} ${msg}`;
+  document.getElementById('toastCont').appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300)},3500);
+}
 
-        // Load payments
-        async function loadPayments() {
-            if (!curUser || curUser.id === 'demo') return;
-            try {
-                const { data, error } = await sb.from('payments').select('*').eq('student_id', curUser.id);
-                if (error) throw error;
-                paymentData = {};
-                (data || []).forEach(p => {
-                    if (!paymentData[p.class_name]) paymentData[p.class_name] = {};
-                    paymentData[p.class_name][p.month] = p.status;
-                });
-            } catch (err) {
-                console.error('Payment load error:', err);
-            }
-        }
+// ======================================================
+// CONFIRM
+// ======================================================
+function confirmDo(msg,cb){
+  document.getElementById('confirmMsg').textContent=msg;
+  openModal('confirmModal');
+  document.getElementById('confirmOk').onclick=()=>{closeModal('confirmModal');cb()};
+}
 
-        // Show app
-        function showApp() {
-            document.getElementById('authArea').classList.add('hide');
-            document.getElementById('appArea').classList.remove('hide');
-            updateUI();
-            buildNav();
-            nav('dashboard');
-        }
+// ======================================================
+// AUTH
+// ======================================================
+function doLogin(){
+  const u=g('li_user'),p=g('li_pass');
+  const user=DB.users.find(x=>(x.username===u||x.email===u)&&x.password===p);
+  if(!user){document.getElementById('loginAlert').innerHTML='<div class="alert alert-error">Invalid credentials.</div>';return;}
+  CU=user;
+  document.getElementById('loginAlert').innerHTML='';
+  closeModal('loginModal');
+  routeUser(user);
+  toast('Welcome, '+user.name+'! 👋','success');
+}
 
-        function updateUI() {
-            const name = curProfile?.full_name || 'User';
-            document.getElementById('userName').textContent = name;
-            document.getElementById('userRole').textContent = (curProfile?.role || 'student').charAt(0).toUpperCase() + (curProfile?.role || 'student').slice(1);
-            document.getElementById('userAv').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-        }
+function doRegister(){
+  const name=g('rg_name'),username=g('rg_user'),email=g('rg_email'),pass=g('rg_pass'),subjectId=g('rg_sub'),grade=g('rg_grade'),batchId=g('rg_batch');
+  const al=document.getElementById('regAlert');
+  if(!name||!username||!email||!pass||!subjectId||!grade||!batchId){al.innerHTML='<div class="alert alert-error">Fill all fields.</div>';return}
+  if(pass.length<6){al.innerHTML='<div class="alert alert-error">Password too short.</div>';return}
+  if(DB.users.find(x=>x.username===username)){al.innerHTML='<div class="alert alert-error">Username taken.</div>';return}
+  const nu={id:'u'+Date.now(),username,email,password:pass,role:'student',name,subjectId,grade,batchId,enrolled:false,completedQuizzes:{},viewedVideos:[]};
+  DB.users.push(nu);CU=nu;
+  closeModal('registerModal');al.innerHTML='';
+  toast('Welcome to EduFlow! 🎉','success');
+  routeUser(nu);
+}
 
-        // Nav
-        const navItems = {
-            student: [
-                { id: 'dashboard', label: 'Dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
-                { id: 'classes', label: 'My Classes', icon: '<polygon points="5 3 19 12 5 21 5 3"/>' },
-                { id: 'payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
-                { id: 'profile', label: 'Profile', icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
-            ],
-            teacher: [
-                { id: 'dashboard', label: 'Dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
-                { id: 'students', label: 'Students', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
-                { id: 'payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
-                { id: 'profile', label: 'Profile', icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
-            ],
-            admin: [
-                { id: 'dashboard', label: 'Dashboard', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>' },
-                { id: 'students', label: 'Students', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
-                { id: 'payments', label: 'Payments', icon: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
-                { id: 'settings', label: 'Settings', icon: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
-                { id: 'profile', label: 'Profile', icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' }
-            ]
-        };
+function doLogout(){CU=null;showPage('landingPage');renderLanding();toast('Logged out.','info')}
 
-        function buildNav() {
-            const role = curProfile?.role || 'student';
-            document.getElementById('navArea').innerHTML = navItems[role].map(item => `
-                <div class="nav-link ${item.id === curPage ? 'active' : ''}" onclick="nav('${item.id}')">
-                    <svg viewBox="0 0 24 24">${item.icon}</svg>
-                    ${item.label}
-                </div>
-            `).join('');
-        }
+function routeUser(u){
+  if(u.role==='admin'){showPage('adminPage');aNav('dashboard')}
+  else if(u.role==='teacher'){
+    showPage('teacherPage');
+    const el=document.getElementById('tName');el.textContent=u.name;el.style.display='block';
+    tNav('dashboard');
+  } else {
+    showPage('studentPage');
+    const batch=DB.batches.find(b=>b.id===u.batchId);
+    const bb=document.getElementById('sBatchBadge');
+    if(batch){bb.textContent=batch.name;bb.style.display='inline-flex'}
+    sNav('dashboard');
+  }
+}
 
-        function nav(page) {
-            curPage = page;
-            buildNav();
-            renderPage(page);
-            closeSidebar();
-        }
+// Register subject/grade/batch selects
+function populateRegSubjects(){
+  const s=document.getElementById('rg_sub');
+  s.innerHTML='<option value="">-- Select Subject --</option>';
+  DB.subjects.forEach(sub=>s.innerHTML+=`<option value="${sub.id}">${sub.name}</option>`);
+}
+function regSubChange(){
+  const sub=DB.subjects.find(s=>s.id===g('rg_sub'));
+  const gg=document.getElementById('rg_grade');
+  gg.innerHTML='<option value="">-- Select Grade --</option>';
+  document.getElementById('rg_batch').innerHTML='<option value="">-- Select Batch --</option>';
+  document.getElementById('rg_grade_group').style.display=sub?'block':'none';
+  document.getElementById('rg_batch_group').style.display='none';
+  if(sub)sub.grades.forEach(gr=>gg.innerHTML+=`<option value="${gr}">${gradeLabel(gr)}</option>`);
+}
+function regGradeChange(){
+  const sub=g('rg_sub'),grade=g('rg_grade');
+  const bb=document.getElementById('rg_batch');
+  bb.innerHTML='<option value="">-- Select Batch --</option>';
+  document.getElementById('rg_batch_group').style.display=grade?'block':'none';
+  DB.batches.filter(b=>b.subjectId===sub&&b.grade===grade).forEach(b=>bb.innerHTML+=`<option value="${b.id}">${b.name}</option>`);
+}
 
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('overlay').classList.remove('show');
-        }
+// ======================================================
+// PAGES
+// ======================================================
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  closeSidebar();
+  window.scrollTo(0,0);
+}
+function goHome(){if(!CU){showPage('landingPage');renderLanding()}else routeUser(CU)}
+function scrollSec(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
 
-        // Pages
-        function renderPage(page) {
-            const pages = {
-                dashboard: pageDashboard,
-                classes: pageClasses,
-                payments: pagePayments,
-                profile: pageProfile,
-                students: pageStudents,
-                settings: pageSettings
-            };
-            document.getElementById('pageBody').innerHTML = (pages[page] || pages.dashboard)();
-        }
+// ======================================================
+// HELPERS
+// ======================================================
+function g(id){return(document.getElementById(id)?.value||'').trim()}
+function monthName(m){return['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]||m}
+function gradeLabel(g){return g==='OL'?'O/L':g==='AL'?'A/L':g}
+function typeColor(t){return{theory:'pill-blue',paper:'pill-orange',revision:'pill-green',extra:'pill-yellow'}[t]||'pill-blue'}
+function typeIcon(t){return{theory:'📖',paper:'📝',revision:'🔁',extra:'⭐'}[t]||'📖'}
+function fmtDur(m){return m>=60?`${Math.floor(m/60)}h ${m%60?m%60+'m':''}`:`${m}m`}
 
-        function pageDashboard() {
-            const classBadges = myClasses.length > 0 
-                ? myClasses.map(c => `<span class="badge success">${c.charAt(0).toUpperCase() + c.slice(1)}</span>`).join(' ')
-                : '<span style="color: var(--fg-muted);">No classes</span>';
+function getTeacherBatches(u){
+  const tu=u||CU;
+  return DB.batches.filter(b=>b.teacherId===tu.id);
+}
 
-            return `
-                <h1 class="page-title">Welcome, ${curProfile?.full_name?.split(' ')[0] || 'User'}!</h1>
-                <p class="page-desc">Your learning dashboard</p>
-                
-                <div class="stat-row">
-                    <div class="stat-box">
-                        <div class="stat-num">${myClasses.length}</div>
-                        <div class="stat-text">Enrolled Classes</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-num">Rs. ${monthlyFee.toLocaleString()}</div>
-                        <div class="stat-text">Monthly Fee/Class</div>
-                    </div>
-                </div>
+// Access control: can student u access this recording?
+function canAccess(u,rec){
+  if(!u||u.role!=='student')return true;
+  if(rec.isFree)return true;
+  if(!u.enrolled)return false;
+  if(u.batchId!==rec.batchId)return false;
+  // Check access rules
+  const rule=getAccessRule(rec.batchId,rec.year,rec.month,rec.type);
+  if(rule===false)return false; // explicitly blocked
+  return true; // enrolled = access unless blocked
+}
+function canAccessNote(u,note){
+  if(!u||u.role!=='student')return true;
+  if(note.isFree)return true;
+  return u.enrolled&&u.batchId===note.batchId;
+}
+function canAccessLive(u,live){
+  if(!u||u.role!=='student')return true;
+  return u.enrolled&&u.batchId===live.batchId;
+}
+function getAccessRule(batchId,year,month,type){
+  return DB.accessRules?.[batchId]?.[year]?.[month]?.[type]; // undefined=default, true=allowed, false=blocked
+}
+function setAccessRule(batchId,year,month,type,val){
+  if(!DB.accessRules[batchId])DB.accessRules[batchId]={};
+  if(!DB.accessRules[batchId][year])DB.accessRules[batchId][year]={};
+  if(!DB.accessRules[batchId][year][month])DB.accessRules[batchId][year][month]={};
+  DB.accessRules[batchId][year][month][type]=val;
+}
 
-                <div class="card" style="margin-bottom: 16px;">
-                    <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Your Classes</h3>
-                    <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                        ${classBadges}
-                        <button class="btn btn-secondary btn-sm" onclick="openClassModal()">Edit</button>
-                    </div>
-                </div>
+// ======================================================
+// YT VIDEO MODAL
+// ======================================================
+function playVideo(rec,userObj){
+  const u=userObj||CU;
+  if(!canAccess(u,rec)){toast('Enroll to watch premium content 🔒','error');return}
+  // Extract YT ID
+  let ytId='dQw4w9WgXcQ';
+  const m=rec.ytLink.match(/(?:embed\/|v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if(m)ytId=m[1];
+  document.getElementById('ytFrame').src=`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
+  document.getElementById('ytModalTitle').textContent=rec.title;
+  document.getElementById('ytInfoTitle').textContent=rec.title;
+  document.getElementById('ytInfoMeta').innerHTML=`
+    <span>📅 ${rec.date}</span><span>⏱ ${fmtDur(rec.duration)}</span>
+    <span class="${typeColor(rec.type)} pill">${rec.type.charAt(0).toUpperCase()+rec.type.slice(1)}</span>
+    <span>${rec.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Premium</span>'}
+  `;
+  document.getElementById('ytInfoDesc').textContent=rec.description||'No description.';
+  openModal('ytModal');
+  // Mark viewed
+  if(u&&u.viewedVideos&&!u.viewedVideos.includes(rec.id)){
+    u.viewedVideos.push(rec.id);
+    // refresh viewed indicator silently
+  }
+}
+function closeYtModal(){
+  document.getElementById('ytFrame').src='';
+  closeModal('ytModal');
+}
 
-                <div class="card">
-                    <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Quick Actions</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-primary" onclick="nav('classes')">View Recordings</button>
-                        <button class="btn btn-secondary" onclick="nav('payments')">Make Payment</button>
-                    </div>
-                </div>
-            `;
-        }
+// ======================================================
+// LANDING
+// ======================================================
+function renderLanding(){
+  populateRegSubjects();
+  // Courses
+  const gc=document.getElementById('landingCourses');
+  gc.innerHTML='';
+  DB.batches.slice(0,6).forEach(b=>{
+    const sub=DB.subjects.find(s=>s.id===b.subjectId);
+    const freeR=DB.recordings.filter(r=>r.batchId===b.id&&r.isFree).length;
+    const teacher=DB.users.find(u=>u.id===b.teacherId);
+    gc.innerHTML+=`
+    <div class="course-card" onclick="openModal('registerModal')">
+      <div class="course-thumb" style="background:linear-gradient(135deg,${sub?.color||'#4f8ef7'}22,${sub?.color||'#4f8ef7'}44)">
+        ${sub?.icon||'📚'}
+        <div style="position:absolute;top:.6rem;right:.6rem"><span class="badge badge-free">🆓 ${freeR}</span></div>
+      </div>
+      <div class="course-body">
+        <div style="font-size:.92rem;font-weight:700;margin-bottom:.3rem">${b.name}</div>
+        <div style="font-size:.75rem;color:var(--muted2);margin-bottom:.8rem">👨‍🏫 ${teacher?.name||'Instructor'}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:.72rem;color:var(--muted)">👥 ${b.studentCount.toLocaleString()}</span>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openModal('registerModal')">Enroll</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  // Teachers
+  const gt=document.getElementById('landingTeachers');
+  gt.innerHTML='';
+  DB.users.filter(u=>u.role==='teacher').forEach(t=>{
+    const myBatches=DB.batches.filter(b=>b.teacherId===t.id);
+    const subjects=[...new Set(myBatches.map(b=>{const s=DB.subjects.find(x=>x.id===b.subjectId);return s?.name}))].filter(Boolean);
+    gt.innerHTML+=`
+    <div class="teacher-card">
+      <div class="teacher-av">${t.name.charAt(0)}</div>
+      <div style="font-size:.95rem;font-weight:700;margin-bottom:.2rem">${t.name}</div>
+      <div style="font-size:.78rem;color:var(--muted2);margin-bottom:.8rem">${subjects.join(' · ')} · ${myBatches.length} Batches</div>
+      <div style="font-size:.78rem;color:var(--muted)">Expert educator with 10+ years experience</div>
+    </div>`;
+  });
+}
 
-        function pageClasses() {
-            if (myClasses.length === 0) {
-                return `
-                    <h1 class="page-title">My Classes</h1>
-                    <p class="page-desc">Access recordings for enrolled classes</p>
-                    <div class="empty-msg">
-                        <p>No classes enrolled. Go to Profile to add classes.</p>
-                    </div>
-                `;
-            }
+// ======================================================
+// STUDENT PORTAL
+// ======================================================
+function sNav(sec,el,isMobile){
+  if(isMobile){
+    document.querySelectorAll('.mobile-nav-item').forEach(b=>b.classList.remove('active'));
+    if(el)el.classList.add('active');
+    document.querySelectorAll('#studentSidebar .sidebar-item').forEach((b,i)=>{
+      const secs=['dashboard','live','recordings','notes','quiz','profile'];
+      b.classList.toggle('active',secs[i]===sec);
+    });
+  } else {
+    document.querySelectorAll('#studentPage .sidebar-item').forEach(b=>b.classList.remove('active'));
+    if(el)el.classList.add('active');
+    const mbiItems=document.querySelectorAll('.mobile-nav-item');
+    mbiItems.forEach(b=>b.classList.toggle('active',b.dataset.s===sec));
+  }
+  closeSidebar();
+  renderStudentSec(sec);
+}
 
-            // Check payment status for each class/month
-            let monthStatus = {};
-            myClasses.forEach(cls => {
-                monthStatus[cls] = {};
-                MONTHS.forEach(m => {
-                    const status = paymentData[cls]?.[m];
-                    monthStatus[cls][m] = status || 'locked';
-                });
-            });
+function renderStudentSec(sec){
+  const el=document.getElementById('sContent');
+  const u=CU;
+  const batch=DB.batches.find(b=>b.id===u.batchId);
+  const renders={
+    dashboard:()=>renderSDashboard(u,batch),
+    live:()=>renderSLive(u,batch),
+    recordings:()=>renderSRecordings(u,batch),
+    notes:()=>renderSNotes(u,batch),
+    quiz:()=>renderSQuizList(u,batch),
+    profile:()=>renderSProfile(u,batch)
+  };
+  el.innerHTML=(renders[sec]||renders.dashboard)();
+}
 
-            return `
-                <h1 class="page-title">My Classes</h1>
-                <p class="page-desc">Each month requires separate payment approval to unlock content</p>
+function renderSDashboard(u,batch){
+  const recs=DB.recordings.filter(r=>r.batchId===u.batchId);
+  const viewed=(u.viewedVideos||[]).length;
+  const nextLive=DB.liveClasses.filter(l=>l.batchId===u.batchId&&l.status!=='past')[0];
+  const quizCount=DB.quizzes.filter(q=>q.batchId===u.batchId).length;
+  const doneQ=Object.keys(u.completedQuizzes||{}).length;
+  return`
+  <div class="sec-tag">// Dashboard</div>
+  <div style="font-size:1.2rem;font-weight:800;letter-spacing:-.5px;margin-bottom:1.25rem">Good day, ${u.name.split(' ')[0]}! 👋</div>
+  ${!u.enrolled?`<div class="alert alert-info">⏳ Enrollment pending. Contact your teacher to activate full access.</div>`:''}
+  <div class="g4" style="margin-bottom:1.5rem">
+    <div class="stat-card"><div class="stat-icon">🎬</div><div class="stat-val" style="color:var(--accent)">${recs.length}</div><div class="stat-label">Total Videos</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" style="color:var(--accent3)">${viewed}</div><div class="stat-label">Watched</div></div>
+    <div class="stat-card"><div class="stat-icon">🧠</div><div class="stat-val" style="color:var(--accent4)">${doneQ}/${quizCount}</div><div class="stat-label">Quizzes Done</div></div>
+    <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-val" style="color:var(--accent2)">${DB.notes.filter(n=>n.batchId===u.batchId).length}</div><div class="stat-label">Notes</div></div>
+  </div>
+  ${nextLive?`
+  <div class="live-card ${nextLive.status}" style="margin-bottom:1.5rem">
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem">
+      ${nextLive.status==='live'?`<div class="live-dot"></div><span style="font-size:.68rem;font-weight:700;color:#ff4444;letter-spacing:1px">LIVE NOW</span>`:
+        `<span class="badge badge-blue">${nextLive.status==='upcoming'?'Upcoming':'Past'}</span>`}
+    </div>
+    <div style="font-size:1rem;font-weight:700;margin-bottom:.3rem">${nextLive.title}</div>
+    <div style="font-size:.78rem;color:var(--muted2);margin-bottom:.9rem">📅 ${nextLive.date} · ⏰ ${nextLive.time} · ⏱ ${fmtDur(nextLive.duration)}</div>
+    ${canAccessLive(u,nextLive)?`<a href="${nextLive.zoomLink}" target="_blank" class="btn btn-primary btn-sm">🔗 Join Zoom</a>`:
+      `<button class="btn btn-ghost btn-sm" onclick="toast('Enrollment required','error')">🔒 Locked</button>`}
+  </div>`:''}
+  <div class="sec-header"><div class="sec-title">Recent Videos</div><button class="btn btn-ghost btn-sm" onclick="sNav('recordings')">View All</button></div>
+  <div style="display:grid;gap:.6rem">
+    ${recs.slice(-4).reverse().map(r=>recMiniCard(r,u)).join('')}
+  </div>`;
+}
 
-                ${myClasses.map(cls => `
-                    <div class="card" style="margin-bottom: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                            <h3 style="font-size: 16px; font-weight: 600;">${cls.charAt(0).toUpperCase() + cls.slice(1)}</h3>
-                            <span style="font-size: 12px; color: var(--fg-muted);">Rs. ${monthlyFee.toLocaleString()}/month</span>
-                        </div>
-                        
-                        <div class="month-grid">
-                            ${MONTHS.map(m => {
-                                const st = monthStatus[cls][m];
-                                return `
-                                    <div class="month-card ${st}" onclick="handleMonthClick('${cls}', '${m}', '${st}')">
-                                        <div class="month-name">${m}</div>
-                                        <span class="month-status ${st}">${st === 'approved' ? 'Unlocked' : st === 'pending' ? 'Pending' : 'Locked'}</span>
-                                        ${st === 'locked' ? `<div class="month-action"><button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openPayFor('${cls}', '${m}')">Pay</button></div>` : ''}
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-        }
+function recMiniCard(r,u){
+  const ok=canAccess(u,r);
+  const viewed=(u.viewedVideos||[]).includes(r.id);
+  return`
+  <div style="background:var(--surface);border:1px solid ${viewed?'var(--accent3)':ok?'var(--border)':'var(--border)'};border-radius:var(--radius);padding:.85rem;display:flex;gap:.8rem;align-items:center;cursor:pointer;transition:all .2s" onclick="${ok?`openVideoModal('${r.id}')`:`toast('Enroll required 🔒','error')`}">
+    <div style="width:48px;height:48px;border-radius:9px;background:linear-gradient(135deg,#0d1b2e,#1a2e4a);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${typeIcon(r.type)}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title}</div>
+      <div style="font-size:.72rem;color:var(--muted2);margin-top:.15rem">${r.year} · ${monthName(r.month)} · <span class="pill ${typeColor(r.type)}">${r.type}</span></div>
+    </div>
+    ${viewed?`<span style="color:var(--accent3);font-size:1rem">✓</span>`:ok?`<span style="color:var(--accent);font-size:1rem">▶</span>`:`<span>🔒</span>`}
+  </div>`;
+}
 
-        function handleMonthClick(cls, month, status) {
-            if (status !== 'approved') {
-                toast('warning', `Payment required for ${cls} - ${month}`);
-                return;
-            }
-            // Show videos for this month
-            showMonthVideos(cls, month);
-        }
+function openVideoModal(rid){
+  const rec=DB.recordings.find(r=>r.id===rid);
+  if(rec)playVideo(rec,CU);
+}
 
-        function showMonthVideos(cls, month) {
-            const vids = recordings.filter(r => r.cls === cls && r.month === month);
-            
-            if (vids.length === 0) {
-                toast('info', 'No recordings available for this month yet');
-                return;
-            }
+function renderSLive(u,batch){
+  const lives=DB.liveClasses.filter(l=>l.batchId===u.batchId);
+  return`
+  <div class="sec-tag">// Live Classes</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Live Classes — ${batch?.name||''}</div>
+  ${!u.enrolled?`<div class="alert alert-error">🔒 Enroll to join live classes.</div>`:''}
+  ${lives.length===0?`<div class="empty"><div class="ei">📡</div><p>No live classes scheduled.</p></div>`:''}
+  ${lives.map(l=>`
+  <div class="live-card ${l.status}">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div>
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+          ${l.status==='live'?`<div class="live-dot"></div><span style="font-size:.68rem;font-weight:700;color:#ff4444">LIVE NOW</span>`:
+            l.status==='upcoming'?`<span class="badge badge-blue">Upcoming</span>`:`<span class="badge" style="background:var(--surface2);color:var(--muted2)">Past</span>`}
+        </div>
+        <div style="font-weight:700;font-size:.95rem;margin-bottom:.3rem">${l.title}</div>
+        ${l.description?`<div style="font-size:.78rem;color:var(--muted2);margin-bottom:.5rem">${l.description}</div>`:''}
+        <div style="font-size:.76rem;color:var(--muted);display:flex;gap:.8rem;flex-wrap:wrap">
+          <span>📅 ${l.date}</span><span>⏰ ${l.time}</span><span>⏱ ${fmtDur(l.duration)}</span>
+        </div>
+      </div>
+      <div>
+        ${canAccessLive(u,l)&&l.status!=='past'?`<a href="${l.zoomLink}" target="_blank" class="btn btn-primary btn-sm">🔗 Join Zoom</a>`:
+          !u.enrolled?`<button class="btn btn-ghost btn-sm" onclick="toast('Enroll first!','error')">🔒</button>`:
+          `<button class="btn btn-ghost btn-sm" disabled>Ended</button>`}
+      </div>
+    </div>
+  </div>`).join('')}`;
+}
 
-            const html = `
-                <div style="margin-bottom: 16px;">
-                    <button class="btn btn-secondary btn-sm" onclick="nav('classes')">Back to Classes</button>
-                </div>
-                <h1 class="page-title">${cls.charAt(0).toUpperCase() + cls.slice(1)} - ${month}</h1>
-                <p class="page-desc">Recordings for this month</p>
-                <div class="video-list">
-                    ${vids.map(v => `
-                        <div class="video-item" onclick="playVideo('${v.url}', '${v.title}')">
-                            <div class="video-thumb">
-                                <div class="video-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
-                                <span class="video-len">${v.dur}</span>
-                            </div>
-                            <div class="video-info">
-                                <h3 class="video-title">${v.title}</h3>
-                                <div class="video-meta">${v.month} 2024</div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            document.getElementById('pageBody').innerHTML = html;
-        }
+function renderSRecordings(u,batch){
+  const recs=DB.recordings.filter(r=>r.batchId===u.batchId);
+  const years=['2024','2025','2026'];
+  const types=['theory','paper','revision','extra'];
+  return`
+  <div class="sec-tag">// Recordings</div>
+  <div class="sec-title" style="margin-bottom:.4rem">Recorded Classes</div>
+  <p style="font-size:.8rem;color:var(--muted2);margin-bottom:1.25rem">Year → Month → Class Type (Theory · Paper · Revision · Extra)</p>
+  ${!u.enrolled?`<div class="alert alert-info">💡 Free previews available. Enroll for full access.</div>`:''}
+  ${years.map(year=>{
+    const yearRecs=recs.filter(r=>r.year===year);
+    const months=['01','02','03','04','05','06','07','08','09','10','11','12'];
+    return`
+    <div class="year-block">
+      <div class="year-hdr" id="yhdr${year}" onclick="toggleYear('${year}')">
+        <div class="year-hdr-title">
+          <span>📅</span><span>${year}</span>
+          <span class="badge badge-blue">${yearRecs.length} videos</span>
+        </div>
+        <span id="yarr${year}" style="font-size:.8rem;color:var(--muted2)">▼</span>
+      </div>
+      <div class="year-body" id="ybody${year}">
+        ${months.map(month=>{
+          const mRecs=yearRecs.filter(r=>r.month===month);
+          if(mRecs.length===0)return`<div class="month-block"><div class="month-hdr" style="opacity:.4">📆 ${monthName(month)} <span style="font-size:.72rem;color:var(--muted2)">(0)</span></div></div>`;
+          return`
+          <div class="month-block">
+            <div class="month-hdr" id="mhdr${year}${month}" onclick="toggleMonth('${year}','${month}')">
+              <span>📆 ${monthName(month)} <span style="font-size:.72rem;font-weight:400;color:var(--muted2)">(${mRecs.length} videos)</span></span>
+              <span id="marr${year}${month}" style="font-size:.75rem;color:var(--muted2)">▶</span>
+            </div>
+            <div class="month-body" id="mbody${year}${month}">
+              <div class="type-tabs" id="ttabs${year}${month}">
+                ${types.map((t,i)=>{
+                  const cnt=mRecs.filter(r=>r.type===t).length;
+                  return`<button class="type-tab${i===0?' active':''}" onclick="filterType('${year}','${month}','${t}',this)">${typeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)} (${cnt})</button>`
+                }).join('')}
+              </div>
+              <div class="videos-grid" id="vgrid${year}${month}">
+                ${mRecs.filter(r=>r.type==='theory').map(r=>recCard(r,u)).join('')}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('')}`;
+}
 
-        function playVideo(url, title) {
-            document.getElementById('vidTitle').textContent = title;
-            document.getElementById('vidFrame').src = url;
-            showModal('videoModal');
-        }
+function recCard(r,u){
+  const ok=canAccess(u,r);
+  const viewed=(u?.viewedVideos||[]).includes(r.id);
+  return`
+  <div class="rec-card${viewed?' viewed':''}" onclick="${ok?`openVideoModal('${r.id}')`:`toast('Premium content — enrollment required 🔒','error')`}">
+    ${!ok?`<div class="lock-badge">🔒 Premium</div>`:''}
+    ${viewed?`<div class="viewed-check">✓</div>`:''}
+    <div class="rec-thumb" style="${!ok?'filter:brightness(.6)':''}">
+      ${typeIcon(r.type)}
+      <div class="rec-play-overlay"><div class="rec-play-btn">${ok?'▶':'🔒'}</div></div>
+    </div>
+    <div class="rec-body">
+      <div class="rec-title">${r.title}</div>
+      <div class="rec-desc">${r.description}</div>
+      <div class="rec-meta">
+        <span>📅 ${r.date}</span>
+        <span>⏱ ${fmtDur(r.duration)}</span>
+      </div>
+      <div class="rec-footer">
+        <span class="pill ${typeColor(r.type)}">${r.type}</span>
+        ${r.isFree?`<span class="badge badge-free">Free</span>`:`<span class="badge badge-paid">Premium</span>`}
+      </div>
+    </div>
+  </div>`;
+}
 
-        function openPayFor(cls, month) {
-            document.getElementById('payClass').innerHTML = `<option value="${cls}">${cls.charAt(0).toUpperCase() + cls.slice(1)}</option>`;
-            document.getElementById('payClass').value = cls;
-            document.getElementById('payMonth').value = month;
-            showModal('payModal');
-        }
+function toggleYear(y){
+  const body=document.getElementById('ybody'+y);
+  const hdr=document.getElementById('yhdr'+y);
+  const arr=document.getElementById('yarr'+y);
+  const open=body.classList.toggle('open');
+  hdr.classList.toggle('open',open);
+  arr.textContent=open?'▲':'▼';
+}
+function toggleMonth(y,m){
+  const body=document.getElementById('mbody'+y+m);
+  const hdr=document.getElementById('mhdr'+y+m);
+  const arr=document.getElementById('marr'+y+m);
+  const open=body.classList.toggle('open');
+  hdr.classList.toggle('open',open);
+  arr.textContent=open?'▼':'▶';
+}
+function filterType(year,month,type,btn){
+  const tabs=btn.closest('.type-tabs');
+  tabs.querySelectorAll('.type-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const recs=DB.recordings.filter(r=>r.batchId===CU.batchId&&r.year===year&&r.month===month&&r.type===type);
+  const grid=document.getElementById('vgrid'+year+month);
+  grid.innerHTML=recs.length===0?
+    `<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted2);font-size:.82rem">No ${type} classes for ${monthName(month)} ${year}</div>`:
+    recs.map(r=>recCard(r,CU)).join('');
+}
 
-        function pagePayments() {
-            return `
-                <h1 class="page-title">Payments</h1>
-                <p class="page-desc">Manage monthly class payments</p>
+function renderSNotes(u,batch){
+  const notes=DB.notes.filter(n=>n.batchId===u.batchId);
+  return`
+  <div class="sec-tag">// Notes</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Notes & Resources</div>
+  ${!u.enrolled?`<div class="alert alert-info">Free notes available below. Enroll for premium notes.</div>`:''}
+  ${notes.length===0?`<div class="empty"><div class="ei">📄</div><p>No notes yet.</p></div>`:''}
+  ${notes.map(n=>{
+    const ok=canAccessNote(u,n);
+    return`
+    <div class="note-card" style="${!ok?'opacity:.8':''}">
+      <div class="note-icon">📄</div>
+      <div class="note-info">
+        <div class="note-title">${n.title}</div>
+        <div class="note-meta">📁 ${n.size} · ${n.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Premium</span>'}
+          ${n.description?` · ${n.description}`:''}</div>
+      </div>
+      ${ok?`<a href="${n.driveLink}" target="_blank" class="btn btn-success btn-sm">⬇ PDF</a>`:
+        `<button class="btn btn-ghost btn-sm" onclick="toast('Enroll to download 🔒','error')">🔒</button>`}
+    </div>`}).join('')}`;
+}
 
-                <div class="card" style="margin-bottom: 16px;">
-                    <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Bank Details</h3>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 13px;">
-                        <div><div style="color: var(--fg-muted); font-size: 11px;">Bank</div><div style="font-weight: 500;">Commercial Bank</div></div>
-                        <div><div style="color: var(--fg-muted); font-size: 11px;">Account</div><div style="font-weight: 500;">NovaX Education</div></div>
-                        <div><div style="color: var(--fg-muted); font-size: 11px;">Account No</div><div style="font-weight: 500; font-family: monospace;">1234567890</div></div>
-                    </div>
-                </div>
+function renderSQuizList(u,batch){
+  const quizzes=DB.quizzes.filter(q=>q.batchId===u.batchId);
+  return`
+  <div class="sec-tag">// Quizzes</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Quizzes & Tests</div>
+  ${quizzes.length===0?`<div class="empty"><div class="ei">🧠</div><p>No quizzes yet.</p></div>`:''}
+  ${quizzes.map(q=>{
+    const done=u.completedQuizzes[q.id];
+    const ok=u.enrolled||q.isFree;
+    return`
+    <div class="quiz-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+        <div>
+          <div style="font-weight:700;margin-bottom:.3rem">${q.title}</div>
+          <div style="font-size:.75rem;color:var(--muted2);display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+            <span>${q.questions.length} Questions</span>
+            ${q.isFree?`<span class="badge badge-free">Free</span>`:`<span class="badge badge-paid">Premium</span>`}
+            ${done?`<span style="color:var(--accent3)">✅ ${done.score}/${done.total} — ${done.pct}%</span>`:''}
+          </div>
+        </div>
+        ${ok?`<button class="btn btn-primary btn-sm" onclick="startQuiz('${q.id}')">${done?'Retake':'Start'}</button>`:
+          `<button class="btn btn-ghost btn-sm" onclick="toast('Enroll required 🔒','error')">🔒 Locked</button>`}
+      </div>
+    </div>`}).join('')}`;
+}
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                    <h3 style="font-size: 16px; font-weight: 600;">Payment History</h3>
-                    <button class="btn btn-primary btn-sm" onclick="openPayModal()">Request Payment</button>
-                </div>
+function startQuiz(qid){
+  const quiz=DB.quizzes.find(q=>q.id===qid);
+  let cur=0,score=0;
+  function render(){
+    const el=document.getElementById('sContent');
+    if(cur>=quiz.questions.length){
+      const pct=Math.round(score/quiz.questions.length*100);
+      CU.completedQuizzes[quiz.id]={score,total:quiz.questions.length,pct,date:new Date().toLocaleDateString()};
+      el.innerHTML=`
+      <div style="max-width:440px;margin:3rem auto;text-align:center">
+        <div style="font-size:4rem;margin-bottom:1rem">${pct>=70?'🏆':'📚'}</div>
+        <div style="font-size:1.8rem;font-weight:800;margin-bottom:.5rem">Quiz Complete!</div>
+        <div style="font-size:1rem;color:var(--muted2);margin-bottom:1.5rem">Score: <strong style="color:var(--accent)">${score}/${quiz.questions.length}</strong> (${pct}%)</div>
+        <div class="progress" style="max-width:280px;margin:0 auto 2rem;height:10px"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <button class="btn btn-primary" onclick="sNav('quiz')">Back to Quizzes</button>
+      </div>`;
+      return;
+    }
+    const q=quiz.questions[cur];
+    el.innerHTML=`
+    <div style="max-width:560px;margin:0 auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem">
+        <div class="sec-title">Q${cur+1}/${quiz.questions.length}</div>
+        <div class="badge badge-blue">Score: ${score}</div>
+      </div>
+      <div class="progress" style="margin-bottom:1.25rem"><div class="progress-fill" style="width:${cur/quiz.questions.length*100}%"></div></div>
+      <div class="card" style="margin-bottom:1.25rem"><div class="card-body" style="font-size:1rem;font-weight:600;line-height:1.6">${q.q}</div></div>
+      <div id="qopts">
+        ${q.opts.map((o,i)=>`<div class="quiz-opt" id="qo${i}" onclick="pickOpt(${i},${q.ans})">${String.fromCharCode(65+i)}. ${o}</div>`).join('')}
+      </div>
+      <button id="qnext" class="btn btn-primary" style="margin-top:1.25rem;display:none" onclick="nextQ()">Next →</button>
+    </div>`;
+  }
+  window.pickOpt=(idx,ans)=>{
+    document.querySelectorAll('.quiz-opt').forEach((o,i)=>{
+      o.style.pointerEvents='none';
+      if(i===ans)o.classList.add('correct');
+      else if(i===idx)o.classList.add('wrong');
+    });
+    if(idx===ans)score++;
+    document.getElementById('qnext').style.display='flex';
+  };
+  window.nextQ=()=>{cur++;render()};
+  render();
+}
 
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>Date</th><th>Class</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
-                        <tbody id="payTable">
-                            <tr><td colspan="5" style="text-align: center; padding: 30px;">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
+function renderSProfile(u,batch){
+  const totalQ=DB.quizzes.filter(q=>q.batchId===u.batchId).length;
+  const doneQ=Object.keys(u.completedQuizzes).length;
+  const totalRec=DB.recordings.filter(r=>r.batchId===u.batchId).length;
+  const viewed=(u.viewedVideos||[]).length;
+  const sub=DB.subjects.find(s=>s.id===u.subjectId);
+  return`
+  <div class="sec-tag">// Profile</div>
+  <div style="max-width:540px">
+    <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.75rem">
+      <div class="profile-av">${u.name.charAt(0)}</div>
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.2rem">${u.name}</div>
+        <div style="font-size:.82rem;color:var(--muted2)">${sub?.name} · ${gradeLabel(u.grade)}</div>
+        <div style="margin-top:.4rem">${u.enrolled?`<span class="badge badge-free">✅ Enrolled</span>`:`<span class="badge badge-paid">⏳ Pending</span>`}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-body">
+        <div style="font-weight:700;margin-bottom:1rem;font-size:.95rem">Account Details</div>
+        ${[['Username',u.username],['Email',u.email],['Subject',sub?.name],['Grade',gradeLabel(u.grade)],['Batch',batch?.name||'—']].map(([l,v])=>`
+        <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.84rem;gap:.5rem">
+          <span style="color:var(--muted2)">${l}</span><strong style="text-align:right">${v}</strong>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-body">
+        <div style="font-weight:700;margin-bottom:1rem;font-size:.95rem">Learning Progress</div>
+        <div style="margin-bottom:.9rem">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.35rem"><span>Videos Watched</span><span>${viewed}/${totalRec}</span></div>
+          <div class="progress"><div class="progress-fill" style="width:${totalRec?viewed/totalRec*100:0}%"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.35rem"><span>Quizzes Completed</span><span>${doneQ}/${totalQ}</span></div>
+          <div class="progress"><div class="progress-fill" style="width:${totalQ?doneQ/totalQ*100:0}%"></div></div>
+        </div>
+        ${Object.keys(u.completedQuizzes).length>0?`
+        <div style="margin-top:1rem;display:grid;gap:.5rem">
+          ${Object.entries(u.completedQuizzes).map(([qid,d])=>{
+            const quiz=DB.quizzes.find(q=>q.id===qid);
+            return quiz?`<div style="background:var(--surface2);border-radius:8px;padding:.65rem .85rem;font-size:.8rem;display:flex;justify-content:space-between">
+              <span>${quiz.title}</span><span style="color:var(--accent3)">${d.score}/${d.total} (${d.pct}%)</span>
+            </div>`:'';}).join('')}
+        </div>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="editProfileModal()">✏️ Edit Profile</button>
+      <button class="btn btn-danger btn-sm" onclick="doLogout()">Logout</button>
+    </div>
+  </div>`;
+}
 
-        async function loadPayHistory() {
-            const tbody = document.getElementById('payTable');
-            if (!tbody) return;
+function editProfileModal(){
+  const u=CU;
+  document.getElementById('cModalTitle').textContent='Edit Profile';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="ep_name" value="${u.name}"/></div>
+  <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="ep_email" value="${u.email}"/></div>
+  <div class="form-group"><label class="form-label">New Password (blank = no change)</label><input class="form-input" type="password" id="ep_pass"/></div>
+  <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>`;
+  openModal('cModal');
+}
+function saveProfile(){
+  CU.name=g('ep_name')||CU.name;CU.email=g('ep_email')||CU.email;
+  const p=g('ep_pass');if(p&&p.length>=6)CU.password=p;
+  closeModal('cModal');toast('Profile updated ✅','success');renderStudentSec('profile');
+}
 
-            if (curUser?.id === 'demo') {
-                tbody.innerHTML = `
-                    <tr><td>2024-01-15</td><td>Korean</td><td>January</td><td>Rs. 4,000</td><td><span class="badge success">Approved</span></td></tr>
-                    <tr><td>2024-01-20</td><td>Korean</td><td>February</td><td>Rs. 4,000</td><td><span class="badge warning">Pending</span></td></tr>
-                    <tr><td>2024-01-22</td><td>Media</td><td>January</td><td>Rs. 4,000</td><td><span class="badge success">Approved</span></td></tr>
-                `;
-                return;
-            }
+// ======================================================
+// TEACHER PORTAL
+// ======================================================
+function tNav(sec,el){
+  document.querySelectorAll('#teacherPage .sidebar-item').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  closeSidebar();
+  const renders={
+    dashboard:renderTDashboard,live:renderTLive,recordings:renderTRecordings,
+    notes:renderTNotes,quiz:renderTQuiz,students:renderTStudents,access:renderTAccess
+  };
+  document.getElementById('tContent').innerHTML=(renders[sec]||renders.dashboard)();
+  if(sec==='recordings'||sec==='content')initContentTabs();
+}
 
-            try {
-                const { data, error } = await sb.from('payments').select('*').eq('student_id', curUser.id).order('created_at', { ascending: false });
-                if (error) throw error;
+function renderTDashboard(){
+  const batches=getTeacherBatches();
+  const total=batches.reduce((a,b)=>a+b.studentCount,0);
+  const myRecs=DB.recordings.filter(r=>batches.some(b=>b.id===r.batchId));
+  return`
+  <div class="sec-tag">// Teacher Dashboard</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Welcome, ${CU.name}! 🎓</div>
+  <div class="teacher-banner">
+    <div>
+      <div style="font-weight:700;margin-bottom:.25rem">Your Teaching Hub</div>
+      <div style="font-size:.82rem;color:var(--muted2)">Manage content, track students, schedule live classes.</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="tNav('recordings')">+ Add Recording</button>
+  </div>
+  <div class="g4" style="margin-bottom:1.5rem">
+    <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-val" style="color:var(--accent)">${batches.length}</div><div class="stat-label">Batches</div></div>
+    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-val" style="color:var(--accent3)">${total.toLocaleString()}</div><div class="stat-label">Students</div></div>
+    <div class="stat-card"><div class="stat-icon">🎬</div><div class="stat-val" style="color:var(--accent4)">${myRecs.length}</div><div class="stat-label">Recordings</div></div>
+    <div class="stat-card"><div class="stat-icon">📡</div><div class="stat-val" style="color:var(--accent2)">${DB.liveClasses.filter(l=>batches.some(b=>b.id===l.batchId)).length}</div><div class="stat-label">Live Classes</div></div>
+  </div>
+  <div class="sec-title" style="margin-bottom:1rem;font-size:1rem">My Batches</div>
+  <div class="g3">
+    ${batches.map(b=>`<div class="card"><div class="card-body">
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:.3rem">${b.name}</div>
+      <div style="font-size:.75rem;color:var(--muted2);margin-bottom:.7rem">👥 ${b.studentCount} students</div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <span class="badge badge-blue">${DB.recordings.filter(r=>r.batchId===b.id).length} Vids</span>
+        <span class="badge badge-yellow">${DB.notes.filter(n=>n.batchId===b.id).length} Notes</span>
+      </div>
+    </div></div>`).join('')}
+  </div>`;
+}
 
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--fg-muted);">No payment history</td></tr>';
-                    return;
-                }
+function renderTLive(){
+  const batches=getTeacherBatches();
+  const lives=DB.liveClasses.filter(l=>batches.some(b=>b.id===l.batchId));
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Live Classes</div><div class="sec-title">Live Management</div></div>
+    <button class="btn btn-primary btn-sm" onclick="liveModal()">+ Schedule</button>
+  </div>
+  ${lives.length===0?`<div class="empty"><div class="ei">📡</div><p>No live classes yet.</p></div>`:''}
+  ${lives.map(l=>{
+    const b=DB.batches.find(x=>x.id===l.batchId);
+    return`<div class="live-card ${l.status}">
+      <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;flex-wrap:wrap">
+            ${l.status==='live'?`<div class="live-dot"></div><span style="font-size:.65rem;font-weight:700;color:#ff4444">LIVE</span>`:
+              l.status==='upcoming'?`<span class="badge badge-blue">Upcoming</span>`:`<span class="badge" style="background:var(--surface2);color:var(--muted)">Past</span>`}
+            <span class="badge badge-yellow">${b?.name}</span>
+          </div>
+          <div style="font-weight:700;font-size:.92rem;margin-bottom:.3rem">${l.title}</div>
+          ${l.description?`<div style="font-size:.76rem;color:var(--muted2);margin-bottom:.4rem">${l.description}</div>`:''}
+          <div style="font-size:.74rem;color:var(--muted);display:flex;gap:.7rem;flex-wrap:wrap">
+            <span>📅 ${l.date}</span><span>⏰ ${l.time}</span><span>⏱ ${fmtDur(l.duration)}</span>
+          </div>
+          <div style="font-size:.72rem;color:var(--accent);margin-top:.3rem;word-break:break-all">${l.zoomLink}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <button class="btn btn-ghost btn-sm" onclick="liveModal('${l.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteLive('${l.id}')">🗑 Del</button>
+        </div>
+      </div>
+    </div>`;}).join('')}`;
+}
 
-                tbody.innerHTML = data.map(p => `
-                    <tr>
-                        <td style="font-family: monospace; font-size: 12px;">${new Date(p.created_at).toLocaleDateString()}</td>
-                        <td>${p.class_name}</td>
-                        <td>${p.month}</td>
-                        <td style="font-family: monospace;">Rs. ${p.amount?.toLocaleString()}</td>
-                        <td><span class="badge ${p.status === 'approved' ? 'success' : p.status === 'pending' ? 'warning' : 'danger'}">${p.status}</span></td>
-                    </tr>
-                `).join('');
-            } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--danger);">Error loading</td></tr>';
-            }
-        }
+function liveModal(editId){
+  const batches=getTeacherBatches();
+  const live=editId?DB.liveClasses.find(x=>x.id===editId):null;
+  document.getElementById('cModalTitle').textContent=editId?'Edit Live Class':'Schedule Live Class';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="lv_t" value="${live?.title||''}"/></div>
+  <div class="form-group"><label class="form-label">Description</label><textarea class="form-input form-textarea" id="lv_d">${live?.description||''}</textarea></div>
+  <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="lv_b">
+    ${batches.map(b=>`<option value="${b.id}" ${live?.batchId===b.id?'selected':''}>${b.name}</option>`).join('')}
+  </select></div>
+  <div class="form-group"><label class="form-label">Zoom Link</label><input class="form-input" id="lv_z" value="${live?.zoomLink||'https://zoom.us/j/'}"/></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="lv_dt" value="${live?.date||''}"/></div>
+    <div class="form-group"><label class="form-label">Time</label><input class="form-input" id="lv_tm" value="${live?.time||''}"/></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Duration (mins)</label><input class="form-input" type="number" id="lv_dr" value="${live?.duration||90}"/></div>
+    <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="lv_st">
+      ${['upcoming','live','past'].map(s=>`<option value="${s}" ${live?.status===s?'selected':''}>${s}</option>`).join('')}
+    </select></div>
+  </div>
+  <button class="btn btn-primary" onclick="saveLive('${editId||''}')">Save</button>`;
+  openModal('cModal');
+}
+function saveLive(eid){
+  const d={batchId:g('lv_b'),title:g('lv_t'),description:g('lv_d'),zoomLink:g('lv_z'),date:g('lv_dt'),time:g('lv_tm'),duration:parseInt(g('lv_dr'))||90,status:g('lv_st')};
+  if(eid)Object.assign(DB.liveClasses.find(x=>x.id===eid),d);
+  else DB.liveClasses.push({id:'lc'+Date.now(),...d});
+  closeModal('cModal');toast(eid?'Updated!':'Live class scheduled! 📡','success');tNav('live');
+}
+function deleteLive(id){confirmDo('Delete this live class?',()=>{DB.liveClasses=DB.liveClasses.filter(x=>x.id!==id);toast('Deleted','info');tNav('live')})}
 
-        function openPayModal() {
-            document.getElementById('payClass').innerHTML = myClasses.map(c => `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`).join('');
-            document.getElementById('payMonth').value = '';
-            showModal('payModal');
-        }
+function renderTRecordings(){
+  const batches=getTeacherBatches();
+  const recs=DB.recordings.filter(r=>batches.some(b=>b.id===r.batchId));
+  const types=['theory','paper','revision','extra'];
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Recordings</div><div class="sec-title">Recording Management</div></div>
+    <button class="btn btn-primary btn-sm" onclick="recModal()">+ Add</button>
+  </div>
+  <div class="tabs" style="margin-bottom:1.25rem" id="recTypeTabs">
+    <button class="tab-btn active" onclick="filterRecTab('all',this)">All (${recs.length})</button>
+    ${types.map(t=>`<button class="tab-btn" onclick="filterRecTab('${t}',this)">${typeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)} (${recs.filter(r=>r.type===t).length})</button>`).join('')}
+  </div>
+  <div id="recTableWrap">${recTable(recs)}</div>`;
+}
+function recTable(recs){
+  if(recs.length===0)return`<div class="empty"><div class="ei">🎬</div><p>No recordings.</p></div>`;
+  return`<div class="table-wrap"><table>
+    <thead><tr><th>Title</th><th>Batch</th><th>Year</th><th>Month</th><th>Type</th><th>Duration</th><th>Access</th><th>Actions</th></tr></thead>
+    <tbody>${recs.map(r=>{
+      const b=DB.batches.find(x=>x.id===r.batchId);
+      return`<tr>
+        <td style="max-width:180px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600">${r.title}</div></td>
+        <td style="white-space:nowrap">${b?.name}</td>
+        <td>${r.year}</td><td>${monthName(r.month)}</td>
+        <td><span class="pill ${typeColor(r.type)}">${r.type}</span></td>
+        <td>${fmtDur(r.duration)}</td>
+        <td>${r.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+        <td><div style="display:flex;gap:.3rem">
+          <button class="btn btn-ghost btn-sm" onclick="recModal('${r.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRec('${r.id}')">🗑</button>
+        </div></td>
+      </tr>`}).join('')}
+    </tbody></table></div>`;
+}
+function filterRecTab(type,btn){
+  document.querySelectorAll('#recTypeTabs .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const batches=getTeacherBatches();
+  const all=DB.recordings.filter(r=>batches.some(b=>b.id===r.batchId));
+  const recs=type==='all'?all:all.filter(r=>r.type===type);
+  document.getElementById('recTableWrap').innerHTML=recTable(recs);
+}
+function recModal(eid){
+  const batches=getTeacherBatches();
+  const rec=eid?DB.recordings.find(r=>r.id===eid):null;
+  document.getElementById('cModalTitle').textContent=eid?'Edit Recording':'Add Recording';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="rc_t" value="${rec?.title||''}"/></div>
+  <div class="form-group"><label class="form-label">Description</label><textarea class="form-input form-textarea" id="rc_ds">${rec?.description||''}</textarea></div>
+  <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="rc_b">
+    ${batches.map(b=>`<option value="${b.id}" ${rec?.batchId===b.id?'selected':''}>${b.name}</option>`).join('')}
+  </select></div>
+  <div class="form-group"><label class="form-label">YouTube Embed Link</label><input class="form-input" id="rc_yt" value="${rec?.ytLink||'https://www.youtube.com/embed/'}" placeholder="https://www.youtube.com/embed/VIDEO_ID"/></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Year</label><select class="form-select" id="rc_y">
+      ${['2024','2025','2026','2027'].map(y=>`<option ${(rec?.year||'2026')===y?'selected':''}>${y}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Month</label><select class="form-select" id="rc_m">
+      ${Array.from({length:12},(_,i)=>{const m=String(i+1).padStart(2,'0');return`<option value="${m}" ${rec?.month===m?'selected':''}>${monthName(m)}</option>`}).join('')}
+    </select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="rc_tp">
+      ${['theory','paper','revision','extra'].map(t=>`<option ${rec?.type===t?'selected':''}>${t}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Duration (mins)</label><input class="form-input" type="number" id="rc_dr" value="${rec?.duration||90}"/></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Class Date</label><input class="form-input" type="date" id="rc_dt" value="${rec?.date||''}"/></div>
+    <div class="form-group"><label class="form-label">Access</label><select class="form-select" id="rc_ac">
+      <option value="false" ${rec&&!rec.isFree?'selected':''}>Premium</option>
+      <option value="true" ${rec?.isFree?'selected':''}>Free</option>
+    </select></div>
+  </div>
+  <button class="btn btn-primary" onclick="saveRec('${eid||''}')">Save</button>`;
+  openModal('cModal');
+}
+function saveRec(eid){
+  const d={batchId:g('rc_b'),title:g('rc_t'),description:g('rc_ds'),ytLink:g('rc_yt'),year:g('rc_y'),month:g('rc_m'),type:g('rc_tp'),duration:parseInt(g('rc_dr'))||90,date:g('rc_dt'),isFree:g('rc_ac')==='true'};
+  if(eid)Object.assign(DB.recordings.find(r=>r.id===eid),d);
+  else DB.recordings.push({id:'r'+Date.now(),...d});
+  closeModal('cModal');toast(eid?'Updated!':'Recording added! 🎬','success');tNav('recordings');
+}
+function deleteRec(id){confirmDo('Delete recording?',()=>{DB.recordings=DB.recordings.filter(r=>r.id!==id);toast('Deleted','info');tNav('recordings')})}
 
-        async function submitPay() {
-            const cls = document.getElementById('payClass').value;
-            const month = document.getElementById('payMonth').value;
+function renderTNotes(){
+  const batches=getTeacherBatches();
+  const notes=DB.notes.filter(n=>batches.some(b=>b.id===n.batchId));
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Notes</div><div class="sec-title">Notes Management</div></div>
+    <button class="btn btn-primary btn-sm" onclick="noteModal()">+ Add Note</button>
+  </div>
+  ${notes.length===0?`<div class="empty"><div class="ei">📄</div><p>No notes yet.</p></div>`:''}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Title</th><th>Batch</th><th>Size</th><th>Description</th><th>Access</th><th>Actions</th></tr></thead>
+    <tbody>${notes.map(n=>{
+      const b=DB.batches.find(x=>x.id===n.batchId);
+      return`<tr>
+        <td><strong>${n.title}</strong></td>
+        <td>${b?.name}</td><td>${n.size}</td>
+        <td style="max-width:180px;color:var(--muted2);font-size:.78rem">${n.description||'—'}</td>
+        <td>${n.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+        <td><div style="display:flex;gap:.3rem">
+          <button class="btn btn-ghost btn-sm" onclick="noteModal('${n.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteNote('${n.id}')">🗑</button>
+        </div></td>
+      </tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+function noteModal(eid){
+  const batches=getTeacherBatches();
+  const note=eid?DB.notes.find(n=>n.id===eid):null;
+  document.getElementById('cModalTitle').textContent=eid?'Edit Note':'Add Note';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="nt_t" value="${note?.title||''}"/></div>
+  <div class="form-group"><label class="form-label">Description</label><textarea class="form-input form-textarea" id="nt_d">${note?.description||''}</textarea></div>
+  <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="nt_b">
+    ${batches.map(b=>`<option value="${b.id}" ${note?.batchId===b.id?'selected':''}>${b.name}</option>`).join('')}
+  </select></div>
+  <div class="form-group"><label class="form-label">Google Drive Link</label><input class="form-input" id="nt_l" value="${note?.driveLink||'https://drive.google.com/'}"/></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">File Size</label><input class="form-input" id="nt_s" value="${note?.size||''}"/></div>
+    <div class="form-group"><label class="form-label">Access</label><select class="form-select" id="nt_a">
+      <option value="false" ${note&&!note.isFree?'selected':''}>Premium</option>
+      <option value="true" ${note?.isFree?'selected':''}>Free</option>
+    </select></div>
+  </div>
+  <button class="btn btn-primary" onclick="saveNote('${eid||''}')">Save</button>`;
+  openModal('cModal');
+}
+function saveNote(eid){
+  const d={batchId:g('nt_b'),title:g('nt_t'),description:g('nt_d'),driveLink:g('nt_l'),size:g('nt_s'),isFree:g('nt_a')==='true'};
+  if(eid)Object.assign(DB.notes.find(n=>n.id===eid),d);
+  else DB.notes.push({id:'n'+Date.now(),...d});
+  closeModal('cModal');toast(eid?'Updated!':'Note added! 📄','success');tNav('notes');
+}
+function deleteNote(id){confirmDo('Delete note?',()=>{DB.notes=DB.notes.filter(n=>n.id!==id);toast('Deleted','info');tNav('notes')})}
 
-            if (!cls || !month) {
-                toast('error', 'Please select class and month');
-                return;
-            }
+function renderTQuiz(){
+  const batches=getTeacherBatches();
+  const quizzes=DB.quizzes.filter(q=>batches.some(b=>b.id===q.batchId));
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Quizzes</div><div class="sec-title">Quiz Management</div></div>
+    <button class="btn btn-primary btn-sm" onclick="quizModal()">+ Add Quiz</button>
+  </div>
+  ${quizzes.map(q=>{
+    const b=DB.batches.find(x=>x.id===q.batchId);
+    return`<div class="quiz-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+        <div>
+          <div style="font-weight:700;margin-bottom:.3rem">${q.title}</div>
+          <div style="font-size:.74rem;color:var(--muted2)">${b?.name} · ${q.questions.length}Qs · ${q.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</div>
+        </div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-ghost btn-sm" onclick="quizModal('${q.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteQuiz('${q.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;}).join('')}`;
+}
+function quizModal(eid){
+  const batches=getTeacherBatches();
+  const quiz=eid?DB.quizzes.find(q=>q.id===eid):null;
+  window._qqs=quiz?JSON.parse(JSON.stringify(quiz.questions)):[{q:'',opts:['','','',''],ans:0}];
+  function renderQs(){
+    return window._qqs.map((q,qi)=>`
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:.9rem;margin-bottom:.6rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <strong style="font-size:.8rem">Q${qi+1}</strong>
+        <button class="btn btn-danger btn-sm" onclick="removeQQ(${qi})">Remove</button>
+      </div>
+      <input class="form-input" style="margin-bottom:.5rem;font-size:.83rem" placeholder="Question text" value="${q.q}" oninput="window._qqs[${qi}].q=this.value"/>
+      ${q.opts.map((o,oi)=>`
+      <div style="display:flex;gap:.4rem;margin-bottom:.3rem;align-items:center">
+        <input type="radio" name="qans_${qi}" ${q.ans===oi?'checked':''} onchange="window._qqs[${qi}].ans=${oi}" style="accent-color:var(--accent);flex-shrink:0"/>
+        <input class="form-input" style="flex:1;font-size:.82rem" placeholder="Option ${oi+1}" value="${o}" oninput="window._qqs[${qi}].opts[${oi}]=this.value"/>
+      </div>`).join('')}
+    </div>`).join('')}
+  function render(){
+    document.getElementById('cModalTitle').textContent=eid?'Edit Quiz':'Add Quiz';
+    document.getElementById('cModalBody').innerHTML=`
+    <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="qz_t" value="${quiz?.title||''}"/></div>
+    <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="qz_b">
+      ${batches.map(b=>`<option value="${b.id}" ${quiz?.batchId===b.id?'selected':''}>${b.name}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Access</label><select class="form-select" id="qz_a">
+      <option value="false" ${quiz&&!quiz.isFree?'selected':''}>Premium</option>
+      <option value="true" ${quiz?.isFree?'selected':''}>Free</option>
+    </select></div>
+    <hr/>
+    <div style="font-weight:700;font-size:.88rem;margin-bottom:.75rem">Questions</div>
+    <div id="qzQs">${renderQs()}</div>
+    <button class="btn btn-ghost btn-sm" style="margin-bottom:.75rem" onclick="addQQ()">+ Add Question</button>
+    <hr/>
+    <button class="btn btn-primary" onclick="saveQuiz('${eid||''}')">Save Quiz</button>`;
+  }
+  window.addQQ=()=>{window._qqs.push({q:'',opts:['','','',''],ans:0});render()};
+  window.removeQQ=(i)=>{window._qqs.splice(i,1);render()};
+  render();openModal('cModal');
+}
+function saveQuiz(eid){
+  const d={batchId:g('qz_b'),title:g('qz_t'),isFree:g('qz_a')==='true',questions:window._qqs||[]};
+  if(eid)Object.assign(DB.quizzes.find(q=>q.id===eid),d);
+  else DB.quizzes.push({id:'q'+Date.now(),...d});
+  closeModal('cModal');toast(eid?'Updated!':'Quiz added! 🧠','success');tNav('quiz');
+}
+function deleteQuiz(id){confirmDo('Delete quiz?',()=>{DB.quizzes=DB.quizzes.filter(q=>q.id!==id);toast('Deleted','info');tNav('quiz')})}
 
-            if (curUser?.id === 'demo') {
-                toast('success', 'Payment request submitted (demo)');
-                hideModal('payModal');
-                return;
-            }
+function renderTStudents(){
+  const batches=getTeacherBatches();
+  const students=DB.users.filter(u=>u.role==='student'&&batches.some(b=>b.id===u.batchId));
+  return`
+  <div class="sec-tag">// Students</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Students (${students.length})</div>
+  ${students.length===0?`<div class="empty"><div class="ei">👥</div><p>No students in your batches yet.</p></div>`:''}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Username</th><th>Batch</th><th>Status</th><th>Quizzes</th><th>Watched</th><th>Action</th></tr></thead>
+    <tbody>${students.map(s=>{
+      const batch=DB.batches.find(b=>b.id===s.batchId);
+      return`<tr>
+        <td><strong>${s.name}</strong></td>
+        <td>${s.username}</td>
+        <td style="white-space:nowrap;font-size:.76rem">${batch?.name}</td>
+        <td>${s.enrolled?`<span class="badge badge-free">✅</span>`:`<span class="badge badge-paid">⏳</span>`}</td>
+        <td>${Object.keys(s.completedQuizzes||{}).length}</td>
+        <td>${(s.viewedVideos||[]).length}</td>
+        <td><button class="btn ${s.enrolled?'btn-danger':'btn-success'} btn-sm" onclick="toggleEnroll('${s.id}','teacher')">${s.enrolled?'Revoke':'Approve'}</button></td>
+      </tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+function toggleEnroll(uid,from){
+  const u=DB.users.find(x=>x.id===uid);u.enrolled=!u.enrolled;
+  toast(`${u.name} ${u.enrolled?'enrolled ✅':'unenrolled'}`,u.enrolled?'success':'info');
+  if(from==='teacher')tNav('students');else aNav('students');
+}
 
-            try {
-                const { error } = await sb.from('payments').insert([{
-                    student_id: curUser.id,
-                    class_name: cls,
-                    month: month,
-                    amount: monthlyFee,
-                    status: 'pending'
-                }]);
-                if (error) throw error;
-                toast('success', 'Payment request submitted!');
-                hideModal('payModal');
-                await loadPayments();
-                loadPayHistory();
-            } catch (err) {
-                toast('error', err.message);
-            }
-        }
+function renderTAccess(){
+  const batches=getTeacherBatches();
+  const years=['2024','2025','2026'];
+  const types=['theory','paper','revision','extra'];
+  return`
+  <div class="sec-tag">// Access Control</div>
+  <div class="sec-title" style="margin-bottom:.4rem">Content Access Management</div>
+  <p style="font-size:.8rem;color:var(--muted2);margin-bottom:1.5rem">Control which year/month/type content is accessible to enrolled students.</p>
+  <div class="form-group" style="max-width:320px">
+    <label class="form-label">Select Batch</label>
+    <select class="form-select" id="acBatch" onchange="renderAccessGrid()">
+      ${batches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('')}
+    </select>
+  </div>
+  <div id="accessGridWrap"></div>`;
+}
+function renderAccessGrid(){
+  const batchId=document.getElementById('acBatch')?.value||getTeacherBatches()[0]?.id;
+  const years=['2024','2025','2026'];
+  const months=['01','02','03','04','05','06','07','08','09','10','11','12'];
+  const types=['theory','paper','revision','extra'];
+  let html='<div class="access-grid">';
+  years.forEach(y=>{
+    html+=`<div style="margin-bottom:1rem">
+    <div style="font-weight:700;font-size:.9rem;margin-bottom:.6rem;color:var(--accent)">📅 ${y}</div>`;
+    months.forEach(m=>{
+      html+=`<div class="access-row">
+        <div class="access-row-label">${monthName(m)}</div>
+        <div class="access-toggles">
+          ${types.map(t=>{
+            const rule=getAccessRule(batchId,y,m,t);
+            const isOn=rule!==false; // default=allowed (enrolled), false=blocked
+            return`<button class="access-toggle${isOn?' on':''}" onclick="toggleAccessRule('${batchId}','${y}','${m}','${t}',${isOn})">${typeIcon(t)} ${t}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  document.getElementById('accessGridWrap').innerHTML=html;
+}
+function toggleAccessRule(batchId,year,month,type,isCurrentlyOn){
+  setAccessRule(batchId,year,month,type,!isCurrentlyOn);
+  renderAccessGrid();
+  toast(`${type} ${monthName(month)} ${year} — ${!isCurrentlyOn?'Unlocked ✅':'Blocked 🔒'}`,!isCurrentlyOn?'success':'info');
+}
 
-        function pageProfile() {
-            return `
-                <h1 class="page-title">Profile</h1>
-                <p class="page-desc">Your account information</p>
+// ======================================================
+// ADMIN PORTAL
+// ======================================================
+function aNav(sec,el){
+  document.querySelectorAll('#adminPage .sidebar-item').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  closeSidebar();
+  const renders={
+    dashboard:renderADashboard,students:renderAStudents,teachers:renderATeachers,
+    subjects:renderASubjects,batches:renderABatches,content:renderAContent,reports:renderAReports
+  };
+  document.getElementById('aContent').innerHTML=(renders[sec]||renders.dashboard)();
+}
 
-                <div style="display: grid; grid-template-columns: 200px 1fr; gap: 20px;">
-                    <div class="card" style="text-align: center;">
-                        <div style="width: 70px; height: 70px; border-radius: 14px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 24px; font-weight: 700; color: white;">
-                            ${(curProfile?.full_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-                        </div>
-                        <h2 style="font-size: 16px; font-weight: 600;">${curProfile?.full_name || 'User'}</h2>
-                        <p style="color: var(--fg-muted); font-size: 12px;">${curProfile?.role || 'Student'}</p>
-                    </div>
+function renderADashboard(){
+  const students=DB.users.filter(u=>u.role==='student');
+  const enrolled=students.filter(u=>u.enrolled);
+  const teachers=DB.users.filter(u=>u.role==='teacher');
+  return`
+  <div class="sec-tag">// Admin</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Platform Overview</div>
+  <div class="g4" style="margin-bottom:1.5rem">
+    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-val" style="color:var(--accent)">${students.length}</div><div class="stat-label">Students</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" style="color:var(--accent3)">${enrolled.length}</div><div class="stat-label">Enrolled</div></div>
+    <div class="stat-card"><div class="stat-icon">🎓</div><div class="stat-val" style="color:var(--accent4)">${teachers.length}</div><div class="stat-label">Teachers</div></div>
+    <div class="stat-card"><div class="stat-icon">📚</div><div class="stat-val" style="color:var(--accent2)">${DB.batches.length}</div><div class="stat-label">Batches</div></div>
+  </div>
+  <div class="g4" style="margin-bottom:1.5rem">
+    <div class="stat-card"><div class="stat-icon">🎬</div><div class="stat-val" style="color:var(--accent)">${DB.recordings.length}</div><div class="stat-label">Videos</div></div>
+    <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-val" style="color:var(--accent3)">${DB.notes.length}</div><div class="stat-label">Notes</div></div>
+    <div class="stat-card"><div class="stat-icon">🧠</div><div class="stat-val" style="color:var(--accent4)">${DB.quizzes.length}</div><div class="stat-label">Quizzes</div></div>
+    <div class="stat-card"><div class="stat-icon">📡</div><div class="stat-val" style="color:var(--accent2)">${DB.liveClasses.length}</div><div class="stat-label">Live Classes</div></div>
+  </div>
+  <div class="g2">
+    <div>
+      <div style="font-weight:700;font-size:.92rem;margin-bottom:1rem">Recent Registrations</div>
+      ${students.slice(-5).reverse().map(s=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.82rem;gap:.5rem">
+        <div><div style="font-weight:600">${s.name}</div>
+        <div style="font-size:.72rem;color:var(--muted2)">${DB.batches.find(b=>b.id===s.batchId)?.name||'—'}</div></div>
+        ${s.enrolled?`<span class="badge badge-free">Active</span>`:`<span class="badge badge-paid">Pending</span>`}
+      </div>`).join('')}
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:.92rem;margin-bottom:1rem">Subjects & Batches</div>
+      ${DB.subjects.map(sub=>{
+        const sBatches=DB.batches.filter(b=>b.subjectId===sub.id);
+        return`<div style="padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.82rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+            <strong>${sub.icon} ${sub.name}</strong>
+            <span class="badge badge-blue">${sBatches.length} batches</span>
+          </div>
+          <div class="progress"><div class="progress-fill" style="width:${sBatches.length/DB.batches.length*100}%"></div></div>
+        </div>`;}).join('')}
+    </div>
+  </div>`;
+}
 
-                    <div class="card">
-                        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 14px;">Personal Information</h3>
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; font-size: 13px;">
-                            <div><div style="color: var(--fg-muted); font-size: 11px;">Full Name</div><div style="font-weight: 500;">${curProfile?.full_name || '-'}</div></div>
-                            <div><div style="color: var(--fg-muted); font-size: 11px;">Email</div><div style="font-weight: 500;">${curProfile?.email || curUser?.email || '-'}</div></div>
-                            <div><div style="color: var(--fg-muted); font-size: 11px;">WhatsApp</div><div style="font-weight: 500;">${curProfile?.whatsapp || '-'}</div></div>
-                            <div><div style="color: var(--fg-muted); font-size: 11px;">Grade</div><div style="font-weight: 500;">${curProfile?.grade || '-'}</div></div>
-                            <div><div style="color: var(--fg-muted); font-size: 11px;">District</div><div style="font-weight: 500;">${curProfile?.district || '-'}</div></div>
-                            <div><div style="color: var(--fg-muted); font-size: 11px;">City</div><div style="font-weight: 500;">${curProfile?.city || '-'}</div></div>
-                            <div style="grid-column: 1 / -1;"><div style="color: var(--fg-muted); font-size: 11px;">Address</div><div style="font-weight: 500;">${curProfile?.address || '-'}</div></div>
-                        </div>
+function renderAStudents(){
+  const students=DB.users.filter(u=>u.role==='student');
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Students</div><div class="sec-title">All Students (${students.length})</div></div>
+    <button class="btn btn-primary btn-sm" onclick="studentModal()">+ Add</button>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Username</th><th>Subject</th><th>Batch</th><th>Status</th><th>Quizzes</th><th>Actions</th></tr></thead>
+    <tbody>${students.map(s=>{
+      const sub=DB.subjects.find(x=>x.id===s.subjectId);
+      const batch=DB.batches.find(b=>b.id===s.batchId);
+      return`<tr>
+        <td><strong>${s.name}</strong></td><td>${s.username}</td>
+        <td>${sub?.name||'—'}</td>
+        <td style="font-size:.76rem;white-space:nowrap">${batch?.name||'—'}</td>
+        <td>${s.enrolled?`<span class="badge badge-free">✅</span>`:`<span class="badge badge-paid">⏳</span>`}</td>
+        <td>${Object.keys(s.completedQuizzes||{}).length}</td>
+        <td><div style="display:flex;gap:.3rem;flex-wrap:wrap">
+          <button class="btn ${s.enrolled?'btn-danger':'btn-success'} btn-sm" onclick="toggleEnroll('${s.id}','admin')">${s.enrolled?'Revoke':'✅'}</button>
+          <button class="btn btn-ghost btn-sm" onclick="studentModal('${s.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${s.id}')">🗑</button>
+        </div></td>
+      </tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+function studentModal(eid){
+  const s=eid?DB.users.find(u=>u.id===eid):null;
+  document.getElementById('cModalTitle').textContent=eid?'Edit Student':'Add Student';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="sm_n" value="${s?.name||''}"/></div>
+    <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="sm_u" value="${s?.username||''}"/></div>
+  </div>
+  <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="sm_e" value="${s?.email||''}"/></div>
+  <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="sm_p" placeholder="${eid?'Leave blank':'Set password'}"/></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Subject</label><select class="form-select" id="sm_sub" onchange="adminStudentSubChange()">
+      <option value="">-- Select --</option>
+      ${DB.subjects.map(sub=>`<option value="${sub.id}" ${s?.subjectId===sub.id?'selected':''}>${sub.name}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Grade</label><select class="form-select" id="sm_gr" onchange="adminStudentGradeChange()">
+      ${s?`<option value="${s.grade}">${gradeLabel(s.grade)}</option>`:'<option value="">--</option>'}
+    </select></div>
+  </div>
+  <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="sm_bt">
+    ${s?`<option value="${s.batchId}">${DB.batches.find(b=>b.id===s.batchId)?.name}</option>`:'<option value="">--</option>'}
+  </select></div>
+  <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="sm_en">
+    <option value="true" ${s?.enrolled?'selected':''}>Enrolled</option>
+    <option value="false" ${s&&!s.enrolled?'selected':''}>Pending</option>
+  </select></div>
+  <button class="btn btn-primary" onclick="saveStudentModal('${eid||''}')">Save</button>`;
+  openModal('cModal');
+}
+function adminStudentSubChange(){
+  const sub=DB.subjects.find(s=>s.id===g('sm_sub'));
+  const gr=document.getElementById('sm_gr');
+  gr.innerHTML='<option value="">--</option>';
+  if(sub)sub.grades.forEach(grd=>gr.innerHTML+=`<option value="${grd}">${gradeLabel(grd)}</option>`);
+  document.getElementById('sm_bt').innerHTML='<option value="">--</option>';
+}
+function adminStudentGradeChange(){
+  const sub=g('sm_sub'),grade=g('sm_gr');
+  const bt=document.getElementById('sm_bt');
+  bt.innerHTML='<option value="">--</option>';
+  DB.batches.filter(b=>b.subjectId===sub&&b.grade===grade).forEach(b=>bt.innerHTML+=`<option value="${b.id}">${b.name}</option>`);
+}
+function saveStudentModal(eid){
+  const d={name:g('sm_n'),username:g('sm_u'),email:g('sm_e'),subjectId:g('sm_sub'),grade:g('sm_gr'),batchId:g('sm_bt'),enrolled:g('sm_en')==='true',role:'student'};
+  const p=g('sm_p');if(p)d.password=p;
+  if(eid)Object.assign(DB.users.find(u=>u.id===eid),d);
+  else DB.users.push({id:'u'+Date.now(),...d,completedQuizzes:{},viewedVideos:[]});
+  closeModal('cModal');toast(eid?'Updated!':'Student added!','success');aNav('students');
+}
+function deleteUser(id){confirmDo('Delete user permanently?',()=>{DB.users=DB.users.filter(u=>u.id!==id);toast('Deleted','info');aNav('students')})}
 
-                        <h3 style="font-size: 14px; font-weight: 600; margin: 20px 0 10px;">Enrolled Classes</h3>
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                            ${myClasses.map(c => `<span class="badge success">${c.charAt(0).toUpperCase() + c.slice(1)}</span>`).join('')}
-                            <button class="btn btn-secondary btn-sm" onclick="openClassModal()">Change</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+function renderATeachers(){
+  const teachers=DB.users.filter(u=>u.role==='teacher');
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Teachers</div><div class="sec-title">Teachers (${teachers.length})</div></div>
+    <button class="btn btn-primary btn-sm" onclick="teacherModal()">+ Add</button>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Batches</th><th>Actions</th></tr></thead>
+    <tbody>${teachers.map(t=>`<tr>
+      <td><strong>${t.name}</strong></td><td>${t.username}</td><td>${t.email}</td>
+      <td>${DB.batches.filter(b=>b.teacherId===t.id).length}</td>
+      <td><div style="display:flex;gap:.3rem">
+        <button class="btn btn-ghost btn-sm" onclick="teacherModal('${t.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTeacher('${t.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+function teacherModal(eid){
+  const t=eid?DB.users.find(u=>u.id===eid):null;
+  document.getElementById('cModalTitle').textContent=eid?'Edit Teacher':'Add Teacher';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="tm_n" value="${t?.name||''}"/></div>
+    <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="tm_u" value="${t?.username||''}"/></div>
+  </div>
+  <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="tm_e" value="${t?.email||''}"/></div>
+  <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="tm_p" placeholder="${eid?'Leave blank':'Set password'}"/></div>
+  <button class="btn btn-primary" onclick="saveTeacherModal('${eid||''}')">Save</button>`;
+  openModal('cModal');
+}
+function saveTeacherModal(eid){
+  const d={name:g('tm_n'),username:g('tm_u'),email:g('tm_e'),role:'teacher'};
+  const p=g('tm_p');if(p)d.password=p;
+  if(eid)Object.assign(DB.users.find(u=>u.id===eid),d);
+  else DB.users.push({id:'u'+Date.now(),...d});
+  closeModal('cModal');toast(eid?'Updated!':'Teacher added!','success');aNav('teachers');
+}
+function deleteTeacher(id){confirmDo('Delete teacher?',()=>{DB.users=DB.users.filter(u=>u.id!==id);toast('Deleted','info');aNav('teachers')})}
 
-        function openClassModal() {
-            setSelected('editClasses', myClasses);
-            showModal('classModal');
-        }
+function renderASubjects(){
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Subjects</div><div class="sec-title">Subject Management</div></div>
+    <button class="btn btn-primary btn-sm" onclick="subjectModal()">+ Add Subject</button>
+  </div>
+  ${DB.subjects.map(sub=>`
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card-body">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
+        <div>
+          <div style="font-size:1.1rem;font-weight:700;margin-bottom:.3rem">${sub.icon} ${sub.name}</div>
+          <div style="font-size:.78rem;color:var(--muted2);display:flex;gap:.5rem;flex-wrap:wrap">
+            <span>Grades: ${sub.grades.map(gradeLabel).join(', ')}</span>
+            <span>· ${DB.batches.filter(b=>b.subjectId===sub.id).length} Batches</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-ghost btn-sm" onclick="subjectModal('${sub.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubject('${sub.id}')">🗑</button>
+        </div>
+      </div>
+    </div>
+  </div>`).join('')}`;
+}
+function subjectModal(eid){
+  const sub=eid?DB.subjects.find(s=>s.id===eid):null;
+  document.getElementById('cModalTitle').textContent=eid?'Edit Subject':'Add Subject';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Subject Name</label><input class="form-input" id="sub_n" value="${sub?.name||''}"/></div>
+    <div class="form-group"><label class="form-label">Icon (emoji)</label><input class="form-input" id="sub_ic" value="${sub?.icon||'📚'}"/></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Accent Color</label><input class="form-input" type="color" id="sub_c" value="${sub?.color||'#4f8ef7'}"/></div>
+    <div class="form-group"><label class="form-label">Subject ID (no spaces)</label><input class="form-input" id="sub_id" value="${sub?.id||''}" ${eid?'disabled':''}/></div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Grades (check all that apply)</label>
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.4rem">
+      ${['OL','AL','Course'].map(gr=>`
+      <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;cursor:pointer">
+        <input type="checkbox" id="subgr_${gr}" ${(sub?.grades||[]).includes(gr)?'checked':''} style="accent-color:var(--accent)"/> ${gradeLabel(gr)}
+      </label>`).join('')}
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="saveSubject('${eid||''}')">Save Subject</button>`;
+  openModal('cModal');
+}
+function saveSubject(eid){
+  const grades=['OL','AL','Course'].filter(gr=>document.getElementById('subgr_'+gr)?.checked);
+  const d={name:g('sub_n'),icon:g('sub_ic'),color:document.getElementById('sub_c')?.value||'#4f8ef7',grades};
+  if(eid){Object.assign(DB.subjects.find(s=>s.id===eid),d);}
+  else{
+    const newId=g('sub_id').replace(/\s/g,'').toLowerCase();
+    if(!newId){toast('Subject ID required','error');return}
+    d.id=newId;DB.subjects.push(d);
+  }
+  closeModal('cModal');toast(eid?'Subject updated!':'Subject added!','success');aNav('subjects');
+}
+function deleteSubject(id){confirmDo('Delete subject? Associated batches will remain.',()=>{DB.subjects=DB.subjects.filter(s=>s.id!==id);toast('Deleted','info');aNav('subjects')})}
 
-        async function saveClasses() {
-            myClasses = getSelected('editClasses');
+function renderABatches(){
+  return`
+  <div class="sec-header">
+    <div><div class="sec-tag">// Batches</div><div class="sec-title">Batches (${DB.batches.length})</div></div>
+    <button class="btn btn-primary btn-sm" onclick="batchModal()">+ Add Batch</button>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Batch</th><th>Subject</th><th>Grade</th><th>Year</th><th>Teacher</th><th>Students</th><th>Actions</th></tr></thead>
+    <tbody>${DB.batches.map(b=>{
+      const sub=DB.subjects.find(s=>s.id===b.subjectId);
+      const t=DB.users.find(u=>u.id===b.teacherId);
+      return`<tr>
+        <td><strong>${b.name}</strong></td>
+        <td>${sub?.icon} ${sub?.name}</td>
+        <td>${gradeLabel(b.grade)}</td>
+        <td>${b.year}</td>
+        <td style="font-size:.78rem">${t?.name||'—'}</td>
+        <td><strong>${b.studentCount}</strong></td>
+        <td><div style="display:flex;gap:.3rem">
+          <button class="btn btn-ghost btn-sm" onclick="batchModal('${b.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteBatch('${b.id}')">🗑</button>
+        </div></td>
+      </tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+function batchModal(eid){
+  const b=eid?DB.batches.find(x=>x.id===eid):null;
+  const teachers=DB.users.filter(u=>u.role==='teacher');
+  document.getElementById('cModalTitle').textContent=eid?'Edit Batch':'Add Batch';
+  document.getElementById('cModalBody').innerHTML=`
+  <div class="form-group"><label class="form-label">Batch Name</label><input class="form-input" id="bm_n" value="${b?.name||''}"/></div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Subject</label><select class="form-select" id="bm_sub" onchange="batchSubChange()">
+      ${DB.subjects.map(s=>`<option value="${s.id}" ${b?.subjectId===s.id?'selected':''}>${s.icon} ${s.name}</option>`).join('')}
+    </select></div>
+    <div class="form-group"><label class="form-label">Grade</label><select class="form-select" id="bm_gr">
+      ${b?`<option value="${b.grade}">${gradeLabel(b.grade)}</option>`:
+        DB.subjects[0]?.grades.map(gr=>`<option value="${gr}">${gradeLabel(gr)}</option>`).join('')||''}
+    </select></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Year</label><input class="form-input" id="bm_y" value="${b?.year||'2026'}"/></div>
+    <div class="form-group"><label class="form-label">Teacher</label><select class="form-select" id="bm_t">
+      ${teachers.map(t=>`<option value="${t.id}" ${b?.teacherId===t.id?'selected':''}>${t.name}</option>`).join('')}
+    </select></div>
+  </div>
+  <button class="btn btn-primary" onclick="saveBatch('${eid||''}')">Save Batch</button>`;
+  openModal('cModal');
+}
+function batchSubChange(){
+  const sub=DB.subjects.find(s=>s.id===g('bm_sub'));
+  const gr=document.getElementById('bm_gr');
+  gr.innerHTML='';
+  if(sub)sub.grades.forEach(grd=>gr.innerHTML+=`<option value="${grd}">${gradeLabel(grd)}</option>`);
+}
+function saveBatch(eid){
+  const d={name:g('bm_n'),subjectId:g('bm_sub'),grade:g('bm_gr'),year:g('bm_y'),teacherId:g('bm_t'),studentCount:eid?(DB.batches.find(b=>b.id===eid)?.studentCount||0):0};
+  if(!d.name){toast('Batch name required','error');return}
+  if(eid){Object.assign(DB.batches.find(b=>b.id===eid),d);}
+  else{const newId=`b-${d.subjectId}-${d.grade.toLowerCase()}-${Date.now()}`;DB.batches.push({id:newId,...d});}
+  closeModal('cModal');toast(eid?'Updated!':'Batch added!','success');aNav('batches');
+}
+function deleteBatch(id){confirmDo('Delete batch?',()=>{DB.batches=DB.batches.filter(b=>b.id!==id);toast('Deleted','info');aNav('batches')})}
 
-            if (curUser?.id !== 'demo') {
-                try {
-                    await sb.from('profiles').update({ enrolled_classes: myClasses }).eq('id', curUser.id);
-                    toast('success', 'Classes updated');
-                } catch (err) {
-                    toast('error', 'Could not update classes');
-                    return;
-                }
-            }
+function renderAContent(){
+  return`
+  <div class="sec-tag">// Content</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Content Overview</div>
+  <div class="tabs" style="margin-bottom:1.25rem" id="acTabs">
+    <button class="tab-btn active" onclick="showAcTab('recs',this)">🎬 Recordings (${DB.recordings.length})</button>
+    <button class="tab-btn" onclick="showAcTab('notes',this)">📄 Notes (${DB.notes.length})</button>
+    <button class="tab-btn" onclick="showAcTab('quizzes',this)">🧠 Quizzes (${DB.quizzes.length})</button>
+    <button class="tab-btn" onclick="showAcTab('live',this)">📡 Live (${DB.liveClasses.length})</button>
+  </div>
+  <div id="acTabBody"></div>`;
+}
+function showAcTab(tab,btn){
+  document.querySelectorAll('#acTabs .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const el=document.getElementById('acTabBody');
+  if(tab==='recs'){
+    el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Year/Month</th><th>Type</th><th>Duration</th><th>Access</th><th>Del</th></tr></thead><tbody>
+    ${DB.recordings.map(r=>{const b=DB.batches.find(x=>x.id===r.batchId);return`<tr>
+      <td style="max-width:160px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title}</div></td>
+      <td style="font-size:.75rem">${b?.name}</td><td>${r.year}/${monthName(r.month)}</td>
+      <td><span class="pill ${typeColor(r.type)}">${r.type}</span></td>
+      <td>${fmtDur(r.duration)}</td>
+      <td>${r.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRec('${r.id}');aNav('content')">🗑</button></td>
+    </tr>`}).join('')}</tbody></table></div>`;
+  }else if(tab==='notes'){
+    el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Size</th><th>Access</th><th>Del</th></tr></thead><tbody>
+    ${DB.notes.map(n=>{const b=DB.batches.find(x=>x.id===n.batchId);return`<tr>
+      <td><strong>${n.title}</strong></td><td style="font-size:.75rem">${b?.name}</td><td>${n.size}</td>
+      <td>${n.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteNote('${n.id}');aNav('content')">🗑</button></td>
+    </tr>`}).join('')}</tbody></table></div>`;
+  }else if(tab==='quizzes'){
+    el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Qs</th><th>Access</th><th>Del</th></tr></thead><tbody>
+    ${DB.quizzes.map(q=>{const b=DB.batches.find(x=>x.id===q.batchId);return`<tr>
+      <td><strong>${q.title}</strong></td><td style="font-size:.75rem">${b?.name}</td><td>${q.questions.length}</td>
+      <td>${q.isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteQuiz('${q.id}');aNav('content')">🗑</button></td>
+    </tr>`}).join('')}</tbody></table></div>`;
+  }else{
+    el.innerHTML=`<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Date</th><th>Status</th><th>Del</th></tr></thead><tbody>
+    ${DB.liveClasses.map(l=>{const b=DB.batches.find(x=>x.id===l.batchId);return`<tr>
+      <td><strong>${l.title}</strong></td><td style="font-size:.75rem">${b?.name}</td><td>${l.date}</td>
+      <td><span class="badge badge-${l.status==='live'?'paid':l.status==='upcoming'?'blue':'free'}">${l.status}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteLive('${l.id}');aNav('content')">🗑</button></td>
+    </tr>`}).join('')}</tbody></table></div>`;
+  }
+}
 
-            hideModal('classModal');
-            nav(curPage);
-        }
+function renderAReports(){
+  const students=DB.users.filter(u=>u.role==='student');
+  const enrolled=students.filter(u=>u.enrolled);
+  const pct=students.length?Math.round(enrolled.length/students.length*100):0;
+  return`
+  <div class="sec-tag">// Reports</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Platform Analytics</div>
+  <div class="g2" style="margin-bottom:1.5rem">
+    <div class="card"><div class="card-body">
+      <div style="font-weight:700;margin-bottom:1rem;font-size:.92rem">Enrollment Rate</div>
+      <div style="display:flex;align-items:center;gap:1rem">
+        <div style="font-size:2.2rem;font-weight:800;color:var(--accent3)">${pct}%</div>
+        <div style="flex:1">
+          <div style="font-size:.78rem;color:var(--muted2)">${enrolled.length} / ${students.length} enrolled</div>
+          <div class="progress" style="margin-top:.4rem"><div class="progress-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="card"><div class="card-body">
+      <div style="font-weight:700;margin-bottom:1rem;font-size:.92rem">Subject Distribution</div>
+      ${DB.subjects.map(sub=>{
+        const cnt=students.filter(s=>s.subjectId===sub.id).length;
+        const p=students.length?Math.round(cnt/students.length*100):0;
+        return`<div style="margin-bottom:.8rem">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.3rem">
+            <span>${sub.icon} ${sub.name}</span><span>${cnt} (${p}%)</span>
+          </div>
+          <div class="progress"><div class="progress-fill" style="width:${p}%"></div></div>
+        </div>`;}).join('')}
+    </div></div>
+  </div>
+  <div class="card"><div class="card-body">
+    <div style="font-weight:700;margin-bottom:1rem;font-size:.92rem">Students Per Batch</div>
+    ${DB.batches.map(b=>`
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.7rem;font-size:.8rem">
+      <div style="width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted2)">${b.name}</div>
+      <div class="progress" style="flex:1"><div class="progress-fill" style="width:${Math.min(b.studentCount/500*100,100)}%"></div></div>
+      <div style="width:40px;text-align:right;font-weight:700;color:var(--accent)">${b.studentCount}</div>
+    </div>`).join('')}
+  </div></div>`;
+}
 
-        function pageStudents() {
-            return `
-                <h1 class="page-title">Students</h1>
-                <p class="page-desc">Manage student accounts</p>
-                <div class="table-wrap">
-                    <table>
-                        <thead><tr><th>Name</th><th>Email</th><th>Classes</th><th>Grade</th></tr></thead>
-                        <tbody>
-                            <tr><td>Kasun Perera</td><td>kasun@email.com</td><td>Korean, Media</td><td>O/L</td></tr>
-                            <tr><td>Sachini Silva</td><td>sachini@email.com</td><td>ICT</td><td>A/L</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        }
+function initContentTabs(){
+  const el=document.getElementById('acTabBody');
+  if(el)showAcTab('recs',document.querySelector('#acTabs .tab-btn'));
+}
 
-        function pageSettings() {
-            return `
-                <h1 class="page-title">Settings</h1>
-                <p class="page-desc">System configuration</p>
-                <div class="card">
-                    <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Fee Settings</h3>
-                    <div class="form-group" style="max-width: 200px;">
-                        <label class="form-label">Monthly Fee (LKR)</label>
-                        <input type="number" class="form-input" id="feeInput" value="${monthlyFee}">
-                    </div>
-                    <button class="btn btn-primary" onclick="saveFee()">Save</button>
-                </div>
-            `;
-        }
+// ======================================================
+// INIT
+// ======================================================
+renderLanding();
+populateRegSubjects();
 
-        function saveFee() {
-            const val = parseInt(document.getElementById('feeInput').value);
-            if (val > 0) {
-                monthlyFee = val;
-                toast('success', `Fee set to Rs. ${monthlyFee.toLocaleString()}`);
-            }
-        }
-
-        // Modals
-        function showModal(id) { document.getElementById(id).classList.add('show'); }
-        function hideModal(id) {
-            document.getElementById(id).classList.remove('show');
-            if (id === 'videoModal') document.getElementById('vidFrame').src = '';
-        }
-
-        // Init
-        async function init() {
-            // Check session
-            const { data: { session } } = await sb.auth.getSession();
-            if (session) {
-                curUser = session.user;
-                await loadProfile();
-                showApp();
-            }
-
-            // Auth state
-            sb.auth.onAuthStateChange(async (event, session) => {
-                if (event === 'SIGNED_IN' && session) {
-                    curUser = session.user;
-                    await loadProfile();
-                    showApp();
-                } else if (event === 'SIGNED_OUT') {
-                    curUser = null;
-                    curProfile = null;
-                    myClasses = [];
-                    paymentData = {};
-                }
-            });
-
-            // Mobile menu
-            document.getElementById('menuBtn').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.toggle('open');
-                document.getElementById('overlay').classList.toggle('show');
-            });
-
-            document.getElementById('overlay').addEventListener('click', closeSidebar);
-
-            // Modal close on bg click
-            document.querySelectorAll('.modal-bg').forEach(m => {
-                m.addEventListener('click', (e) => { if (e.target === m) hideModal(m.id); });
-            });
-
-            // Load payments when on that page
-            const origRender = renderPage;
-            window.renderPage = function(page) {
-                origRender(page);
-                if (page === 'payments') setTimeout(loadPayHistory, 100);
-            };
-        }
-
-        init();
-    </script>
+// Auto-open access grid when teacher opens access tab
+const origTNav=tNav;
+window.tNav=function(sec,el){
+  origTNav(sec,el);
+  if(sec==='access'){
+    setTimeout(()=>{
+      const batches=getTeacherBatches();
+      if(batches.length)renderAccessGrid();
+    },50);
+  }
+  if(sec==='content')setTimeout(()=>showAcTab('recs',document.querySelector('#acTabs .tab-btn')),50);
+};
+</script>
 </body>
 </html>
