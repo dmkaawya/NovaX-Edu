@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
 <title>NovaX Edu</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<!-- Supabase CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ===== THEME VARIABLES ===== */
@@ -711,19 +710,8 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
 // ============================================================
 // SUPABASE INIT
 // ============================================================
-const SUPA_URL = 'https://qvbfoebshouvspsoксхр.supabase.co'; // placeholder — set below
+const SUPABASE_URL = 'https://qvbfoebshouvspsoksxp.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2YmZvZWJzaG91dnNwc29rc3hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NTQ2ODAsImV4cCI6MjA4NzUzMDY4MH0.j2ucVJpX1MP71Am6g5u3ZcRzE5psJc7LIePvdlyLoQo';
-
-// Build real URL from the ref in the JWT
-// Extract Supabase project ref from JWT payload
-const SUPABASE_URL = (() => {
-  try {
-    const payload = JSON.parse(atob(SUPA_ANON.split('.')[1]));
-    return `https://${payload.ref}.supabase.co`;
-  } catch(e) {
-    return 'https://qvbfoebshouvspsoксхр.supabase.co';
-  }
-})();
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPA_ANON);
@@ -731,30 +719,25 @@ const sb = createClient(SUPABASE_URL, SUPA_ANON);
 // ============================================================
 // STATE
 // ============================================================
-let CU = null;       // current user profile (from profiles table)
+let CU = null;       // current user profile
 let CU_AUTH = null;  // Supabase auth user
 let theme = 'dark';
 
-// In-memory cache for this session
 const CACHE = {
   subjects: [],
   batches: [],
   teachers: [],
-  enrollments: [],  // current user's enrollments
+  enrollments: [],
 };
 
 // ============================================================
-// THEME
+// THEME & UI HELPERS
 // ============================================================
 function toggleTheme(){
   theme = theme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', theme);
   document.querySelectorAll('.theme-icon').forEach(i => i.textContent = theme === 'dark' ? '🌙' : '☀️');
 }
-
-// ============================================================
-// SIDEBAR (MOBILE)
-// ============================================================
 function toggleSidebar(id){
   document.getElementById(id).classList.toggle('open');
   document.getElementById('sidebarOverlay').classList.toggle('open');
@@ -763,20 +746,12 @@ function closeSidebar(){
   document.querySelectorAll('.sidebar').forEach(s => s.classList.remove('open'));
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
-
-// ============================================================
-// MODAL
-// ============================================================
 function openModal(id){ document.getElementById(id).classList.add('open') }
 function closeModal(id){ document.getElementById(id).classList.remove('open') }
 function switchModal(c, o){ closeModal(c); setTimeout(() => openModal(o), 150) }
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if(e.target === o) closeModal(o.id) });
 });
-
-// ============================================================
-// TOAST
-// ============================================================
 function toast(msg, type = 'info'){
   const el = document.createElement('div');
   el.className = 'toast';
@@ -785,20 +760,12 @@ function toast(msg, type = 'info'){
   document.getElementById('toastCont').appendChild(el);
   setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(() => el.remove(), 300) }, 4000);
 }
-
-// ============================================================
-// CONFIRM
-// ============================================================
 function confirmDo(msg, cb, btnLabel='Delete'){
   document.getElementById('confirmMsg').textContent = msg;
   document.getElementById('confirmOk').textContent = btnLabel;
   openModal('confirmModal');
   document.getElementById('confirmOk').onclick = () => { closeModal('confirmModal'); cb() };
 }
-
-// ============================================================
-// HELPERS
-// ============================================================
 function g(id){ return (document.getElementById(id)?.value || '').trim() }
 function monthName(m){ return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1] || m }
 function gradeLabel(g){ return g === 'OL' ? 'O/L' : g === 'AL' ? 'A/L' : g }
@@ -813,8 +780,6 @@ function setBtn(id, text, disabled=false){
 // ============================================================
 // SUPABASE DATA LAYER
 // ============================================================
-
-// --- LOAD STATIC DATA (subjects, batches, teachers) ---
 async function loadStaticData(){
   try {
     const [{ data: subjects }, { data: batches }, { data: teachers }] = await Promise.all([
@@ -827,14 +792,10 @@ async function loadStaticData(){
     CACHE.teachers = teachers || [];
   } catch(e) {
     console.error('loadStaticData:', e);
-    // Fallback: use mock data so UI still works
-    CACHE.subjects = MOCK_DB.subjects;
-    CACHE.batches = MOCK_DB.batches;
-    CACHE.teachers = MOCK_DB.users.filter(u => u.role === 'teacher');
+    toast('Failed to load initial data.', 'error');
   }
 }
 
-// --- LOAD STUDENT ENROLLMENTS ---
 async function loadMyEnrollments(){
   if(!CU) return [];
   try {
@@ -843,14 +804,11 @@ async function loadMyEnrollments(){
       .eq('student_id', CU.id);
     CACHE.enrollments = data || [];
     return CACHE.enrollments;
-  } catch(e) {
-    console.error('loadMyEnrollments:', e);
-    return [];
-  }
+  } catch(e) { return []; }
 }
 
-// --- LOAD RECORDINGS ---
 async function loadRecordings(batchIds){
+  if(!batchIds || batchIds.length === 0) return [];
   try {
     const { data } = await sb.from('recordings')
       .select('*')
@@ -858,59 +816,40 @@ async function loadRecordings(batchIds){
       .order('year', { ascending: false })
       .order('month', { ascending: false });
     return data || [];
-  } catch(e) {
-    console.error('loadRecordings:', e);
-    // fallback: filter mock
-    return MOCK_DB.recordings.filter(r => batchIds.includes(r.batchId)).map(r => ({
-      ...r, batch_id: r.batchId, is_free: r.isFree, yt_link: r.ytLink
-    }));
-  }
+  } catch(e) { return []; }
 }
 
-// --- LOAD LIVE CLASSES ---
 async function loadLiveClasses(batchIds){
+  if(!batchIds || batchIds.length === 0) return [];
   try {
     const { data } = await sb.from('live_classes')
       .select('*')
       .in('batch_id', batchIds)
       .order('date', { ascending: false });
     return data || [];
-  } catch(e) {
-    return MOCK_DB.liveClasses.filter(l => batchIds.includes(l.batchId)).map(l => ({
-      ...l, batch_id: l.batchId, zoom_link: l.zoomLink, is_free: false
-    }));
-  }
+  } catch(e) { return []; }
 }
 
-// --- LOAD NOTES ---
 async function loadNotes(batchIds){
+  if(!batchIds || batchIds.length === 0) return [];
   try {
     const { data } = await sb.from('notes')
       .select('*')
       .in('batch_id', batchIds);
     return data || [];
-  } catch(e) {
-    return MOCK_DB.notes.filter(n => batchIds.includes(n.batchId)).map(n => ({
-      ...n, batch_id: n.batchId, is_free: n.isFree, drive_link: n.driveLink
-    }));
-  }
+  } catch(e) { return []; }
 }
 
-// --- LOAD QUIZZES ---
 async function loadQuizzes(batchIds){
+  if(!batchIds || batchIds.length === 0) return [];
   try {
     const { data } = await sb.from('quizzes')
       .select('*')
       .in('batch_id', batchIds);
     return data || [];
-  } catch(e) {
-    return MOCK_DB.quizzes.filter(q => batchIds.includes(q.batchId)).map(q => ({
-      ...q, batch_id: q.batchId, is_free: q.isFree
-    }));
-  }
+  } catch(e) { return []; }
 }
 
-// --- LOAD TEACHER PENDING ENROLLMENTS ---
 async function loadPendingEnrollments(teacherId){
   try {
     const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
@@ -923,7 +862,6 @@ async function loadPendingEnrollments(teacherId){
   } catch(e) { return []; }
 }
 
-// --- LOAD TEACHER APPROVED STUDENTS ---
 async function loadApprovedStudents(teacherId){
   try {
     const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
@@ -936,7 +874,6 @@ async function loadApprovedStudents(teacherId){
   } catch(e) { return []; }
 }
 
-// --- UPDATE ENROLLMENT STATUS ---
 async function updateEnrollmentStatus(enrollmentId, status){
   try {
     const { error } = await sb.from('student_enrollments')
@@ -945,13 +882,11 @@ async function updateEnrollmentStatus(enrollmentId, status){
     if(error) throw error;
     return true;
   } catch(e) {
-    console.error('updateEnrollmentStatus:', e);
     toast('Failed to update status', 'error');
     return false;
   }
 }
 
-// --- MARK VIDEO VIEWED ---
 async function markVideoViewed(recId){
   if(!CU) return;
   try {
@@ -960,19 +895,17 @@ async function markVideoViewed(recId){
       recording_id: recId,
       viewed_at: new Date().toISOString()
     }, { onConflict: 'student_id,recording_id' });
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 }
 
-// --- LOAD VIDEO VIEWS ---
 async function loadVideoViews(){
   if(!CU) return [];
   try {
     const { data } = await sb.from('video_views').select('recording_id').eq('student_id', CU.id);
     return (data || []).map(v => v.recording_id);
-  } catch(e) { return CU.viewedVideos || []; }
+  } catch(e) { return []; }
 }
 
-// --- SAVE QUIZ RESULT ---
 async function saveQuizResult(quizId, score, total){
   if(!CU) return;
   const pct = Math.round(score/total*100);
@@ -983,13 +916,11 @@ async function saveQuizResult(quizId, score, total){
       score, total, pct,
       completed_at: new Date().toISOString()
     }, { onConflict: 'student_id,quiz_id' });
-    // Update local cache
     if(!CU.completedQuizzes) CU.completedQuizzes = {};
     CU.completedQuizzes[quizId] = { score, total, pct };
-  } catch(e) { console.error('saveQuizResult:', e); }
+  } catch(e) {}
 }
 
-// --- LOAD QUIZ RESULTS ---
 async function loadQuizResults(){
   if(!CU) return {};
   try {
@@ -997,42 +928,7 @@ async function loadQuizResults(){
     const map = {};
     (data || []).forEach(r => { map[r.quiz_id] = { score: r.score, total: r.total, pct: r.pct }; });
     return map;
-  } catch(e) { return CU.completedQuizzes || {}; }
-}
-
-// --- GET/SET ACCESS RULES ---
-async function getStudentAccessRules(studentId, batchId){
-  try {
-    const { data } = await sb.from('access_rules')
-      .select('*')
-      .eq('student_id', studentId)
-      .eq('batch_id', batchId)
-      .single();
-    return data?.rules || null;
-  } catch(e) { return null; }
-}
-
-async function saveStudentAccessRules(studentId, batchId, rules){
-  try {
-    await sb.from('access_rules').upsert({
-      student_id: studentId,
-      batch_id: batchId,
-      rules,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'student_id,batch_id' });
-    return true;
-  } catch(e) { console.error(e); return false; }
-}
-
-async function isStudentBlocked(studentId, batchId){
-  try {
-    const { data } = await sb.from('student_enrollments')
-      .select('is_blocked')
-      .eq('student_id', studentId)
-      .eq('batch_id', batchId)
-      .single();
-    return data?.is_blocked || false;
-  } catch(e) { return false; }
+  } catch(e) { return {}; }
 }
 
 async function setStudentBlocked(enrollmentId, blocked){
@@ -1053,12 +949,10 @@ async function doLogin(){
   const al = document.getElementById('loginAlert');
   setBtn('loginBtn', '<span class="spinner"></span>', true);
 
-  // Try Supabase auth first
   try {
     const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
     if(error) throw error;
     CU_AUTH = data.user;
-    // Fetch profile
     const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
     CU = profile || { id: data.user.id, email: data.user.email, role: 'student', name: data.user.email };
     CU.completedQuizzes = {};
@@ -1068,19 +962,7 @@ async function doLogin(){
     await routeUser(CU);
     toast('Welcome back, ' + (CU.name || 'User') + '! 👋', 'success');
   } catch(e) {
-    // Fallback: local mock auth
-    const found = MOCK_DB.users.find(u => (u.email === email || u.username === email) && u.password === pass);
-    if(found){
-      CU = { ...found };
-      CU_AUTH = null;
-      al.innerHTML = '';
-      closeModal('loginModal');
-      await loadStaticData();
-      await routeUser(CU);
-      toast('Welcome, ' + CU.name + '! 👋', 'success');
-    } else {
-      al.innerHTML = '<div class="alert alert-error">Invalid credentials. Please try again.</div>';
-    }
+     al.innerHTML = `<div class="alert alert-error">Error: ${e.message}</div>`;
   }
   setBtn('loginBtn', 'Sign In', false);
 }
@@ -1091,13 +973,11 @@ async function doRegister(){
   const nic = g('rg_nic'), dob = g('rg_dob'), district = g('rg_district');
   const city = g('rg_city'), addr = g('rg_addr'), stream = g('rg_stream');
 
-  // Validate
   if(!name || !wa || !email || !pass || !nic || !dob || !district || !city || !addr || !stream){
     al.innerHTML = '<div class="alert alert-error">Please fill in all required fields.</div>'; return;
   }
   if(pass.length < 6){ al.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters.</div>'; return; }
 
-  // Collect subject/batch selections
   const selectedEnrollments = [];
   document.querySelectorAll('.subject-check-item.selected').forEach(item => {
     const subjectId = item.dataset.subjectId;
@@ -1113,14 +993,12 @@ async function doRegister(){
   setBtn('regBtn', '<span class="spinner"></span> Creating...', true);
 
   try {
-    // 1. Create Supabase auth user
     const { data: authData, error: authError } = await sb.auth.signUp({ email, password: pass });
     if(authError) throw authError;
 
     const userId = authData.user?.id;
     if(!userId) throw new Error('No user ID returned');
 
-    // 2. Create profile
     const profileData = {
       id: userId, name, email, role: 'student',
       whatsapp: wa, nic, dob, district, city, address: addr, stream,
@@ -1129,7 +1007,6 @@ async function doRegister(){
     const { error: profileError } = await sb.from('profiles').insert(profileData);
     if(profileError) throw profileError;
 
-    // 3. Create pending enrollments
     for(const enr of selectedEnrollments){
       await sb.from('student_enrollments').insert({
         student_id: userId,
@@ -1151,30 +1028,7 @@ async function doRegister(){
 
   } catch(e) {
     console.error('Register error:', e);
-    // Fallback mock registration
-    const existing = MOCK_DB.users.find(u => u.email === email);
-    if(existing){ al.innerHTML = '<div class="alert alert-error">Email already registered.</div>'; setBtn('regBtn','Create Account',false); return; }
-    
-    const nu = {
-      id: 'u' + Date.now(), username: email.split('@')[0], email, password: pass,
-      role: 'student', name, whatsapp: wa, nic, dob, district, city, address: addr, stream,
-      enrolled: false, completedQuizzes: {}, viewedVideos: [],
-      // Use first selection as primary
-      subjectId: selectedEnrollments[0]?.subject_id,
-      batchId: selectedEnrollments[0]?.batch_id,
-      grade: CACHE.batches.find(b => b.id === selectedEnrollments[0]?.batch_id)?.grade || ''
-    };
-    MOCK_DB.users.push(nu);
-    // Create mock enrollments
-    selectedEnrollments.forEach(enr => {
-      MOCK_DB.enrollments.push({ id: 'enr'+Date.now(), student_id: nu.id, subject_id: enr.subject_id, batch_id: enr.batch_id, status: 'pending' });
-    });
-    CU = nu;
-    al.innerHTML = '';
-    closeModal('registerModal');
-    await loadStaticData();
-    await routeUser(CU);
-    toast('Registered! Pending teacher approval. 🎉', 'success');
+    al.innerHTML = `<div class="alert alert-error">${e.message}</div>`;
   }
   setBtn('regBtn', 'Create Account', false);
 }
@@ -1219,11 +1073,11 @@ function scrollSec(id){ document.getElementById(id)?.scrollIntoView({behavior:'s
 function renderSubjectMultiSelect(){
   const container = document.getElementById('subjectMultiSelect');
   if(!container) return;
-  const subjects = CACHE.subjects.length ? CACHE.subjects : MOCK_DB.subjects;
+  const subjects = CACHE.subjects;
   if(!subjects.length){ container.innerHTML = '<div style="color:var(--muted2);font-size:.82rem">Loading subjects...</div>'; return; }
   
   container.innerHTML = subjects.map(sub => {
-    const subBatches = (CACHE.batches.length ? CACHE.batches : MOCK_DB.batches).filter(b => b.subject_id === sub.id || b.subjectId === sub.id);
+    const subBatches = CACHE.batches.filter(b => b.subject_id === sub.id);
     return `
     <div class="subject-check-item" data-subject-id="${sub.id}" onclick="toggleSubjectCheck(this)">
       <div class="subject-check-row">
@@ -1262,17 +1116,16 @@ async function renderLanding(){
   await loadStaticData();
   renderSubjectMultiSelect();
 
-  // Courses
   const gc = document.getElementById('landingCourses');
-  const batches = CACHE.batches.length ? CACHE.batches : MOCK_DB.batches;
-  const subjects = CACHE.subjects.length ? CACHE.subjects : MOCK_DB.subjects;
-  const teachers = CACHE.teachers.length ? CACHE.teachers : MOCK_DB.users.filter(u => u.role === 'teacher');
+  const batches = CACHE.batches;
+  const subjects = CACHE.subjects;
+  const teachers = CACHE.teachers;
 
   if(!batches.length){ gc.innerHTML = '<div class="empty"><div class="ei">📚</div><p>No courses yet.</p></div>'; }
   else {
     gc.innerHTML = batches.slice(0,6).map(b => {
-      const sub = subjects.find(s => s.id === (b.subject_id || b.subjectId));
-      const teacher = teachers.find(t => t.id === (b.teacher_id || b.teacherId));
+      const sub = subjects.find(s => s.id === b.subject_id);
+      const teacher = teachers.find(t => t.id === b.teacher_id);
       return `
       <div class="course-card" onclick="openModal('registerModal')">
         <div class="course-thumb" style="background:linear-gradient(135deg,${sub?.color||'#4f8ef7'}22,${sub?.color||'#4f8ef7'}44)">
@@ -1282,7 +1135,7 @@ async function renderLanding(){
           <div style="font-size:.92rem;font-weight:700;margin-bottom:.3rem">${b.name}</div>
           <div style="font-size:.75rem;color:var(--muted2);margin-bottom:.8rem">👨‍🏫 ${teacher?.name||'Instructor'}</div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:.72rem;color:var(--muted)">👥 ${(b.student_count || b.studentCount || 0).toLocaleString()}</span>
+            <span style="font-size:.72rem;color:var(--muted)">👥 ${(b.student_count || 0).toLocaleString()}</span>
             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openModal('registerModal')">Enroll</button>
           </div>
         </div>
@@ -1290,20 +1143,22 @@ async function renderLanding(){
     }).join('');
   }
 
-  // Teachers
   const gt = document.getElementById('landingTeachers');
-  gt.innerHTML = teachers.map(t => {
-    const myBatches = batches.filter(b => (b.teacher_id || b.teacherId) === t.id);
-    const subNames = [...new Set(myBatches.map(b => { const s = subjects.find(x => x.id === (b.subject_id || b.subjectId)); return s?.name; }))].filter(Boolean);
-    return `
-    <div class="teacher-card">
-      <div class="teacher-av">${(t.name||'T').charAt(0)}</div>
-      <div style="font-size:.95rem;font-weight:700;margin-bottom:.2rem">${t.name}</div>
-      <div style="font-size:.78rem;color:var(--muted2);margin-bottom:.8rem">${subNames.join(' · ')} · ${myBatches.length} Batches</div>
-      <div style="font-size:.78rem;color:var(--muted)">Expert educator with 10+ years experience</div>
-      ${t.whatsapp ? `<div style="font-size:.76rem;color:var(--accent);margin-top:.5rem">📱 ${t.whatsapp}</div>` : ''}
-    </div>`;
-  }).join('');
+  if(!teachers.length) gt.innerHTML = '<div class="empty">No teachers found.</div>';
+  else {
+    gt.innerHTML = teachers.map(t => {
+      const myBatches = batches.filter(b => b.teacher_id === t.id);
+      const subNames = [...new Set(myBatches.map(b => { const s = subjects.find(x => x.id === b.subject_id); return s?.name; }))].filter(Boolean);
+      return `
+      <div class="teacher-card">
+        <div class="teacher-av">${(t.name||'T').charAt(0)}</div>
+        <div style="font-size:.95rem;font-weight:700;margin-bottom:.2rem">${t.name}</div>
+        <div style="font-size:.78rem;color:var(--muted2);margin-bottom:.8rem">${subNames.join(' · ')} · ${myBatches.length} Batches</div>
+        <div style="font-size:.78rem;color:var(--muted)">Expert educator with 10+ years experience</div>
+        ${t.whatsapp ? `<div style="font-size:.76rem;color:var(--accent);margin-top:.5rem">📱 ${t.whatsapp}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
 }
 
 // ============================================================
@@ -1370,7 +1225,6 @@ async function renderSDashboard(enrollments, batchIds){
   ${pending.length ? `<div class="alert alert-warning">⏳ You have ${pending.length} pending enrollment(s) awaiting teacher approval.</div>` : ''}
   ${rejected.length ? `<div class="alert alert-error">❌ ${rejected.length} enrollment(s) were rejected. Contact support for more info.</div>` : ''}
   
-  <!-- Enrollments status -->
   ${enrollments.length === 0 ? `<div class="alert alert-info">You have no enrollments. Register for a subject/batch first.</div>` : ''}
   
   ${enrollments.length > 0 ? `
@@ -1404,7 +1258,7 @@ async function renderSDashboard(enrollments, batchIds){
   ${recentRecs.length ? `
   <div class="sec-header"><div class="sec-title">Recent Videos</div><button class="btn btn-ghost btn-sm" onclick="sNav('recordings')">View All</button></div>
   <div style="display:grid;gap:.6rem">
-    ${recentRecs.map(r => recMiniCard(r, batchIds, {})).join('')}
+    ${recentRecs.map(r => recMiniCard(r)).join('')}
   </div>` : ''}`;
 }
 
@@ -1432,7 +1286,7 @@ async function renderSLive(batchIds){
           </div>
         </div>
         <div>
-          ${l.status !== 'past' ? `<a href="${l.zoom_link||l.zoomLink||'#'}" target="_blank" class="btn btn-primary btn-sm">🔗 Join Zoom</a>` : `<button class="btn btn-ghost btn-sm" disabled>Ended</button>`}
+          ${l.status !== 'past' ? `<a href="${l.zoom_link||'#'}" target="_blank" class="btn btn-primary btn-sm">🔗 Join Zoom</a>` : `<button class="btn btn-ghost btn-sm" disabled>Ended</button>`}
         </div>
       </div>
     </div>`;
@@ -1443,6 +1297,8 @@ async function renderSRecordings(batchIds, enrollments){
   if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
   const recs = await loadRecordings(batchIds);
   const viewedVideos = await loadVideoViews();
+  window._viewedCache = viewedVideos; // Cache for filtering
+  
   const types = ['theory','paper','revision','extra'];
   const years = [...new Set(recs.map(r => r.year))].sort((a,b) => b-a);
   
@@ -1475,7 +1331,7 @@ async function renderSRecordings(batchIds, enrollments){
             <div class="month-body" id="mbody${year}${month}">
               <div class="type-tabs" id="ttabs${year}${month}">
                 ${types.map((t,i) => {
-                  const cnt = mRecs.filter(r => (r.type||r.type) === t).length;
+                  const cnt = mRecs.filter(r => r.type === t).length;
                   return `<button class="type-tab${i===0?' active':''}" onclick="filterTypeS('${year}','${month}','${t}',this)">${typeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)} (${cnt})</button>`;
                 }).join('')}
               </div>
@@ -1494,25 +1350,23 @@ function filterTypeS(year, month, type, btn){
   const tabs = btn.closest('.type-tabs');
   tabs.querySelectorAll('.type-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // re-render grid: find cached recs
   const grid = document.getElementById('vgrid'+year+month);
-  // We need the viewed list; check what's stored
   const viewedVideos = window._viewedCache || [];
   const batchIds = CACHE.enrollments.filter(e => e.status==='approved').map(e => e.batch_id);
+  
   loadRecordings(batchIds).then(recs => {
     const filtered = recs.filter(r => String(r.year)===year && r.month===month && r.type===type);
     grid.innerHTML = filtered.length === 0
-      ? `<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted2);font-size:.82rem">No ${type} classes for ${monthName(month)} ${year}</div>`
+      ? `<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted2);font-size:.82rem">No ${type} classes for this month</div>`
       : filtered.map(r => recCard(r, viewedVideos)).join('');
   });
 }
 
 function recCard(r, viewedVideos=[]){
   const isViewed = viewedVideos.includes(r.id);
-  const isFree = r.is_free || r.isFree;
-  const ytLink = r.yt_link || r.ytLink || '';
+  const isFree = r.is_free;
   return `
-  <div class="rec-card${isViewed?' viewed':''}" onclick="openVideoModal('${r.id}','${encodeURIComponent(JSON.stringify({title:r.title,desc:r.description,date:r.date,dur:r.duration,type:r.type,ytLink:ytLink,isFree:isFree}))}')">
+  <div class="rec-card${isViewed?' viewed':''}" onclick="openVideoModal('${r.id}','${encodeURIComponent(JSON.stringify({title:r.title,desc:r.description,date:r.date,dur:r.duration,type:r.type,ytLink:r.yt_link,isFree:isFree}))}')">
     ${!isFree ? '<div class="lock-badge">💎 Premium</div>' : ''}
     ${isViewed ? '<div class="viewed-check">✓</div>' : ''}
     <div class="rec-thumb">
@@ -1531,11 +1385,10 @@ function recCard(r, viewedVideos=[]){
   </div>`;
 }
 
-function recMiniCard(r, batchIds, completedQuizzes){
-  const ytLink = r.yt_link || r.ytLink || '';
-  const isFree = r.is_free || r.isFree;
+function recMiniCard(r){
+  const isFree = r.is_free;
   return `
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem;display:flex;gap:.8rem;align-items:center;cursor:pointer;transition:all .2s" onclick="openVideoModal('${r.id}','${encodeURIComponent(JSON.stringify({title:r.title,desc:r.description,date:r.date,dur:r.duration,type:r.type,ytLink:ytLink,isFree:isFree}))}')">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem;display:flex;gap:.8rem;align-items:center;cursor:pointer;transition:all .2s" onclick="openVideoModal('${r.id}','${encodeURIComponent(JSON.stringify({title:r.title,desc:r.description,date:r.date,dur:r.duration,type:r.type,ytLink:r.yt_link,isFree:isFree}))}')">
     <div style="width:48px;height:48px;border-radius:9px;background:linear-gradient(135deg,#0d1b2e,#1a2e4a);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${typeIcon(r.type)}</div>
     <div style="flex:1;min-width:0">
       <div style="font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title}</div>
@@ -1574,8 +1427,7 @@ async function renderSNotes(batchIds, enrollments){
   <div class="sec-title" style="margin-bottom:1.25rem">Notes & Resources</div>
   ${!notes.length ? '<div class="empty"><div class="ei">📄</div><p>No notes yet.</p></div>' : ''}
   ${notes.map(n => {
-    const isFree = n.is_free || n.isFree;
-    const driveLink = n.drive_link || n.driveLink || '#';
+    const isFree = n.is_free;
     const batch = CACHE.batches.find(b => b.id === n.batch_id);
     return `
     <div class="note-card">
@@ -1584,7 +1436,7 @@ async function renderSNotes(batchIds, enrollments){
         <div class="note-title">${n.title}</div>
         <div class="note-meta">📁 ${n.size||''} · ${isFree?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Premium</span>'} · ${batch?.name||''}</div>
       </div>
-      <a href="${driveLink}" target="_blank" class="btn btn-success btn-sm">⬇ PDF</a>
+      <a href="${n.drive_link}" target="_blank" class="btn btn-success btn-sm">⬇ PDF</a>
     </div>`;
   }).join('')}`;
 }
@@ -1601,7 +1453,7 @@ async function renderSQuizList(batchIds, enrollments){
   ${!quizzes.length ? '<div class="empty"><div class="ei">🧠</div><p>No quizzes yet.</p></div>' : ''}
   ${quizzes.map(q => {
     const done = completedQuizzes[q.id];
-    const isFree = q.is_free || q.isFree;
+    const isFree = q.is_free;
     const questions = Array.isArray(q.questions) ? q.questions : (typeof q.questions === 'string' ? JSON.parse(q.questions) : []);
     return `
     <div class="quiz-card">
@@ -1621,10 +1473,9 @@ async function renderSQuizList(batchIds, enrollments){
 }
 
 function startQuiz(qid){
-  // Load quiz from Supabase or mock
   const getQuiz = async () => {
     try { const { data } = await sb.from('quizzes').select('*').eq('id', qid).single(); return data; }
-    catch(e){ return MOCK_DB.quizzes.find(q => q.id === qid); }
+    catch(e){ return null; }
   };
   getQuiz().then(quiz => {
     if(!quiz){ toast('Quiz not found','error'); return; }
@@ -1691,30 +1542,11 @@ function renderSPayments(){
     <div style="margin-top:1rem;padding:.75rem;background:rgba(247,201,79,.08);border-radius:8px;font-size:.78rem;color:var(--accent4)">
       ⚠️ After transfer, send your receipt to <strong>0775048455</strong> via WhatsApp with your name and batch.
     </div>
-  </div>
-
-  <div class="payment-option">
-    <h3>🏦 Commercial Bank Transfer</h3>
-    <div class="bank-detail"><span style="color:var(--muted2)">Bank Name</span><strong>Commercial Bank</strong></div>
-    <div class="bank-detail"><span style="color:var(--muted2)">Account Name</span><strong>NovaX Edu (Pvt) Ltd</strong></div>
-    <div class="bank-detail"><span style="color:var(--muted2)">Account Number</span><strong>9876543210</strong></div>
-    <div class="bank-detail"><span style="color:var(--muted2)">Branch</span><strong>Nugegoda</strong></div>
-  </div>
-
-  <div class="payment-option">
-    <h3>💳 Card Payment</h3>
-    <p style="font-size:.78rem;color:var(--muted2);margin-bottom:1rem">Secure online payment via PayHere gateway.</p>
-    <div style="background:var(--surface2);border:2px dashed var(--border2);border-radius:var(--radius);padding:2rem;text-align:center">
-      <div style="font-size:2rem;margin-bottom:.75rem">💳</div>
-      <div style="font-weight:700;margin-bottom:.4rem">Online Payment Gateway</div>
-      <div style="font-size:.8rem;color:var(--muted2);margin-bottom:1rem">Visa · Mastercard · Amex supported</div>
-      <button class="btn btn-primary" onclick="toast('Payment gateway coming soon! Please use bank transfer.','info')">Pay Online →</button>
-    </div>
   </div>`;
 }
 
 async function renderSSupport(){
-  const teachers = CACHE.teachers.length ? CACHE.teachers : MOCK_DB.users.filter(u => u.role === 'teacher');
+  const teachers = CACHE.teachers;
   return `
   <div class="sec-tag">// Support</div>
   <div class="sec-title" style="margin-bottom:1.25rem">Help & Support</div>
@@ -1727,9 +1559,9 @@ async function renderSSupport(){
 
   <div style="font-weight:700;font-size:.92rem;margin-bottom:1rem">Our Teachers</div>
   ${teachers.map(t => {
-    const myBatches = (CACHE.batches.length ? CACHE.batches : MOCK_DB.batches).filter(b => (b.teacher_id||b.teacherId) === t.id);
+    const myBatches = CACHE.batches.filter(b => b.teacher_id === t.id);
     const subjects = [...new Set(myBatches.map(b => {
-      const s = (CACHE.subjects.length ? CACHE.subjects : MOCK_DB.subjects).find(x => x.id === (b.subject_id||b.subjectId));
+      const s = CACHE.subjects.find(x => x.id === b.subject_id);
       return s?.name;
     }))].filter(Boolean);
     return `
@@ -1742,28 +1574,12 @@ async function renderSSupport(){
           ${t.whatsapp || t.email ? `<a href="https://wa.me/94${(t.whatsapp||'').replace(/^0/,'')}?text=Hello%20${encodeURIComponent(t.name)}" target="_blank" class="btn btn-success btn-sm">💬 WhatsApp</a>` : ''}
           ${t.email ? `<a href="mailto:${t.email}" class="btn btn-ghost btn-sm">📧 Email</a>` : ''}
         </div>
-        ${t.whatsapp ? `<div style="font-size:.74rem;color:var(--muted);margin-top:.4rem">📱 ${t.whatsapp}</div>` : ''}
-        ${t.email ? `<div style="font-size:.74rem;color:var(--muted)">✉️ ${t.email}</div>` : ''}
       </div>
     </div>`;
-  }).join('')}
-  
-  <div style="background:var(--surface2);border-radius:var(--radius);padding:1.1rem;margin-top:1rem">
-    <div style="font-weight:700;margin-bottom:.6rem;font-size:.88rem">Common Questions</div>
-    ${[
-      ['How do I get enrolled?', 'After registration, your teacher reviews your application. Once approved, you get full access.'],
-      ['How do I make payment?', 'Transfer to bank account and send receipt to teacher via WhatsApp. Include your name and batch.'],
-      ['Can I change my batch?', 'Contact your teacher or admin via WhatsApp to request a batch change.'],
-    ].map(([q,a]) => `
-    <div style="margin-bottom:.75rem">
-      <div style="font-size:.82rem;font-weight:700;margin-bottom:.2rem">❓ ${q}</div>
-      <div style="font-size:.78rem;color:var(--muted2);line-height:1.5">${a}</div>
-    </div>`).join('')}
-  </div>`;
+  }).join('')}`;
 }
 
 async function renderSProfile(enrollments){
-  const sub = CACHE.subjects.find(s => s.id === CU.subjectId);
   const completedQuizzes = await loadQuizResults();
   const viewedVideos = await loadVideoViews();
   return `
@@ -1819,13 +1635,14 @@ async function saveProfile(){
     await sb.from('profiles').update({ name: CU.name, whatsapp: CU.whatsapp }).eq('id', CU.id);
     const p = g('ep_pass');
     if(p && p.length >= 6) await sb.auth.updateUser({ password: p });
-  } catch(e) { /* mock mode */ }
+    toast('Profile updated ✅', 'success');
+  } catch(e) { 
+    toast('Error updating profile', 'error'); 
+  }
   closeModal('cModal');
-  toast('Profile updated ✅', 'success');
   renderStudentSec('profile');
 }
 
-// Toggle year/month in recordings
 function toggleYear(y){
   const body = document.getElementById('ybody'+y);
   const hdr = document.getElementById('yhdr'+y);
@@ -1846,15 +1663,12 @@ function toggleMonth(y,m){
 // ============================================================
 // TEACHER PORTAL
 // ============================================================
-let _tNavSec = 'dashboard';
 async function tNav(sec, el){
   document.querySelectorAll('#teacherPage .sidebar-item').forEach(b => b.classList.remove('active'));
   if(el) el.classList.add('active');
   closeSidebar();
-  _tNavSec = sec;
   document.getElementById('tContent').innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
 
-  // Update pending badge
   updatePendingBadge();
 
   const renders = {
@@ -1872,7 +1686,6 @@ async function tNav(sec, el){
     const html = await (renders[sec] || renders.dashboard)();
     document.getElementById('tContent').innerHTML = html || '';
     if(sec === 'recordings') initTRecordingTabs();
-    if(sec === 'content') initContentTabs();
   } catch(e) {
     console.error(e);
     document.getElementById('tContent').innerHTML = '<div class="alert alert-error">Failed to load.</div>';
@@ -1888,8 +1701,8 @@ async function updatePendingBadge(){
 }
 
 async function renderTDashboard(){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
-  const total = batches.reduce((a,b) => a+(b.student_count||b.studentCount||0), 0);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
+  const total = batches.reduce((a,b) => a+(b.student_count||0), 0);
   const batchIds = batches.map(b => b.id);
   let recCount = 0, liveCount = 0;
   if(batchIds.length){
@@ -1918,7 +1731,7 @@ async function renderTDashboard(){
   <div class="g3">
     ${batches.map(b => `<div class="card"><div class="card-body">
       <div style="font-weight:700;font-size:.9rem;margin-bottom:.3rem">${b.name}</div>
-      <div style="font-size:.75rem;color:var(--muted2)">👥 ${(b.student_count||b.studentCount||0)} enrolled students</div>
+      <div style="font-size:.75rem;color:var(--muted2)">👥 ${(b.student_count||0)} enrolled students</div>
     </div></div>`).join('')}
   </div>`;
 }
@@ -1973,7 +1786,7 @@ async function rejectEnrollment(id, btn){
 }
 
 async function renderTLive(){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const batchIds = batches.map(b => b.id);
   const lives = batchIds.length ? await loadLiveClasses(batchIds) : [];
   return `
@@ -1996,7 +1809,7 @@ async function renderTLive(){
           <div style="font-size:.74rem;color:var(--muted);display:flex;gap:.7rem;flex-wrap:wrap">
             <span>📅 ${l.date}</span><span>⏰ ${l.time||''}</span><span>⏱ ${fmtDur(l.duration||90)}</span>
           </div>
-          <div style="font-size:.72rem;color:var(--accent);margin-top:.3rem;word-break:break-all">${l.zoom_link||l.zoomLink||''}</div>
+          <div style="font-size:.72rem;color:var(--accent);margin-top:.3rem;word-break:break-all">${l.zoom_link||''}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.4rem">
           <button class="btn btn-ghost btn-sm" onclick="liveModal('${l.id}')">✏️ Edit</button>
@@ -2008,21 +1821,20 @@ async function renderTLive(){
 }
 
 function liveModal(editId){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const doLoad = async () => {
     let live = null;
     if(editId){
-      try { const {data} = await sb.from('live_classes').select('*').eq('id',editId).single(); live=data; }
-      catch(e){ live = MOCK_DB.liveClasses.find(x=>x.id===editId); if(live) live={...live, batch_id:live.batchId, zoom_link:live.zoomLink}; }
+      try { const {data} = await sb.from('live_classes').select('*').eq('id',editId).single(); live=data; } catch(e){}
     }
     document.getElementById('cModalTitle').textContent = editId ? 'Edit Live Class' : 'Schedule Live Class';
     document.getElementById('cModalBody').innerHTML = `
     <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="lv_t" value="${live?.title||''}"/></div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-input form-textarea" id="lv_d">${live?.description||''}</textarea></div>
     <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="lv_b">
-      ${batches.map(b => `<option value="${b.id}" ${(live?.batch_id||live?.batchId)===b.id?'selected':''}>${b.name}</option>`).join('')}
+      ${batches.map(b => `<option value="${b.id}" ${live?.batch_id===b.id?'selected':''}>${b.name}</option>`).join('')}
     </select></div>
-    <div class="form-group"><label class="form-label">Zoom Link</label><input class="form-input" id="lv_z" value="${live?.zoom_link||live?.zoomLink||'https://zoom.us/j/'}"/></div>
+    <div class="form-group"><label class="form-label">Zoom Link</label><input class="form-input" id="lv_z" value="${live?.zoom_link||'https://zoom.us/j/'}"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Date</label><input class="form-input" type="date" id="lv_dt" value="${live?.date||''}"/></div>
       <div class="form-group"><label class="form-label">Time</label><input class="form-input" id="lv_tm" value="${live?.time||''}"/></div>
@@ -2048,46 +1860,43 @@ async function saveLive(eid){
   try {
     if(eid) await sb.from('live_classes').update(d).eq('id',eid);
     else await sb.from('live_classes').insert({...d, created_at: new Date().toISOString()});
+    toast(eid ? 'Updated!' : 'Live class scheduled! 📡', 'success');
   } catch(e) {
-    // mock fallback
-    const md = {...d, batchId:d.batch_id, zoomLink:d.zoom_link};
-    if(eid) Object.assign(MOCK_DB.liveClasses.find(x=>x.id===eid)||{}, md);
-    else MOCK_DB.liveClasses.push({id:'lc'+Date.now(),...md});
+    toast('Error saving live class', 'error');
   }
   closeModal('cModal');
-  toast(eid ? 'Updated!' : 'Live class scheduled! 📡', 'success');
   tNav('live');
 }
 
 async function deleteLive(id){
   confirmDo('Delete this live class?', async () => {
-    try { await sb.from('live_classes').delete().eq('id',id); }
-    catch(e){ MOCK_DB.liveClasses = MOCK_DB.liveClasses.filter(x=>x.id!==id); }
-    toast('Deleted','info'); tNav('live');
+    try { await sb.from('live_classes').delete().eq('id',id); toast('Deleted','info'); } 
+    catch(e) { toast('Error deleting', 'error'); }
+    tNav('live');
   });
 }
 
 async function renderTRecordings(){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const batchIds = batches.map(b => b.id);
   const recs = batchIds.length ? await loadRecordings(batchIds) : [];
   const types = ['theory','paper','revision','extra'];
+  window._tRecs = recs;
+  
   return `
   <div class="sec-header">
     <div><div class="sec-tag">// Recordings</div><div class="sec-title">Recording Management</div></div>
     <button class="btn btn-primary btn-sm" onclick="recModal()">+ Add</button>
   </div>
   <div class="tabs" style="margin-bottom:1.25rem" id="recTypeTabs">
-    <button class="tab-btn active" onclick="filterRecTab('all',this,window._tRecs)">All (${recs.length})</button>
-    ${types.map(t => `<button class="tab-btn" onclick="filterRecTab('${t}',this,window._tRecs)">${typeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)} (${recs.filter(r=>r.type===t).length})</button>`).join('')}
+    <button class="tab-btn active" onclick="filterRecTab('all',this)">All (${recs.length})</button>
+    ${types.map(t => `<button class="tab-btn" onclick="filterRecTab('${t}',this)">${typeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)} (${recs.filter(r=>r.type===t).length})</button>`).join('')}
   </div>
   <div id="recTableWrap">${recTable(recs)}</div>`;
 }
 
 function initTRecordingTabs(){
-  // Store recs for tab filtering
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
-  loadRecordings(batches.map(b=>b.id)).then(recs => { window._tRecs = recs; });
+   window._tRecs = window._tRecs || [];
 }
 
 function recTable(recs){
@@ -2095,8 +1904,8 @@ function recTable(recs){
   return `<div class="table-wrap"><table>
     <thead><tr><th>Title</th><th>Batch</th><th>Year</th><th>Month</th><th>Type</th><th>Duration</th><th>Access</th><th>Actions</th></tr></thead>
     <tbody>${recs.map(r => {
-      const b = CACHE.batches.find(x => x.id === (r.batch_id||r.batchId));
-      const isFree = r.is_free || r.isFree;
+      const b = CACHE.batches.find(x => x.id === r.batch_id);
+      const isFree = r.is_free;
       return `<tr>
         <td style="max-width:180px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600">${r.title}</div></td>
         <td style="white-space:nowrap;font-size:.76rem">${b?.name||r.batch_id}</td>
@@ -2113,29 +1922,29 @@ function recTable(recs){
     </tbody></table></div>`;
 }
 
-function filterRecTab(type, btn, recs){
+function filterRecTab(type, btn){
   document.querySelectorAll('#recTypeTabs .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const filtered = type === 'all' ? recs : (recs||[]).filter(r => r.type === type);
-  document.getElementById('recTableWrap').innerHTML = recTable(filtered||[]);
+  const recs = window._tRecs || [];
+  const filtered = type === 'all' ? recs : recs.filter(r => r.type === type);
+  document.getElementById('recTableWrap').innerHTML = recTable(filtered);
 }
 
 function recModal(eid){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const doLoad = async () => {
     let rec = null;
     if(eid){
-      try { const {data} = await sb.from('recordings').select('*').eq('id',eid).single(); rec=data; }
-      catch(e){ rec=MOCK_DB.recordings.find(r=>r.id===eid); if(rec) rec={...rec,batch_id:rec.batchId,yt_link:rec.ytLink,is_free:rec.isFree}; }
+      try { const {data}=await sb.from('recordings').select('*').eq('id',eid).single(); rec=data; } catch(e){}
     }
     document.getElementById('cModalTitle').textContent = eid ? 'Edit Recording' : 'Add Recording';
     document.getElementById('cModalBody').innerHTML = `
     <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="rc_t" value="${rec?.title||''}"/></div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-input form-textarea" id="rc_ds">${rec?.description||''}</textarea></div>
     <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="rc_b">
-      ${batches.map(b => `<option value="${b.id}" ${(rec?.batch_id||rec?.batchId)===b.id?'selected':''}>${b.name}</option>`).join('')}
+      ${batches.map(b => `<option value="${b.id}" ${rec?.batch_id===b.id?'selected':''}>${b.name}</option>`).join('')}
     </select></div>
-    <div class="form-group"><label class="form-label">YouTube Embed Link</label><input class="form-input" id="rc_yt" value="${rec?.yt_link||rec?.ytLink||'https://www.youtube.com/embed/'}"/></div>
+    <div class="form-group"><label class="form-label">YouTube Embed Link</label><input class="form-input" id="rc_yt" value="${rec?.yt_link||'https://www.youtube.com/embed/'}"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Year</label><select class="form-select" id="rc_y">
         ${['2024','2025','2026','2027'].map(y => `<option ${(rec?.year||'2026')===y?'selected':''}>${y}</option>`).join('')}
@@ -2153,8 +1962,8 @@ function recModal(eid){
     <div class="form-row">
       <div class="form-group"><label class="form-label">Class Date</label><input class="form-input" type="date" id="rc_dt" value="${rec?.date||''}"/></div>
       <div class="form-group"><label class="form-label">Access</label><select class="form-select" id="rc_ac">
-        <option value="false" ${rec&&!(rec.is_free||rec.isFree)?'selected':''}>Premium</option>
-        <option value="true" ${(rec?.is_free||rec?.isFree)?'selected':''}>Free</option>
+        <option value="false" ${rec && !rec.is_free?'selected':''}>Premium</option>
+        <option value="true"        ${rec?.is_free?'selected':''}>Free</option>
       </select></div>
     </div>
     <button class="btn btn-primary" onclick="saveRec('${eid||''}')">Save</button>`;
@@ -2172,24 +1981,24 @@ async function saveRec(eid){
   try {
     if(eid) await sb.from('recordings').update(d).eq('id',eid);
     else await sb.from('recordings').insert({...d, created_at:new Date().toISOString()});
+    toast(eid?'Updated!':'Recording added! 🎬','success');
   } catch(e) {
-    const md = {...d, batchId:d.batch_id, ytLink:d.yt_link, isFree:d.is_free};
-    if(eid) Object.assign(MOCK_DB.recordings.find(r=>r.id===eid)||{}, md);
-    else MOCK_DB.recordings.push({id:'r'+Date.now(),...md});
+    toast('Error saving recording', 'error');
   }
-  closeModal('cModal'); toast(eid?'Updated!':'Recording added! 🎬','success'); tNav('recordings');
+  closeModal('cModal'); 
+  tNav('recordings');
 }
 
 async function deleteRec(id){
   confirmDo('Delete this recording?', async () => {
-    try { await sb.from('recordings').delete().eq('id',id); }
-    catch(e){ MOCK_DB.recordings = MOCK_DB.recordings.filter(r=>r.id!==id); }
-    toast('Deleted','info'); tNav('recordings');
+    try { await sb.from('recordings').delete().eq('id',id); toast('Deleted','info'); } 
+    catch(e) { toast('Error deleting', 'error'); }
+    tNav('recordings');
   });
 }
 
 async function renderTNotes(){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const notes = batches.length ? await loadNotes(batches.map(b=>b.id)) : [];
   return `
   <div class="sec-header">
@@ -2200,8 +2009,8 @@ async function renderTNotes(){
   <div class="table-wrap"><table>
     <thead><tr><th>Title</th><th>Batch</th><th>Size</th><th>Access</th><th>Actions</th></tr></thead>
     <tbody>${notes.map(n => {
-      const b = CACHE.batches.find(x=>x.id===(n.batch_id||n.batchId));
-      const isFree = n.is_free||n.isFree;
+      const b = CACHE.batches.find(x=>x.id===n.batch_id);
+      const isFree = n.is_free;
       return `<tr>
         <td><strong>${n.title}</strong></td>
         <td style="font-size:.76rem">${b?.name||n.batch_id}</td>
@@ -2217,26 +2026,25 @@ async function renderTNotes(){
 }
 
 function noteModal(eid){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const doLoad = async () => {
     let note = null;
     if(eid){
-      try { const {data}=await sb.from('notes').select('*').eq('id',eid).single(); note=data; }
-      catch(e){ note=MOCK_DB.notes.find(n=>n.id===eid); if(note) note={...note,batch_id:note.batchId,drive_link:note.driveLink,is_free:note.isFree}; }
+      try { const {data}=await sb.from('notes').select('*').eq('id',eid).single(); note=data; } catch(e){}
     }
     document.getElementById('cModalTitle').textContent = eid?'Edit Note':'Add Note';
     document.getElementById('cModalBody').innerHTML = `
     <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="nt_t" value="${note?.title||''}"/></div>
     <div class="form-group"><label class="form-label">Description</label><textarea class="form-input form-textarea" id="nt_d">${note?.description||''}</textarea></div>
     <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="nt_b">
-      ${batches.map(b=>`<option value="${b.id}" ${(note?.batch_id||note?.batchId)===b.id?'selected':''}>${b.name}</option>`).join('')}
+      ${batches.map(b=>`<option value="${b.id}" ${note?.batch_id===b.id?'selected':''}>${b.name}</option>`).join('')}
     </select></div>
-    <div class="form-group"><label class="form-label">Google Drive Link</label><input class="form-input" id="nt_l" value="${note?.drive_link||note?.driveLink||'https://drive.google.com/'}"/></div>
+    <div class="form-group"><label class="form-label">Google Drive Link</label><input class="form-input" id="nt_l" value="${note?.drive_link||'https://drive.google.com/'}"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">File Size</label><input class="form-input" id="nt_s" value="${note?.size||''}"/></div>
       <div class="form-group"><label class="form-label">Access</label><select class="form-select" id="nt_a">
-        <option value="false" ${note&&!(note.is_free||note.isFree)?'selected':''}>Premium</option>
-        <option value="true" ${(note?.is_free||note?.isFree)?'selected':''}>Free</option>
+        <option value="false" ${note && !note.is_free?'selected':''}>Premium</option>
+        <option value="true" ${note?.is_free?'selected':''}>Free</option>
       </select></div>
     </div>
     <button class="btn btn-primary" onclick="saveNote('${eid||''}')">Save</button>`;
@@ -2250,24 +2058,23 @@ async function saveNote(eid){
   try {
     if(eid) await sb.from('notes').update(d).eq('id',eid);
     else await sb.from('notes').insert({...d,created_at:new Date().toISOString()});
+    toast(eid?'Updated!':'Note added! 📄','success');
   } catch(e) {
-    const md={...d,batchId:d.batch_id,driveLink:d.drive_link,isFree:d.is_free};
-    if(eid) Object.assign(MOCK_DB.notes.find(n=>n.id===eid)||{},md);
-    else MOCK_DB.notes.push({id:'n'+Date.now(),...md});
+    toast('Error saving note', 'error');
   }
-  closeModal('cModal'); toast(eid?'Updated!':'Note added! 📄','success'); tNav('notes');
+  closeModal('cModal'); tNav('notes');
 }
 
 async function deleteNote(id){
   confirmDo('Delete this note?', async () => {
-    try { await sb.from('notes').delete().eq('id',id); }
-    catch(e){ MOCK_DB.notes=MOCK_DB.notes.filter(n=>n.id!==id); }
-    toast('Deleted','info'); tNav('notes');
+    try { await sb.from('notes').delete().eq('id',id); toast('Deleted','info'); } 
+    catch(e) { toast('Error deleting', 'error'); }
+    tNav('notes');
   });
 }
 
 async function renderTQuiz(){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const quizzes = batches.length ? await loadQuizzes(batches.map(b=>b.id)) : [];
   return `
   <div class="sec-header">
@@ -2275,8 +2082,8 @@ async function renderTQuiz(){
     <button class="btn btn-primary btn-sm" onclick="quizModal()">+ Add Quiz</button>
   </div>
   ${quizzes.map(q => {
-    const b = CACHE.batches.find(x=>x.id===(q.batch_id||q.batchId));
-    const isFree = q.is_free||q.isFree;
+    const b = CACHE.batches.find(x=>x.id===q.batch_id);
+    const isFree = q.is_free;
     const questions = Array.isArray(q.questions)?q.questions:(typeof q.questions==='string'?JSON.parse(q.questions||'[]'):[]);
     return `<div class="quiz-card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
@@ -2294,12 +2101,11 @@ async function renderTQuiz(){
 }
 
 function quizModal(eid){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const doLoad = async () => {
     let quiz = null;
     if(eid){
-      try { const {data}=await sb.from('quizzes').select('*').eq('id',eid).single(); quiz=data; }
-      catch(e){ quiz=MOCK_DB.quizzes.find(q=>q.id===eid); }
+      try { const {data}=await sb.from('quizzes').select('*').eq('id',eid).single(); quiz=data; } catch(e){}
     }
     const qs = quiz?.questions ? (Array.isArray(quiz.questions)?quiz.questions:JSON.parse(quiz.questions||'[]')) : [{q:'',opts:['','','',''],ans:0}];
     window._qqs = JSON.parse(JSON.stringify(qs));
@@ -2325,11 +2131,11 @@ function quizModal(eid){
       document.getElementById('cModalBody').innerHTML = `
       <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="qz_t" value="${quiz?.title||''}"/></div>
       <div class="form-group"><label class="form-label">Batch</label><select class="form-select" id="qz_b">
-        ${batches.map(b=>`<option value="${b.id}" ${(quiz?.batch_id||quiz?.batchId)===b.id?'selected':''}>${b.name}</option>`).join('')}
+        ${batches.map(b=>`<option value="${b.id}" ${quiz?.batch_id===b.id?'selected':''}>${b.name}</option>`).join('')}
       </select></div>
       <div class="form-group"><label class="form-label">Access</label><select class="form-select" id="qz_a">
-        <option value="false" ${quiz&&!(quiz.is_free||quiz.isFree)?'selected':''}>Premium</option>
-        <option value="true" ${(quiz?.is_free||quiz?.isFree)?'selected':''}>Free</option>
+        <option value="false" ${quiz && !quiz.is_free?'selected':''}>Premium</option>
+        <option value="true" ${quiz?.is_free?'selected':''}>Free</option>
       </select></div>
       <hr/>
       <div style="font-weight:700;font-size:.88rem;margin-bottom:.75rem">Questions</div>
@@ -2355,19 +2161,18 @@ async function saveQuiz(eid){
   try {
     if(eid) await sb.from('quizzes').update(d).eq('id',eid);
     else await sb.from('quizzes').insert({...d, created_at:new Date().toISOString()});
+    toast(eid?'Updated!':'Quiz added! 🧠','success');
   } catch(e) {
-    const md={...d,batchId:d.batch_id,isFree:d.is_free,questions:window._qqs||[]};
-    if(eid) Object.assign(MOCK_DB.quizzes.find(q=>q.id===eid)||{},md);
-    else MOCK_DB.quizzes.push({id:'q'+Date.now(),...md});
+    toast('Error saving quiz', 'error');
   }
-  closeModal('cModal'); toast(eid?'Updated!':'Quiz added! 🧠','success'); tNav('quiz');
+  closeModal('cModal'); tNav('quiz');
 }
 
 async function deleteQuiz(id){
   confirmDo('Delete this quiz?', async () => {
-    try { await sb.from('quizzes').delete().eq('id',id); }
-    catch(e){ MOCK_DB.quizzes=MOCK_DB.quizzes.filter(q=>q.id!==id); }
-    toast('Deleted','info'); tNav('quiz');
+    try { await sb.from('quizzes').delete().eq('id',id); toast('Deleted','info'); } 
+    catch(e) { toast('Error deleting', 'error'); }
+    tNav('quiz');
   });
 }
 
@@ -2397,70 +2202,8 @@ async function renderTStudents(){
     </tbody></table></div>`;
 }
 
-async function grantFullAccess(enrollmentId){
-  const ok = await setStudentBlocked(enrollmentId, false);
-  if(ok) toast('Full access granted ✅','success');
-  else toast('Failed (mock: access updated locally)','info');
-}
-
-async function blockStudent(enrollmentId){
-  confirmDo('Block this student from all content?', async () => {
-    const ok = await setStudentBlocked(enrollmentId, true);
-    if(ok) toast('Student blocked 🚫','info');
-    else toast('Blocked locally (mock mode)','info');
-    tNav('students');
-  }, 'Block');
-}
-
-function customizeAccess(enrollmentId, studentName, batchId, studentId){
-  const years = ['2024','2025','2026','2027'];
-  const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
-  const types = ['theory','paper','revision','extra'];
-
-  document.getElementById('customizeTitle').textContent = `Customize Access — ${studentName}`;
-
-  // Load existing rules
-  getStudentAccessRules(studentId, batchId).then(existingRules => {
-    const rules = existingRules || {};
-
-    document.getElementById('customizeBody').innerHTML = `
-    <div class="custom-access-grid">
-      ${years.map(y => `
-      <div class="custom-year-group">
-        <div class="custom-year-title">📅 ${y}</div>
-        ${months.map(m => `
-        <div class="custom-month-row">
-          <span class="custom-month-label">${monthName(m)}</span>
-          <div class="custom-type-checks">
-            ${types.map(t => {
-              const key = `${y}_${m}_${t}`;
-              const checked = rules[key] !== false; // default: allowed
-              return `<label class="custom-check-label">
-                <input type="checkbox" data-key="${key}" ${checked?'checked':''} style="accent-color:var(--accent)"/>
-                ${typeIcon(t)} ${t}
-              </label>`;
-            }).join('')}
-          </div>
-        </div>`).join('')}
-      </div>`).join('')}
-    </div>`;
-
-    document.getElementById('customizeSaveBtn').onclick = async () => {
-      const newRules = {};
-      document.querySelectorAll('#customizeBody [data-key]').forEach(input => {
-        newRules[input.dataset.key] = input.checked;
-      });
-      const ok = await saveStudentAccessRules(studentId, batchId, newRules);
-      toast(ok ? 'Access rules saved! ⚙️' : 'Saved locally (mock mode)', ok?'success':'info');
-      closeModal('customizeModal');
-    };
-  });
-
-  openModal('customizeModal');
-}
-
 async function renderTAccess(){
-  const batches = CACHE.batches.filter(b => (b.teacher_id||b.teacherId) === CU.id);
+  const batches = CACHE.batches.filter(b => b.teacher_id === CU.id);
   const approved = await loadApprovedStudents(CU.id);
 
   return `
@@ -2492,6 +2235,67 @@ async function renderTAccess(){
   </div>`;
 }
 
+async function grantFullAccess(enrollmentId){
+  const ok = await setStudentBlocked(enrollmentId, false);
+  if(ok) toast('Full access granted ✅','success');
+  else toast('Failed to update access','error');
+}
+
+async function blockStudent(enrollmentId){
+  confirmDo('Block this student from all content?', async () => {
+    const ok = await setStudentBlocked(enrollmentId, true);
+    if(ok) toast('Student blocked 🚫','info');
+    else toast('Failed to block','error');
+    tNav('students');
+  }, 'Block');
+}
+
+function customizeAccess(enrollmentId, studentName, batchId, studentId){
+  const years = ['2024','2025','2026','2027'];
+  const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+  const types = ['theory','paper','revision','extra'];
+
+  document.getElementById('customizeTitle').textContent = `Customize Access — ${studentName}`;
+
+  getStudentAccessRules(studentId, batchId).then(existingRules => {
+    const rules = existingRules || {};
+
+    document.getElementById('customizeBody').innerHTML = `
+    <div class="custom-access-grid">
+      ${years.map(y => `
+      <div class="custom-year-group">
+        <div class="custom-year-title">📅 ${y}</div>
+        ${months.map(m => `
+        <div class="custom-month-row">
+          <span class="custom-month-label">${monthName(m)}</span>
+          <div class="custom-type-checks">
+            ${types.map(t => {
+              const key = `${y}_${m}_${t}`;
+              const checked = rules[key] !== false; // default: allowed
+              return `<label class="custom-check-label">
+                <input type="checkbox" data-key="${key}" ${checked?'checked':''} style="accent-color:var(--accent)"/>
+                ${typeIcon(t)} ${t}
+              </label>`;
+            }).join('')}
+          </div>
+        </div>`).join('')}
+      </div>`).join('')}
+    </div>`;
+
+    document.getElementById('customizeSaveBtn').onclick = async () => {
+      const newRules = {};
+      document.querySelectorAll('#customizeBody [data-key]').forEach(input => {
+        newRules[input.dataset.key] = input.checked;
+      });
+      const ok = await saveStudentAccessRules(studentId, batchId, newRules);
+      toast(ok ? 'Access rules saved! ⚙️' : 'Failed to save rules', ok?'success':'error');
+      closeModal('customizeModal');
+    };
+  });
+
+  openModal('customizeModal');
+}
+
 // ============================================================
 // ADMIN PORTAL
 // ============================================================
@@ -2521,7 +2325,7 @@ async function aNav(sec, el){
 }
 
 async function renderADashboard(){
-  const { data: students } = await sb.from('profiles').select('*').eq('role','student').catch(() => ({data: MOCK_DB.users.filter(u=>u.role==='student')}));
+  const { data: students } = await sb.from('profiles').select('*').eq('role','student').catch(() => ({data:[]}));
   const { data: enrollments } = await sb.from('student_enrollments').select('*').catch(() => ({data:[]}));
   const approved = (enrollments||[]).filter(e=>e.status==='approved');
   const teachers = CACHE.teachers;
@@ -2537,7 +2341,7 @@ async function renderADashboard(){
   <div class="sec-title" style="font-size:1rem;margin-bottom:1rem">Subjects & Batches</div>
   <div class="g2">
     ${CACHE.subjects.map(sub => {
-      const sBatches = CACHE.batches.filter(b=>(b.subject_id||b.subjectId)===sub.id);
+      const sBatches = CACHE.batches.filter(b=>b.subject_id===sub.id);
       return `<div class="card"><div class="card-body">
         <div style="font-size:1.1rem;font-weight:700;margin-bottom:.5rem">${sub.icon||'📚'} ${sub.name}</div>
         <div style="font-size:.78rem;color:var(--muted2)">${sBatches.length} Batches</div>
@@ -2550,9 +2354,10 @@ async function renderADashboard(){
 async function renderAStudents(){
   let students = [];
   try {
-    const {data} = await sb.from('profiles').select('*, student_enrollments(*, batches(*), subjects(*))').eq('role','student');
-    students = data || [];
-  } catch(e) { students = MOCK_DB.users.filter(u=>u.role==='student'); }
+    const {data}=await sb.from('profiles').select('*, student_enrollments(*, batches(*), subjects(*))').eq('role','student');
+    students=data||[];
+  } catch(e) { students = []; }
+  
   return `
   <div class="sec-header">
     <div><div class="sec-tag">// Students</div><div class="sec-title">All Students (${students.length})</div></div>
@@ -2584,7 +2389,7 @@ async function renderAStudents(){
 function aStudentModal(eid){
   const doLoad = async () => {
     let s = null;
-    if(eid){ try { const {data}=await sb.from('profiles').select('*').eq('id',eid).single(); s=data; } catch(e){ s=MOCK_DB.users.find(u=>u.id===eid); } }
+    if(eid){ try { const {data}=await sb.from('profiles').select('*').eq('id',eid).single(); s=data; } catch(e){} }
     document.getElementById('cModalTitle').textContent = eid?'Edit Student':'Add Student';
     document.getElementById('cModalBody').innerHTML = `
     <div class="form-row">
@@ -2613,21 +2418,20 @@ async function aStudentSave(eid){
   try {
     if(eid) await sb.from('profiles').update(d).eq('id',eid);
     else {
-      const {data} = await sb.auth.admin.createUser({email:d.email, password:g('sm_p'), user_metadata:{name:d.name}});
+      const {data}=await sb.auth.admin.createUser({email:d.email, password:g('sm_p'), user_metadata:{name:d.name}});
       if(data?.user) await sb.from('profiles').insert({...d, id:data.user.id, created_at:new Date().toISOString()});
     }
+    toast(eid?'Updated!':'Student added!','success');
   } catch(e) {
-    if(eid) Object.assign(MOCK_DB.users.find(u=>u.id===eid)||{},d);
-    else MOCK_DB.users.push({id:'u'+Date.now(),...d,completedQuizzes:{},viewedVideos:[]});
+    toast('Error saving student', 'error');
   }
-  closeModal('cModal'); toast(eid?'Updated!':'Student added!','success'); aNav('students');
+  closeModal('cModal'); aNav('students');
 }
 
 function aManageEnrollments(studentId, studentName){
   const doLoad = async () => {
     let enrollments = [];
-    try { const {data}=await sb.from('student_enrollments').select('*, subjects(*), batches(*)').eq('student_id',studentId); enrollments=data||[]; }
-    catch(e){ enrollments=MOCK_DB.enrollments?.filter(e=>e.student_id===studentId)||[]; }
+    try { const {data}=await sb.from('student_enrollments').select('*, subjects(*), batches(*)').eq('student_id',studentId); enrollments=data||[]; } catch(e){}
 
     document.getElementById('cModalTitle').textContent = `Manage Enrollments — ${studentName}`;
     document.getElementById('cModalBody').innerHTML = `
@@ -2674,7 +2478,7 @@ function adminEnrollSubChange(){
   const subId = g('ae_sub');
   const batchSel = document.getElementById('ae_bat');
   batchSel.innerHTML = '<option value="">-- Select Batch --</option>';
-  CACHE.batches.filter(b=>(b.subject_id||b.subjectId)===subId).forEach(b => {
+  CACHE.batches.filter(b=>b.subject_id===subId).forEach(b => {
     batchSel.innerHTML += `<option value="${b.id}">${b.name}</option>`;
   });
 }
@@ -2685,8 +2489,7 @@ async function adminApproveEnroll(enrollId){
   aManageEnrollments(window._managingStudentId, '');
 }
 async function adminRemoveEnroll(enrollId){
-  try { await sb.from('student_enrollments').delete().eq('id',enrollId); }
-  catch(e){ MOCK_DB.enrollments=MOCK_DB.enrollments.filter(e=>e.id!==enrollId); }
+  try { await sb.from('student_enrollments').delete().eq('id',enrollId); } catch(e){}
   toast('Removed','info');
   aManageEnrollments(window._managingStudentId,'');
 }
@@ -2695,26 +2498,24 @@ async function adminAddEnroll(studentId){
   if(!subId||!batchId){ toast('Select subject and batch','error'); return; }
   try {
     await sb.from('student_enrollments').insert({student_id:studentId,subject_id:subId,batch_id:batchId,status,created_at:new Date().toISOString()});
+    toast('Enrollment added!','success');
   } catch(e) {
-    MOCK_DB.enrollments = MOCK_DB.enrollments || [];
-    MOCK_DB.enrollments.push({id:'enr'+Date.now(),student_id:studentId,subject_id:subId,batch_id:batchId,status});
+    toast('Error adding enrollment', 'error');
   }
-  toast('Enrollment added!','success');
   aManageEnrollments(studentId,'');
 }
 
 async function aDeleteUser(id){
-  confirmDo('Delete this student permanently?', async () => {
-    try { await sb.from('profiles').delete().eq('id',id); await sb.auth.admin.deleteUser(id); }
-    catch(e){ MOCK_DB.users=MOCK_DB.users.filter(u=>u.id!==id); }
-    toast('Deleted','info'); aNav('students');
+  confirmDo('Delete this user?', async () => {
+    try { await sb.from('profiles').delete().eq('id',id); await sb.auth.admin.deleteUser(id); toast('Deleted','info'); } 
+    catch(e) { toast('Error deleting user', 'error'); }
+    aNav('students');
   });
 }
 
 async function renderATeachers(){
   let teachers = [];
-  try { const {data}=await sb.from('profiles').select('*').eq('role','teacher'); teachers=data||[]; }
-  catch(e){ teachers=MOCK_DB.users.filter(u=>u.role==='teacher'); }
+  try { const {data}=await sb.from('profiles').select('*').eq('role','teacher'); teachers=data||[]; } catch(e){ teachers=CACHE.teachers; }
   return `
   <div class="sec-header">
     <div><div class="sec-tag">// Teachers</div><div class="sec-title">Teachers (${teachers.length})</div></div>
@@ -2726,7 +2527,7 @@ async function renderATeachers(){
       <td><strong>${t.name||'—'}</strong></td>
       <td>${t.email||'—'}</td>
       <td>${t.whatsapp||'—'}</td>
-      <td>${CACHE.batches.filter(b=>(b.teacher_id||b.teacherId)===t.id).length}</td>
+      <td>${CACHE.batches.filter(b=>b.teacher_id===t.id).length}</td>
       <td><div style="display:flex;gap:.3rem">
         <button class="btn btn-ghost btn-sm" onclick="aTeacherModal('${t.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="aDeleteUser('${t.id}')">🗑</button>
@@ -2738,7 +2539,7 @@ async function renderATeachers(){
 function aTeacherModal(eid){
   const doLoad = async () => {
     let t = null;
-    if(eid){ try { const {data}=await sb.from('profiles').select('*').eq('id',eid).single(); t=data; } catch(e){ t=MOCK_DB.users.find(u=>u.id===eid); } }
+    if(eid){ try { const {data}=await sb.from('profiles').select('*').eq('id',eid).single(); t=data; } catch(e){} }
     document.getElementById('cModalTitle').textContent = eid?'Edit Teacher':'Add Teacher';
     document.getElementById('cModalBody').innerHTML = `
     <div class="form-row">
@@ -2761,13 +2562,12 @@ async function aTeacherSave(eid){
       const {data}=await sb.auth.admin.createUser({email:d.email,password:g('tm_p')});
       if(data?.user) await sb.from('profiles').insert({...d,id:data.user.id,created_at:new Date().toISOString()});
     }
-    CACHE.teachers = CACHE.teachers.map(t => t.id===eid?{...t,...d}:t);
-    if(!eid) await loadStaticData();
+    toast(eid?'Updated!':'Teacher added!','success');
+    await loadStaticData(); // Refresh cache
   } catch(e) {
-    if(eid) Object.assign(MOCK_DB.users.find(u=>u.id===eid)||{},d);
-    else MOCK_DB.users.push({id:'u'+Date.now(),...d});
+    toast('Error saving teacher', 'error');
   }
-  closeModal('cModal'); toast(eid?'Updated!':'Teacher added!','success'); aNav('teachers');
+  closeModal('cModal'); aNav('teachers');
 }
 
 async function renderASubjects(){
@@ -2781,7 +2581,7 @@ async function renderASubjects(){
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem">
       <div>
         <div style="font-size:1.1rem;font-weight:700;margin-bottom:.3rem">${sub.icon||'📚'} ${sub.name}</div>
-        <div style="font-size:.78rem;color:var(--muted2)">${CACHE.batches.filter(b=>(b.subject_id||b.subjectId)===sub.id).length} Batches</div>
+        <div style="font-size:.78rem;color:var(--muted2)">${CACHE.batches.filter(b=>b.subject_id===sub.id).length} Batches</div>
       </div>
       <div style="display:flex;gap:.4rem">
         <button class="btn btn-ghost btn-sm" onclick="aSubjectModal('${sub.id}')">✏️ Edit</button>
@@ -2817,17 +2617,16 @@ async function aSubjectSave(eid){
       await sb.from('subjects').insert({id:newId,...d});
       CACHE.subjects.push({id:newId,...d});
     }
+    toast(eid?'Updated!':'Subject added!','success');
   } catch(e) {
-    if(eid) Object.assign(CACHE.subjects.find(s=>s.id===eid)||{},d);
-    else { const newId=g('sub_id').replace(/\s/g,'').toLowerCase(); CACHE.subjects.push({id:newId,...d}); }
+    toast('Error saving subject', 'error');
   }
-  closeModal('cModal'); toast(eid?'Updated!':'Subject added!','success'); aNav('subjects');
+  closeModal('cModal'); aNav('subjects');
 }
 
 async function aDeleteSubject(id){
   confirmDo('Delete subject?', async () => {
-    try { await sb.from('subjects').delete().eq('id',id); }
-    catch(e){}
+    try { await sb.from('subjects').delete().eq('id',id); } catch(e){}
     CACHE.subjects = CACHE.subjects.filter(s=>s.id!==id);
     toast('Deleted','info'); aNav('subjects');
   });
@@ -2835,8 +2634,8 @@ async function aDeleteSubject(id){
 
 async function renderABatches(){
   let teachers = [];
-  try { const {data}=await sb.from('profiles').select('*').eq('role','teacher'); teachers=data||CACHE.teachers; }
-  catch(e){ teachers=CACHE.teachers; }
+  try { const {data}=await sb.from('profiles').select('*').eq('role','teacher'); teachers=data||CACHE.teachers; } catch(e){ teachers=CACHE.teachers; }
+  
   return `
   <div class="sec-header">
     <div><div class="sec-tag">// Batches</div><div class="sec-title">Batches (${CACHE.batches.length})</div></div>
@@ -2845,15 +2644,15 @@ async function renderABatches(){
   <div class="table-wrap"><table>
     <thead><tr><th>Batch</th><th>Subject</th><th>Grade</th><th>Year</th><th>Teacher</th><th>Students</th><th>Actions</th></tr></thead>
     <tbody>${CACHE.batches.map(b => {
-      const sub = CACHE.subjects.find(s=>s.id===(b.subject_id||b.subjectId));
-      const t = teachers.find(u=>u.id===(b.teacher_id||b.teacherId));
+      const sub = CACHE.subjects.find(s=>s.id===b.subject_id);
+      const t = teachers.find(u=>u.id===b.teacher_id);
       return `<tr>
         <td><strong>${b.name}</strong></td>
         <td>${sub?.icon||''} ${sub?.name||b.subject_id}</td>
         <td>${gradeLabel(b.grade||'')}</td>
         <td>${b.year||'—'}</td>
         <td style="font-size:.76rem">${t?.name||'—'}</td>
-        <td><strong>${b.student_count||b.studentCount||0}</strong></td>
+        <td><strong>${b.student_count||0}</strong></td>
         <td><div style="display:flex;gap:.3rem">
           <button class="btn btn-ghost btn-sm" onclick="aBatchModal('${b.id}')">✏️</button>
           <button class="btn btn-danger btn-sm" onclick="aDeleteBatch('${b.id}')">🗑</button>
@@ -2867,14 +2666,14 @@ function aBatchModal(eid){
   const doLoad = async () => {
     const b = eid ? CACHE.batches.find(x=>x.id===eid) : null;
     let teachers = [];
-    try { const {data}=await sb.from('profiles').select('*').eq('role','teacher'); teachers=data||CACHE.teachers; }
-    catch(e){ teachers=CACHE.teachers; }
+    try { const {data}=await sb.from('profiles').select('*').eq('role','teacher'); teachers=data||CACHE.teachers; } catch(e){ teachers=CACHE.teachers; }
+    
     document.getElementById('cModalTitle').textContent = eid?'Edit Batch':'Add Batch';
     document.getElementById('cModalBody').innerHTML = `
     <div class="form-group"><label class="form-label">Batch Name</label><input class="form-input" id="bm_n" value="${b?.name||''}"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Subject</label><select class="form-select" id="bm_sub">
-        ${CACHE.subjects.map(s=>`<option value="${s.id}" ${(b?.subject_id||b?.subjectId)===s.id?'selected':''}>${s.icon||''} ${s.name}</option>`).join('')}
+        ${CACHE.subjects.map(s=>`<option value="${s.id}" ${b?.subject_id===s.id?'selected':''}>${s.icon||''} ${s.name}</option>`).join('')}
       </select></div>
       <div class="form-group"><label class="form-label">Grade</label><select class="form-select" id="bm_gr">
         ${['OL','AL','Course'].map(gr=>`<option value="${gr}" ${b?.grade===gr?'selected':''}>${gradeLabel(gr)}</option>`).join('')}
@@ -2883,7 +2682,7 @@ function aBatchModal(eid){
     <div class="form-row">
       <div class="form-group"><label class="form-label">Year</label><input class="form-input" id="bm_y" value="${b?.year||'2026'}"/></div>
       <div class="form-group"><label class="form-label">Teacher</label><select class="form-select" id="bm_t">
-        ${teachers.map(t=>`<option value="${t.id}" ${(b?.teacher_id||b?.teacherId)===t.id?'selected':''}>${t.name}</option>`).join('')}
+        ${teachers.map(t=>`<option value="${t.id}" ${b?.teacher_id===t.id?'selected':''}>${t.name}</option>`).join('')}
       </select></div>
     </div>
     <button class="btn btn-primary" onclick="aBatchSave('${eid||''}')">Save Batch</button>`;
@@ -2902,11 +2701,11 @@ async function aBatchSave(eid){
       await sb.from('batches').insert({id:newId,...d,student_count:0,created_at:new Date().toISOString()});
       CACHE.batches.push({id:newId,...d,student_count:0});
     }
+    toast(eid?'Updated!':'Batch added!','success');
   } catch(e) {
-    if(eid) Object.assign(CACHE.batches.find(b=>b.id===eid)||{},d);
-    else { const newId=`b-${d.subject_id}-${d.grade?.toLowerCase()}-${Date.now()}`; CACHE.batches.push({id:newId,...d,studentCount:0}); }
+    toast('Error saving batch', 'error');
   }
-  closeModal('cModal'); toast(eid?'Updated!':'Batch added!','success'); aNav('batches');
+  closeModal('cModal'); aNav('batches');
 }
 
 async function aDeleteBatch(id){
@@ -2940,34 +2739,34 @@ async function showAcTab(tab, btn){
     if(tab==='recs'){
       const recs = await loadRecordings(batchIds);
       el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Year/Month</th><th>Type</th><th>Access</th><th>Del</th></tr></thead><tbody>
-      ${recs.map(r => { const b=CACHE.batches.find(x=>x.id===(r.batch_id||r.batchId)); return `<tr>
+      ${recs.map(r => { const b=CACHE.batches.find(x=>x.id===r.batch_id); return `<tr>
         <td style="max-width:160px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title}</div></td>
         <td style="font-size:.75rem">${b?.name||r.batch_id}</td>
         <td>${r.year}/${monthName(r.month)}</td>
         <td><span class="pill ${typeColor(r.type)}">${r.type}</span></td>
-        <td>${(r.is_free||r.isFree)?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+        <td>${r.is_free?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
         <td><button class="btn btn-danger btn-sm" onclick="aDeleteRec('${r.id}')">🗑</button></td>
       </tr>`;}).join('')}</tbody></table></div>`;
     } else if(tab==='notes'){
       const notes = await loadNotes(batchIds);
       el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Size</th><th>Access</th><th>Del</th></tr></thead><tbody>
-      ${notes.map(n => { const b=CACHE.batches.find(x=>x.id===(n.batch_id||n.batchId)); return `<tr>
+      ${notes.map(n => { const b=CACHE.batches.find(x=>x.id===n.batch_id); return `<tr>
         <td><strong>${n.title}</strong></td><td style="font-size:.75rem">${b?.name||n.batch_id}</td><td>${n.size||'—'}</td>
-        <td>${(n.is_free||n.isFree)?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+        <td>${n.is_free?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
         <td><button class="btn btn-danger btn-sm" onclick="aDeleteNote('${n.id}')">🗑</button></td>
       </tr>`;}).join('')}</tbody></table></div>`;
     } else if(tab==='quizzes'){
       const quizzes = await loadQuizzes(batchIds);
       el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Qs</th><th>Access</th><th>Del</th></tr></thead><tbody>
-      ${quizzes.map(q => { const b=CACHE.batches.find(x=>x.id===(q.batch_id||q.batchId)); const qs=Array.isArray(q.questions)?q.questions:JSON.parse(q.questions||'[]'); return `<tr>
+      ${quizzes.map(q => { const b=CACHE.batches.find(x=>x.id===q.batch_id); const qs=Array.isArray(q.questions)?q.questions:JSON.parse(q.questions||'[]'); return `<tr>
         <td><strong>${q.title}</strong></td><td style="font-size:.75rem">${b?.name||q.batch_id}</td><td>${qs.length}</td>
-        <td>${(q.is_free||q.isFree)?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
+        <td>${q.is_free?'<span class="badge badge-free">Free</span>':'<span class="badge badge-paid">Paid</span>'}</td>
         <td><button class="btn btn-danger btn-sm" onclick="deleteQuiz('${q.id}');showAcTab('quizzes')">🗑</button></td>
       </tr>`;}).join('')}</tbody></table></div>`;
     } else {
       const lives = await loadLiveClasses(batchIds);
       el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Title</th><th>Batch</th><th>Date</th><th>Status</th><th>Del</th></tr></thead><tbody>
-      ${lives.map(l => { const b=CACHE.batches.find(x=>x.id===(l.batch_id||l.batchId)); return `<tr>
+      ${lives.map(l => { const b=CACHE.batches.find(x=>x.id===l.batch_id); return `<tr>
         <td><strong>${l.title}</strong></td><td style="font-size:.75rem">${b?.name||l.batch_id}</td><td>${l.date}</td>
         <td><span class="badge badge-${l.status==='live'?'paid':l.status==='upcoming'?'blue':'free'}">${l.status}</span></td>
         <td><button class="btn btn-danger btn-sm" onclick="aDeleteLive('${l.id}')">🗑</button></td>
@@ -2988,7 +2787,7 @@ async function renderAReports(){
       sb.from('student_enrollments').select('*')
     ]);
     students=s||[]; enrollments=e||[];
-  } catch(e) { students=MOCK_DB.users.filter(u=>u.role==='student'); enrollments=[]; }
+  } catch(e) { students=[]; enrollments=[]; }
   const approved = enrollments.filter(e=>e.status==='approved');
   const pct = students.length ? Math.round(approved.length/students.length*100) : 0;
   return `
@@ -3010,59 +2809,12 @@ async function renderAReports(){
       ${CACHE.batches.slice(0,6).map(b => `
       <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.7rem;font-size:.78rem">
         <div style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted2)">${b.name}</div>
-        <div class="progress" style="width:80px"><div class="progress-fill" style="width:${Math.min((b.student_count||b.studentCount||0)/500*100,100)}%"></div></div>
-        <div style="width:40px;text-align:right;font-weight:700;color:var(--accent)">${b.student_count||b.studentCount||0}</div>
+        <div class="progress" style="width:80px"><div class="progress-fill" style="width:${Math.min((b.student_count||0)/500*100,100)}%"></div></div>
+        <div style="width:40px;text-align:right;font-weight:700;color:var(--accent)">${b.student_count||0}</div>
       </div>`).join('')}
     </div></div>
   </div>`;
 }
-
-function initContentTabs(){
-  setTimeout(() => showAcTab('recs', document.querySelector('#acTabs .tab-btn')), 50);
-}
-
-// ============================================================
-// MOCK DB (Fallback when Supabase is unavailable)
-// ============================================================
-const MOCK_DB = {
-  subjects: [
-    {id:'korean',name:'Korean',icon:'🇰🇷',color:'#4f8ef7'},
-    {id:'media',name:'Media',icon:'📺',color:'#f7664f'}
-  ],
-  batches: [
-    {id:'k-ol-2026',subject_id:'korean',subjectId:'korean',grade:'OL',year:'2026',name:'Korean O/L 2026',teacher_id:'u2',teacherId:'u2',student_count:450,studentCount:450},
-    {id:'k-al-2027',subject_id:'korean',subjectId:'korean',grade:'AL',year:'2027',name:'Korean A/L 2027',teacher_id:'u2',teacherId:'u2',student_count:290,studentCount:290},
-    {id:'m-al-2026',subject_id:'media',subjectId:'media',grade:'AL',year:'2026',name:'Media A/L 2026',teacher_id:'u3',teacherId:'u3',student_count:275,studentCount:275},
-  ],
-  users: [
-    {id:'u1',username:'admin',email:'admin@gmail.com',password:'admin123',role:'admin',name:'Admin'},
-    {id:'u2',username:'tech1',email:'tech1@edu.lk',password:'pass123',role:'teacher',name:'Mr. Kasun Perera',whatsapp:'0771234567'},
-    {id:'u3',username:'tech2',email:'tech2@edu.lk',password:'pass123',role:'teacher',name:'Ms. Nimali Silva',whatsapp:'0777654321'},
-    {id:'u4',username:'student1',email:'s1@edu.lk',password:'pass123',role:'student',name:'Amal Perera',subjectId:'korean',batchId:'k-ol-2026',grade:'OL',district:'Colombo',stream:'Science',enrolled:true,completedQuizzes:{},viewedVideos:[],whatsapp:'0701234567'},
-  ],
-  enrollments: [
-    {id:'enr1',student_id:'u4',subject_id:'korean',batch_id:'k-ol-2026',status:'approved',is_blocked:false},
-  ],
-  recordings: [
-    {id:'r1',batchId:'k-ol-2026',batch_id:'k-ol-2026',title:'Theory — Hangul Introduction (1)',description:'Introduction to Hangul consonants.',ytLink:'https://www.youtube.com/embed/dQw4w9WgXcQ',yt_link:'https://www.youtube.com/embed/dQw4w9WgXcQ',year:'2026',month:'01',type:'theory',isFree:true,is_free:true,date:'2026-01-07',duration:90},
-    {id:'r2',batchId:'k-ol-2026',batch_id:'k-ol-2026',title:'Paper — Chapter 1 Practice',description:'Chapter 1 paper practice session.',ytLink:'https://www.youtube.com/embed/dQw4w9WgXcQ',yt_link:'https://www.youtube.com/embed/dQw4w9WgXcQ',year:'2026',month:'01',type:'paper',isFree:false,is_free:false,date:'2026-01-14',duration:120},
-    {id:'r3',batchId:'k-al-2027',batch_id:'k-al-2027',title:'Theory — Advanced Grammar',description:'Advanced Korean grammar structures.',ytLink:'https://www.youtube.com/embed/dQw4w9WgXcQ',yt_link:'https://www.youtube.com/embed/dQw4w9WgXcQ',year:'2026',month:'02',type:'theory',isFree:false,is_free:false,date:'2026-02-05',duration:90},
-  ],
-  liveClasses: [
-    {id:'lc1',batchId:'k-ol-2026',batch_id:'k-ol-2026',title:'Hangul Review Session',zoomLink:'https://zoom.us/j/123456789',zoom_link:'https://zoom.us/j/123456789',date:'2026-03-10',time:'6:00 PM',duration:90,status:'upcoming',description:'Full review of Hangul.'},
-    {id:'lc2',batchId:'m-al-2026',batch_id:'m-al-2026',title:'Media Ethics Live',zoomLink:'https://zoom.us/j/456789123',zoom_link:'https://zoom.us/j/456789123',date:'2026-03-09',time:'5:00 PM',duration:90,status:'live',description:''},
-  ],
-  notes: [
-    {id:'n1',batchId:'k-ol-2026',batch_id:'k-ol-2026',title:'Hangul Complete Guide',driveLink:'https://drive.google.com/file/d/example1',drive_link:'https://drive.google.com/file/d/example1',size:'2.4 MB',isFree:true,is_free:true,description:'Complete Hangul alphabet guide.'},
-    {id:'n2',batchId:'k-ol-2026',batch_id:'k-ol-2026',title:'Chapter 1–5 Notes',driveLink:'https://drive.google.com/file/d/example2',drive_link:'https://drive.google.com/file/d/example2',size:'4.1 MB',isFree:false,is_free:false,description:''},
-  ],
-  quizzes: [
-    {id:'q1',batchId:'k-ol-2026',batch_id:'k-ol-2026',title:'Hangul Basics Quiz',isFree:true,is_free:true,questions:[
-      {q:'What is the Korean alphabet called?',opts:['Hangul','Kanji','Hiragana','Katakana'],ans:0},
-      {q:'How many basic consonants are in Hangul?',opts:['10','14','19','21'],ans:1},
-    ]},
-  ],
-};
 
 // ============================================================
 // INIT
