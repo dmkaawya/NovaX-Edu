@@ -1582,10 +1582,19 @@ async function renderSLive(batchIds){
   }).join('')}`;
 }
 
-async function renderSRecordings(batchIds, enrollments){
-  if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
-  const recs = await loadRecordings(batchIds);
+if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
+  
+  let recs = await loadRecordings(batchIds);
   const viewedVideos = await loadVideoViews();
+  
+  // Student ge access rules database eken gannawa
+  const myAccessRules = enrollments.find(e => batchIds.includes(e.batch_id))?.access_rules || {};
+  
+  // Teacher block karala thiyena videos filter karala ain karanawa
+  recs = recs.filter(r => {
+      const key = `${r.year}_${r.month}_${r.type}`;
+      return myAccessRules[key] !== false; // False nam pennanne naha
+  });
   window._viewedCache = viewedVideos;
   
   const types = ['theory','paper','revision','extra'];
