@@ -1283,18 +1283,19 @@ async function doRegister(){
       throw new Error('Profile creation failed: ' + profileError.message);
     }
 
-    // Insert enrollments
+   // Insert enrollments
     for(const enr of selectedEnrollments){
       const { error: enrErr } = await sb.from('student_enrollments').insert({
         student_id: userId,
         subject_id: enr.subject_id,
         batch_id: enr.batch_id,
-        status: 'pending',
-        is_blocked: false,
-        access_rules: {},
-        created_at: new Date().toISOString()
+        status: 'pending'
       });
-      if(enrErr) console.error('Enrollment insert error:', enrErr);
+      
+      if(enrErr) {
+        console.error('Enrollment insert error:', enrErr);
+        throw new Error('Enrollment Error: ' + enrErr.message); 
+      }
     }
 
     // FIX: Check if session exists (no email confirmation) or not
