@@ -1233,17 +1233,24 @@ async function doRegister(){
   if(pass.length < 6){ al.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters.</div>'; return; }
 
   const selectedEnrollments = [];
+  let batchMissing = false; // Aluth validation eka
+  
   document.querySelectorAll('.subject-check-item.selected').forEach(item => {
     const subjectId = item.dataset.subjectId;
     const batchSel = item.querySelector('.batch-select');
     if(batchSel && batchSel.value){
       selectedEnrollments.push({ subject_id: subjectId, batch_id: batchSel.value });
+    } else {
+      batchMissing = true;
     }
   });
-  if(selectedEnrollments.length === 0){
-    al.innerHTML = '<div class="alert alert-error">Please select at least one subject and batch.</div>'; return;
-  }
 
+  if(selectedEnrollments.length === 0){
+    al.innerHTML = '<div class="alert alert-error">Please select at least one subject.</div>'; return;
+  }
+  if(batchMissing){
+    al.innerHTML = '<div class="alert alert-error">Please select a Batch from the dropdown for your selected subjects.</div>'; return;
+  }
   setBtn('regBtn', '<span class="spinner"></span> Creating...', true);
 
   try {
