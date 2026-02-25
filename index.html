@@ -1030,23 +1030,7 @@ async function loadQuizzes(batchIds){
 }
 
 // FIX: Load all students for teacher/admin using proper RLS join
-async function loadPendingEnrollments(teacherId){
-  try {
-    const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
-    if(!myBatchIds.length) return [];
-    const { data, error } = await sb.from('student_enrollments')
-      .select(`
-        *,
-        profiles:student_id(id, name, email, whatsapp, district, nic, stream),
-        batches:batch_id(id, name, grade),
-        subjects:subject_id(id, name, icon)
-      `)
-      .in('batch_id', myBatchIds)
-      .eq('status', 'pending');
-    if(error){ console.error('loadPendingEnrollments:', error); return []; }
-    return data || [];
-  } catch(e) { console.error(e); return []; }
-}
+loadPendingEnrollments
 
 async function loadApprovedStudents(teacherId){
   try {
@@ -1479,7 +1463,7 @@ async function renderStudentSec(sec){
   const el = document.getElementById('sContent');
   el.innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
   const enrollments = await loadMyEnrollments();
-  const approvedEnrollments = enrollments.filter(e => e.status === 'approved' && e.is_blocked !== true);
+  const approvedEnrollments = enrollments.filter(e => e.status === 'approved');
   const batchIds = approvedEnrollments.map(e => e.batch_id);
 
   const renders = {
@@ -1582,19 +1566,7 @@ async function renderSLive(batchIds){
   }).join('')}`;
 }
 
-if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
-  
-  let recs = await loadRecordings(batchIds);
-  const viewedVideos = await loadVideoViews();
-  
-  // Student ge access rules database eken gannawa
-  const myAccessRules = enrollments.find(e => batchIds.includes(e.batch_id))?.access_rules || {};
-  
-  // Teacher block karala thiyena videos filter karala ain karanawa
-  recs = recs.filter(r => {
-      const key = `${r.year}_${r.month}_${r.type}`;
-      return myAccessRules[key] !== false; // False nam pennanne naha
-  });
+if(!batchIds.length) return `<div class="empty"><div class="ei">
   window._viewedCache = viewedVideos;
   
   const types = ['theory','paper','revision','extra'];
