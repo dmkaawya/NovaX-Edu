@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -324,11 +325,6 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
 /* ===== DB SETUP MODAL ===== */
 .setup-modal{background:var(--modal-bg);border:1px solid var(--accent);border-radius:20px;padding:1.5rem;width:100%;max-width:680px;margin:auto;position:relative;animation:modalIn .25s ease;box-shadow:0 24px 80px rgba(79,142,247,.3)}
 .sql-block{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:1rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent3);overflow-x:auto;margin-bottom:.75rem;white-space:pre;max-height:300px;overflow-y:auto}
-
-  .page {
-    z-index: auto !important;
-}
-
 </style>
 </head>
 <body>
@@ -1030,14 +1026,10 @@ async function loadQuizzes(batchIds){
 }
 
 // FIX: Load all students for teacher/admin using proper RLS join
-// FIX: Load all students for teacher/admin using proper RLS join
 async function loadPendingEnrollments(teacherId){
   try {
     const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
-    if(!myBatchIds.length) {
-      console.warn("Me teacher ta batches assign karala naha!");
-      return [];
-    }
+    if(!myBatchIds.length) return [];
     const { data, error } = await sb.from('student_enrollments')
       .select(`
         *,
@@ -1047,17 +1039,28 @@ async function loadPendingEnrollments(teacherId){
       `)
       .in('batch_id', myBatchIds)
       .eq('status', 'pending');
-      
-    if(error){ 
-      console.error('Pending load error:', error); 
-      alert("Teacher ge list eka load weddi Error ekak: " + error.message); 
-      return []; 
-    }
+    if(error){ console.error('loadPendingEnrollments:', error); return []; }
     return data || [];
   } catch(e) { console.error(e); return []; }
 }
 
 async function loadApprovedStudents(teacherId){
+  try {
+    const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
+    if(!myBatchIds.length) return [];
+    const { data, error } = await sb.from('student_enrollments')
+      .select(`
+        *,
+        profiles:student_id(id, name, email, whatsapp, district, nic, stream),
+        batches:batch_id(id, name, grade),
+        subjects:subject_id(id, name, icon)
+      `)
+      .in('batch_id', myBatchIds)
+      .in('status', ['approved']);
+    if(error){ console.error('loadApprovedStudents:', error); return []; }
+    return data || [];
+  } catch(e) { console.error(e); return []; }
+}
 
 // FIX: All students for admin
 async function loadAllStudents(){
@@ -1226,24 +1229,17 @@ async function doRegister(){
   if(pass.length < 6){ al.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters.</div>'; return; }
 
   const selectedEnrollments = [];
-  let batchMissing = false; // Aluth validation eka
-  
   document.querySelectorAll('.subject-check-item.selected').forEach(item => {
     const subjectId = item.dataset.subjectId;
     const batchSel = item.querySelector('.batch-select');
     if(batchSel && batchSel.value){
       selectedEnrollments.push({ subject_id: subjectId, batch_id: batchSel.value });
-    } else {
-      batchMissing = true;
     }
   });
-
   if(selectedEnrollments.length === 0){
-    al.innerHTML = '<div class="alert alert-error">Please select at least one subject.</div>'; return;
+    al.innerHTML = '<div class="alert alert-error">Please select at least one subject and batch.</div>'; return;
   }
-  if(batchMissing){
-    al.innerHTML = '<div class="alert alert-error">Please select a Batch from the dropdown for your selected subjects.</div>'; return;
-  }
+
   setBtn('regBtn', '<span class="spinner"></span> Creating...', true);
 
   try {
@@ -1276,19 +1272,18 @@ async function doRegister(){
       throw new Error('Profile creation failed: ' + profileError.message);
     }
 
-   // Insert enrollments
+    // Insert enrollments
     for(const enr of selectedEnrollments){
       const { error: enrErr } = await sb.from('student_enrollments').insert({
         student_id: userId,
         subject_id: enr.subject_id,
         batch_id: enr.batch_id,
-        status: 'pending'
+        status: 'pending',
+        is_blocked: false,
+        access_rules: {},
+        created_at: new Date().toISOString()
       });
-      
-      if(enrErr) {
-        console.error('Enrollment insert error:', enrErr);
-        throw new Error('Enrollment Error: ' + enrErr.message); 
-      }
+      if(enrErr) console.error('Enrollment insert error:', enrErr);
     }
 
     // FIX: Check if session exists (no email confirmation) or not
@@ -1472,8 +1467,7 @@ async function renderStudentSec(sec){
   const el = document.getElementById('sContent');
   el.innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
   const enrollments = await loadMyEnrollments();
- // is_blocked eka true nathi ayawa wtharayi approved list ekata ganne
-const approvedEnrollments = enrollments.filter(e => e.status === 'approved' && e.is_blocked !== true);
+  const approvedEnrollments = enrollments.filter(e => e.status === 'approved');
   const batchIds = approvedEnrollments.map(e => e.batch_id);
 
   const renders = {
@@ -1578,18 +1572,9 @@ async function renderSLive(batchIds){
 
 async function renderSRecordings(batchIds, enrollments){
   if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
-  
-  let recs = await loadRecordings(batchIds);
+  const recs = await loadRecordings(batchIds);
   const viewedVideos = await loadVideoViews();
   window._viewedCache = viewedVideos;
-  
-  // Custom access rules check කිරීම
-  const myAccessRules = enrollments.find(e => batchIds.includes(e.batch_id))?.access_rules || {};
-  
-  recs = recs.filter(r => {
-      const key = `${r.year}_${r.month}_${r.type}`;
-      return myAccessRules[key] !== false; 
-  });
   
   const types = ['theory','paper','revision','extra'];
   const years = [...new Set(recs.map(r => r.year))].sort((a,b) => b-a);
@@ -1633,7 +1618,6 @@ async function renderSRecordings(batchIds, enrollments){
       </div>
     </div>`;
   }).join('')}`;
-}
 }
 
 function filterTypeS(year, month, type, btn){
