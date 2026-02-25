@@ -1030,12 +1030,14 @@ async function loadQuizzes(batchIds){
 }
 
 // FIX: Load all students for teacher/admin using proper RLS join
-loadPendingEnrollments
-
-async function loadApprovedStudents(teacherId){
+// FIX: Load all students for teacher/admin using proper RLS join
+async function loadPendingEnrollments(teacherId){
   try {
     const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
-    if(!myBatchIds.length) return [];
+    if(!myBatchIds.length) {
+      console.warn("Me teacher ta batches assign karala naha!");
+      return [];
+    }
     const { data, error } = await sb.from('student_enrollments')
       .select(`
         *,
@@ -1044,11 +1046,18 @@ async function loadApprovedStudents(teacherId){
         subjects:subject_id(id, name, icon)
       `)
       .in('batch_id', myBatchIds)
-      .in('status', ['approved']);
-    if(error){ console.error('loadApprovedStudents:', error); return []; }
+      .eq('status', 'pending');
+      
+    if(error){ 
+      console.error('Pending load error:', error); 
+      alert("Teacher ge list eka load weddi Error ekak: " + error.message); 
+      return []; 
+    }
     return data || [];
   } catch(e) { console.error(e); return []; }
 }
+
+async function loadApprovedStudents(teacherId){
 
 // FIX: All students for admin
 async function loadAllStudents(){
@@ -1463,7 +1472,8 @@ async function renderStudentSec(sec){
   const el = document.getElementById('sContent');
   el.innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
   const enrollments = await loadMyEnrollments();
-  const approvedEnrollments = enrollments.filter(e => e.status === 'approved');
+ // is_blocked eka true nathi ayawa wtharayi approved list ekata ganne
+const approvedEnrollments = enrollments.filter(e => e.status === 'approved' && e.is_blocked !== true);
   const batchIds = approvedEnrollments.map(e => e.batch_id);
 
   const renders = {
@@ -1566,8 +1576,20 @@ async function renderSLive(batchIds){
   }).join('')}`;
 }
 
-if(!batchIds.length) return `<div class="empty"><div class="ei">
+async function renderSRecordings(batchIds, enrollments){
+  if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
+  
+  let recs = await loadRecordings(batchIds);
+  const viewedVideos = await loadVideoViews();
   window._viewedCache = viewedVideos;
+  
+  // Custom access rules check කිරීම
+  const myAccessRules = enrollments.find(e => batchIds.includes(e.batch_id))?.access_rules || {};
+  
+  recs = recs.filter(r => {
+      const key = `${r.year}_${r.month}_${r.type}`;
+      return myAccessRules[key] !== false; 
+  });
   
   const types = ['theory','paper','revision','extra'];
   const years = [...new Set(recs.map(r => r.year))].sort((a,b) => b-a);
@@ -1611,6 +1633,7 @@ if(!batchIds.length) return `<div class="empty"><div class="ei">
       </div>
     </div>`;
   }).join('')}`;
+}
 }
 
 function filterTypeS(year, month, type, btn){
