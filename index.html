@@ -1471,7 +1471,7 @@ async function renderStudentSec(sec){
   const el = document.getElementById('sContent');
   el.innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
   const enrollments = await loadMyEnrollments();
-  const approvedEnrollments = enrollments.filter(e => e.status === 'approved');
+  const approvedEnrollments = enrollments.filter(e => e.status === 'approved' && e.is_blocked !== true);
   const batchIds = approvedEnrollments.map(e => e.batch_id);
 
   const renders = {
