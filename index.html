@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -277,9 +278,19 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
 .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.4rem .2rem;cursor:pointer;font-size:.52rem;color:var(--muted2);transition:color .2s;border:none;background:none;font-family:inherit}
 .mobile-nav-item.active{color:var(--accent)}
 .mobile-nav-item .mni{font-size:1.1rem}
+/* Teacher mobile bottom nav */
+.teacher-mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:.5rem 0;z-index:250;grid-template-columns:repeat(4,1fr)}
+.teacher-mobile-nav .mobile-nav-item{font-size:.58rem}
+/* Admin mobile bottom nav */
+.admin-mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:.5rem 0;z-index:250;grid-template-columns:repeat(4,1fr)}
+.admin-mobile-nav .mobile-nav-item{font-size:.58rem}
 @media(max-width:640px){
   .mobile-bottom-nav{display:grid}
+  .teacher-mobile-nav{display:grid}
+  .admin-mobile-nav{display:grid}
   #studentPage .sidebar-layout{padding-bottom:60px}
+  #teacherPage .sidebar-layout{padding-bottom:60px}
+  #adminPage .sidebar-layout{padding-bottom:60px}
 }
 
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
@@ -628,8 +639,14 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
       <button class="sidebar-item" onclick="tNav('students',this)"><span class="icon">👥</span>Students</button>
       <button class="sidebar-item" onclick="tNav('access',this)"><span class="icon">🔐</span>Access Control</button>
     </div>
-    <div class="main-content" id="tContent"><div class="loading-overlay"><div class="spinner"></div>Loading...</div></div>
+<div class="main-content" id="tContent"><div class="loading-overlay"><div class="spinner"></div>Loading...</div></div>
   </div>
+  <nav class="teacher-mobile-nav" id="teacherMobileNav">
+    <button class="mobile-nav-item active" onclick="tNavMobile('dashboard',this)" data-s="dashboard"><span class="mni">🏠</span>Home</button>
+    <button class="mobile-nav-item" onclick="tNavMobile('approvals',this)" data-s="approvals"><span class="mni">⏳</span>Approvals</button>
+    <button class="mobile-nav-item" onclick="tNavMobile('recordings',this)" data-s="recordings"><span class="mni">🎬</span>Videos</button>
+    <button class="mobile-nav-item" onclick="tNavMobile('students',this)" data-s="students"><span class="mni">👥</span>Students</button>
+  </nav>
 </div>
 
 <!-- ============================================================ -->
@@ -656,8 +673,14 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
       <button class="sidebar-item" onclick="aNav('content',this)"><span class="icon">🎬</span>Content</button>
       <button class="sidebar-item" onclick="aNav('reports',this)"><span class="icon">📈</span>Reports</button>
     </div>
-    <div class="main-content" id="aContent"><div class="loading-overlay"><div class="spinner"></div>Loading...</div></div>
+<div class="main-content" id="aContent"><div class="loading-overlay"><div class="spinner"></div>Loading...</div></div>
   </div>
+  <nav class="admin-mobile-nav" id="adminMobileNav">
+    <button class="mobile-nav-item active" onclick="aNavMobile('dashboard',this)" data-s="dashboard"><span class="mni">📊</span>Home</button>
+    <button class="mobile-nav-item" onclick="aNavMobile('students',this)" data-s="students"><span class="mni">👥</span>Students</button>
+    <button class="mobile-nav-item" onclick="aNavMobile('batches',this)" data-s="batches"><span class="mni">📚</span>Batches</button>
+    <button class="mobile-nav-item" onclick="aNavMobile('content',this)" data-s="content"><span class="mni">🎬</span>Content</button>
+  </nav>
 </div>
 
 <script>
@@ -1272,13 +1295,13 @@ async function doRegister(){
       throw new Error('Profile creation failed: ' + profileError.message);
     }
 
-    // Insert enrollments
+// Insert enrollments - Auto-approved (no teacher approval needed)
     for(const enr of selectedEnrollments){
       const { error: enrErr } = await sb.from('student_enrollments').insert({
         student_id: userId,
         subject_id: enr.subject_id,
         batch_id: enr.batch_id,
-        status: 'pending',
+        status: 'approved',
         is_blocked: false,
         access_rules: {},
         created_at: new Date().toISOString()
@@ -1295,7 +1318,7 @@ async function doRegister(){
       closeModal('registerModal');
       await loadStaticData();
       await routeUser(CU);
-      toast('Welcome to NovaX Edu! 🎉 Enrollment pending teacher approval.', 'success');
+      toast('Welcome to NovaX Edu! 🎉 You now have full access.', 'success');
     } else {
       // Email confirmation required
       al.innerHTML = '';
@@ -1504,7 +1527,7 @@ async function renderSDashboard(enrollments, batchIds){
   <div class="sec-tag">// Dashboard</div>
   <div style="font-size:1.2rem;font-weight:800;letter-spacing:-.5px;margin-bottom:1.25rem">Good day, ${(CU.name||'Student').split(' ')[0]}! 👋</div>
   
-  ${pending.length ? `<div class="alert alert-warning">⏳ You have ${pending.length} pending enrollment(s) awaiting teacher approval.</div>` : ''}
+  ${pending.length ? `<div class="alert alert-info">ℹ️ You have ${pending.length} enrollment(s) being processed.</div>` : ''}
   ${rejected.length ? `<div class="alert alert-error">❌ ${rejected.length} enrollment(s) were rejected. Contact support for more info.</div>` : ''}
   ${enrollments.length === 0 ? `<div class="alert alert-info">You have no enrollments yet. Contact your teacher or re-register to enroll in a subject.</div>` : ''}
   
@@ -1922,9 +1945,21 @@ function toggleMonth(y,m){
 // ============================================================
 // TEACHER PORTAL
 // ============================================================
+function tNavMobile(sec, el){
+  document.querySelectorAll('#teacherMobileNav .mobile-nav-item').forEach(b => b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('#teacherSidebar .sidebar-item').forEach((b,i) => {
+    const secs = ['dashboard','approvals','live','recordings','notes','quiz','students','access'];
+    b.classList.toggle('active', secs[i] === sec);
+  });
+  tNav(sec);
+}
+
 async function tNav(sec, el){
   document.querySelectorAll('#teacherPage .sidebar-item').forEach(b => b.classList.remove('active'));
   if(el) el.classList.add('active');
+  // Sync mobile nav
+  document.querySelectorAll('#teacherMobileNav .mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.s === sec));
   closeSidebar();
   document.getElementById('tContent').innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
   updatePendingBadge();
@@ -2518,9 +2553,21 @@ function customizeAccess(enrollmentId, studentName, batchId, studentId){
 // ============================================================
 // ADMIN PORTAL
 // ============================================================
+function aNavMobile(sec, el){
+  document.querySelectorAll('#adminMobileNav .mobile-nav-item').forEach(b => b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('#adminSidebar .sidebar-item').forEach((b,i) => {
+    const secs = ['dashboard','students','teachers','subjects','batches','content','reports'];
+    b.classList.toggle('active', secs[i] === sec);
+  });
+  aNav(sec);
+}
+
 async function aNav(sec, el){
   document.querySelectorAll('#adminPage .sidebar-item').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
+  // Sync mobile nav
+  document.querySelectorAll('#adminMobileNav .mobile-nav-item').forEach(b => b.classList.toggle('active', b.dataset.s === sec));
   closeSidebar();
   document.getElementById('aContent').innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
 
