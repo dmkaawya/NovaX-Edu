@@ -122,14 +122,14 @@ button:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 .sidebar-badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:100px;font-size:.62rem;font-weight:700;padding:.1rem .45rem;min-width:18px;text-align:center}
 .main-content{padding:1.5rem;overflow-y:auto;min-width:0}
 
-.sidebar-toggle{display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1rem;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-toggle{display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1rem;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;z-index:301}
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250}
 @media(max-width:768px){
   .sidebar-layout{grid-template-columns:1fr}
   .sidebar{position:fixed;left:-260px;top:60px;height:calc(100vh - 60px);width:240px;z-index:260;transition:left .3s;box-shadow:none}
   .sidebar.open{left:0;box-shadow:4px 0 24px rgba(0,0,0,.3)}
   .sidebar-overlay.open{display:block}
-  .sidebar-toggle{display:flex}
+  .sidebar-toggle{display:flex!important}
   .main-content{padding:1rem}
 }
 
@@ -336,6 +336,21 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
 /* ===== DB SETUP MODAL ===== */
 .setup-modal{background:var(--modal-bg);border:1px solid var(--accent);border-radius:20px;padding:1.5rem;width:100%;max-width:680px;margin:auto;position:relative;animation:modalIn .25s ease;box-shadow:0 24px 80px rgba(79,142,247,.3)}
 .sql-block{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:1rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent3);overflow-x:auto;margin-bottom:.75rem;white-space:pre;max-height:300px;overflow-y:auto}
+
+.activity-log-item{display:flex;align-items:flex-start;gap:.75rem;padding:.7rem .9rem;border-bottom:1px solid var(--border);font-size:.82rem}
+.activity-log-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;margin-top:.35rem;flex-shrink:0}
+.activity-dot.login{background:var(--accent3)}
+.activity-dot.block{background:var(--accent2)}
+.activity-dot.approve{background:var(--accent3)}
+.activity-dot.access{background:var(--accent4)}
+.activity-dot.register{background:var(--accent)}
+.activity-dot.security{background:#ff4444}
+.detail-row{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid var(--border);font-size:.82rem;gap:.5rem}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:var(--muted2)}
+.detail-value{font-weight:600;text-align:right;word-break:break-all}
+.session-alert{background:rgba(255,68,68,.08);border:1px solid rgba(255,68,68,.3);border-radius:var(--radius);padding:.9rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;color:var(--accent2)}
 </style>
 </head>
 <body>
@@ -696,6 +711,8 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
       <button class="sidebar-item" onclick="tNav('quiz',this)"><span class="icon">🧠</span>Quizzes</button>
       <button class="sidebar-item" onclick="tNav('students',this)"><span class="icon">👥</span>Students</button>
       <button class="sidebar-item" onclick="tNav('access',this)"><span class="icon">🔐</span>Access Control</button>
+      <button class="sidebar-item" onclick="tNav('activity',this)"><span class="icon">📋</span>Activity Log</button>
+      <button class="sidebar-item" onclick="tNav('sessions',this)"><span class="icon">🛡️</span>Sessions</button>
     </div>
 <div class="main-content" id="tContent"><div class="loading-overlay"><div class="spinner"></div>Loading...</div></div>
   </div>
@@ -730,6 +747,8 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
       <button class="sidebar-item" onclick="aNav('batches',this)"><span class="icon">📚</span>Batches</button>
       <button class="sidebar-item" onclick="aNav('content',this)"><span class="icon">🎬</span>Content</button>
       <button class="sidebar-item" onclick="aNav('reports',this)"><span class="icon">📈</span>Reports</button>
+      <button class="sidebar-item" onclick="aNav('activity',this)"><span class="icon">📋</span>Activity Log</button>
+      <button class="sidebar-item" onclick="aNav('sessions',this)"><span class="icon">🛡️</span>Sessions</button>
     </div>
 <div class="main-content" id="aContent"><div class="loading-overlay"><div class="spinner"></div>Loading...</div></div>
   </div>
@@ -955,13 +974,114 @@ function toggleTheme(){
   document.querySelectorAll('.theme-icon').forEach(i => i.textContent = theme === 'dark' ? '🌙' : '☀️');
 }
 function toggleSidebar(id){
-  document.getElementById(id).classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('open');
+  const sidebar = document.getElementById(id);
+  const overlay = document.getElementById('sidebarOverlay');
+  if(sidebar && overlay){
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
 }
 function closeSidebar(){
   document.querySelectorAll('.sidebar').forEach(s => s.classList.remove('open'));
   document.getElementById('sidebarOverlay').classList.remove('open');
 }
+
+// ============================================================
+// ACTIVITY LOG (in-memory + localStorage)
+// ============================================================
+const ACTIVITY_LOG_KEY = 'novax_activity_log';
+function getActivityLog(){
+  try { return JSON.parse(localStorage.getItem(ACTIVITY_LOG_KEY) || '[]'); } catch(e){ return []; }
+}
+function logActivity(action, details='', type='info'){
+  const log = getActivityLog();
+  log.unshift({
+    action, details, type,
+    user: CU?.name || 'System',
+    role: CU?.role || 'unknown',
+    userId: CU?.id || '',
+    timestamp: new Date().toISOString(),
+    ip: window._clientIP || 'unknown'
+  });
+  // Keep last 500 entries
+  if(log.length > 500) log.length = 500;
+  localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(log));
+}
+
+// ============================================================
+// SESSION SECURITY
+// ============================================================
+const SESSION_KEY = 'novax_session_token';
+function generateSessionToken(){
+  return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+}
+
+async function registerSession(){
+  if(!CU) return;
+  const token = generateSessionToken();
+  localStorage.setItem(SESSION_KEY, token);
+  
+  // Store session info in profile metadata
+  try {
+    const sessionInfo = {
+      token,
+      device: navigator.userAgent.substring(0,100),
+      loginAt: new Date().toISOString(),
+      ip: window._clientIP || 'unknown'
+    };
+    await sb.from('profiles').update({ 
+      other_notes: JSON.stringify({
+        ...((() => { try { return JSON.parse(CU.other_notes || '{}'); } catch(e){ return {}; } })()),
+        active_session: sessionInfo
+      })
+    }).eq('id', CU.id);
+  } catch(e){ console.warn('Session register failed:', e); }
+}
+
+async function checkSessionValidity(){
+  if(!CU) return true;
+  try {
+    const { data } = await sb.from('profiles').select('other_notes').eq('id', CU.id).single();
+    if(!data) return true;
+    let meta = {};
+    try { meta = JSON.parse(data.other_notes || '{}'); } catch(e){ return true; }
+    if(!meta.active_session) return true;
+    
+    const localToken = localStorage.getItem(SESSION_KEY);
+    if(meta.active_session.token && localToken && meta.active_session.token !== localToken){
+      // Another device logged in - block this session
+      logActivity('🚨 Duplicate session detected', `Account ${CU.email} accessed from another device`, 'security');
+      return false;
+    }
+    return true;
+  } catch(e){ return true; }
+}
+
+// Session check interval
+let sessionCheckInterval = null;
+function startSessionMonitor(){
+  if(sessionCheckInterval) clearInterval(sessionCheckInterval);
+  sessionCheckInterval = setInterval(async () => {
+    if(!CU) return;
+    const valid = await checkSessionValidity();
+    if(!valid){
+      clearInterval(sessionCheckInterval);
+      toast('🚨 Your account was accessed from another device. You have been logged out for security.', 'error');
+      setTimeout(async () => {
+        await doLogout();
+      }, 3000);
+    }
+  }, 30000); // Check every 30 seconds
+}
+
+// Get client IP (best effort)
+(async function getIP(){
+  try {
+    const r = await fetch('https://api.ipify.org?format=json');
+    const d = await r.json();
+    window._clientIP = d.ip;
+  } catch(e){ window._clientIP = 'unknown'; }
+})();
 function openModal(id){ document.getElementById(id).classList.add('open') }
 function closeModal(id){ document.getElementById(id).classList.remove('open') }
 function switchModal(c, o){ closeModal(c); setTimeout(() => openModal(o), 150) }
@@ -1237,28 +1357,27 @@ async function setStudentBlocked(enrollmentId, blocked){
   } catch(e) { console.error(e); return false; }
 }
 
-// FIX: Access rules stored in enrollment's access_rules JSONB column
-async function getStudentAccessRules(studentId, batchId){
+// FIX: Access rules now use enrollment ID for reliable updates
+async function getStudentAccessRules(enrollmentId){
   try {
     const { data, error } = await sb.from('student_enrollments')
       .select('access_rules')
-      .eq('student_id', studentId)
-      .eq('batch_id', batchId)
+      .eq('id', enrollmentId)
       .single();
     if(error || !data) return {};
     return data.access_rules || {};
   } catch(e) { return {}; }
 }
 
-async function saveStudentAccessRules(studentId, batchId, rules){
+async function saveStudentAccessRules(enrollmentId, rules){
   try {
     const { error } = await sb.from('student_enrollments')
-      .update({ access_rules: rules })
-      .eq('student_id', studentId)
-      .eq('batch_id', batchId);
+      .update({ access_rules: rules, updated_at: new Date().toISOString() })
+      .eq('id', enrollmentId);
     if(error) throw error;
+    logActivity('⚙️ Access rules updated', `Enrollment: ${enrollmentId}`, 'access');
     return true;
-  } catch(e) { console.error(e); return false; }
+  } catch(e) { console.error('saveStudentAccessRules error:', e); return false; }
 }
 
 // ============================================================
@@ -1290,6 +1409,9 @@ async function doLogin(){
     al.innerHTML = '';
     closeModal('loginModal');
     await loadStaticData();
+    await registerSession();
+    startSessionMonitor();
+    logActivity('🔑 Login', `${CU.email} logged in`, 'login');
     await routeUser(CU);
     toast('Welcome back, ' + (CU.name || 'User') + '! 👋', 'success');
   } catch(e) {
@@ -1450,6 +1572,9 @@ async function doRegister(){
       al.innerHTML = '';
       closeModal('registerModal');
       await loadStaticData();
+      await registerSession();
+      startSessionMonitor();
+      logActivity('📝 Registration', `New ${role} account: ${email}`, 'register');
       await routeUser(CU);
       if(role === 'student'){
         toast('Welcome! Your enrollment is pending teacher approval. ⏳', 'success');
@@ -1475,6 +1600,9 @@ async function doRegister(){
 }
 
 async function doLogout(){
+  logActivity('🚪 Logout', `${CU?.email} logged out`, 'login');
+  if(sessionCheckInterval) clearInterval(sessionCheckInterval);
+  localStorage.removeItem(SESSION_KEY);
   try { await sb.auth.signOut(); } catch(e) {}
   CU = null; CU_AUTH = null;
   CACHE.enrollments = [];
@@ -2101,7 +2229,7 @@ function tNavMobile(sec, el){
   document.querySelectorAll('#teacherMobileNav .mobile-nav-item').forEach(b => b.classList.remove('active'));
   if(el) el.classList.add('active');
   document.querySelectorAll('#teacherSidebar .sidebar-item').forEach((b,i) => {
-    const secs = ['dashboard','approvals','live','recordings','notes','quiz','students','access'];
+    const secs = ['dashboard','approvals','live','recordings','notes','quiz','students','access','activity','sessions'];
     b.classList.toggle('active', secs[i] === sec);
   });
   tNav(sec);
@@ -2124,6 +2252,8 @@ async function tNav(sec, el){
     quiz: renderTQuiz,
     students: renderTStudents,
     access: renderTAccess,
+    activity: renderActivityLog,
+    sessions: renderSessionsView,
   };
   try {
     const html = await (renders[sec] || renders.dashboard)();
@@ -2217,13 +2347,13 @@ async function renderTApprovals(){
 async function approveEnrollment(id, btn){
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   const ok = await updateEnrollmentStatus(id, 'approved');
-  if(ok){ toast('Student approved! ✅', 'success'); await tNav('approvals'); }
+  if(ok){ logActivity('✅ Student approved', `Enrollment ${id}`, 'approve'); toast('Student approved! ✅', 'success'); await tNav('approvals'); }
   else { btn.disabled = false; btn.innerHTML = '✅ Approve'; }
 }
 async function rejectEnrollment(id, btn){
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   const ok = await updateEnrollmentStatus(id, 'rejected');
-  if(ok){ toast('Enrollment rejected.', 'info'); await tNav('approvals'); }
+  if(ok){ logActivity('❌ Student rejected', `Enrollment ${id}`, 'block'); toast('Enrollment rejected.', 'info'); await tNav('approvals'); }
   else { btn.disabled = false; btn.innerHTML = '❌ Reject'; }
 }
 
@@ -2591,23 +2721,68 @@ async function renderTStudents(){
   <div class="sec-tag">// Students</div>
   <div class="sec-title" style="margin-bottom:1.25rem">Approved Students (${approved.length})</div>
   ${!approved.length ? '<div class="empty"><div class="ei">👥</div><p>No approved students yet.</p></div>' : ''}
-  <div class="table-wrap"><table>
-    <thead><tr><th>Name</th><th>Email</th><th>WhatsApp</th><th>Batch</th><th>Actions</th></tr></thead>
-    <tbody>${approved.map(e=>{
-      const profile = e.profiles || {};
-      const batch = e.batches || CACHE.batches.find(b=>b.id===e.batch_id) || {};
-      return `<tr>
-        <td><strong>${profile.name||'—'}</strong></td>
-        <td style="font-size:.76rem">${profile.email||'—'}</td>
-        <td style="font-size:.76rem">${profile.whatsapp||'—'}</td>
-        <td style="font-size:.76rem;white-space:nowrap">${batch.name||e.batch_id}</td>
-        <td><div style="display:flex;gap:.3rem;flex-wrap:wrap">
-          <button class="btn btn-success btn-sm" onclick="grantFullAccess('${e.id}')">🔓 Access</button>
-          <button class="btn btn-danger btn-sm" onclick="blockStudent('${e.id}')">🚫 Block</button>
-          <button class="btn btn-warning btn-sm" onclick="customizeAccess('${e.id}','${profile.name||''}','${e.batch_id}','${profile.id||''}')">⚙️ Customize</button>
-        </div></td>
-      </tr>`;
-    }).join('')}</tbody></table></div>`;
+  ${approved.map(e=>{
+    const profile = e.profiles || {};
+    const batch = e.batches || CACHE.batches.find(b=>b.id===e.batch_id) || {};
+    const subject = e.subjects || CACHE.subjects.find(s=>s.id===e.subject_id) || {};
+    return `
+    <div class="card" style="margin-bottom:.75rem"><div class="card-body">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0">${(profile.name||'S').charAt(0)}</div>
+            <div>
+              <div style="font-weight:700;font-size:.92rem">${profile.name||'—'}</div>
+              <div style="font-size:.72rem;color:var(--muted2)">${subject.name||''} · ${batch.name||''}</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .75rem;font-size:.78rem">
+            <div class="detail-row" style="border:none;padding:.2rem 0"><span class="detail-label">📧 Email</span></div><div style="font-size:.78rem;font-weight:600;text-align:right;padding:.2rem 0">${profile.email||'—'}</div>
+            <div class="detail-row" style="border:none;padding:.2rem 0"><span class="detail-label">📱 WhatsApp</span></div><div style="font-size:.78rem;font-weight:600;text-align:right;padding:.2rem 0">${profile.whatsapp||'—'}</div>
+            <div class="detail-row" style="border:none;padding:.2rem 0"><span class="detail-label">🆔 NIC</span></div><div style="font-size:.78rem;font-weight:600;text-align:right;padding:.2rem 0">${profile.nic||'—'}</div>
+            <div class="detail-row" style="border:none;padding:.2rem 0"><span class="detail-label">🏛️ District</span></div><div style="font-size:.78rem;font-weight:600;text-align:right;padding:.2rem 0">${profile.district||'—'}</div>
+            <div class="detail-row" style="border:none;padding:.2rem 0"><span class="detail-label">📚 Stream</span></div><div style="font-size:.78rem;font-weight:600;text-align:right;padding:.2rem 0">${profile.stream||'—'}</div>
+            <div class="detail-row" style="border:none;padding:.2rem 0"><span class="detail-label">🚫 Blocked</span></div><div style="font-size:.78rem;font-weight:600;text-align:right;padding:.2rem 0">${e.is_blocked?'<span style="color:var(--accent2)">Yes</span>':'<span style="color:var(--accent3)">No</span>'}</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.35rem;flex-shrink:0">
+          <button class="btn btn-success btn-sm" onclick="grantFullAccess('${e.id}')">🔓 Full Access</button>
+          <button class="btn btn-danger btn-sm" onclick="blockStudent('${e.id}','${(profile.name||'').replace(/'/g,"\\'")}')">🚫 Block</button>
+          <button class="btn btn-warning btn-sm" onclick="customizeAccess('${e.id}','${(profile.name||'').replace(/'/g,"\\'")}')">⚙️ Customize</button>
+          <button class="btn btn-ghost btn-sm" onclick="viewStudentDetail('${(profile.id||'')}','${(profile.name||'').replace(/'/g,"\\'")}')">👁 View All</button>
+        </div>
+      </div>
+    </div></div>`;
+  }).join('')}`;
+}
+
+function viewStudentDetail(studentId, studentName){
+  const doLoad = async () => {
+    let profile = {};
+    try { const {data} = await sb.from('profiles').select('*').eq('id',studentId).single(); profile=data||{}; } catch(e){}
+    let enrollments = [];
+    try { const {data} = await sb.from('student_enrollments').select('*, subjects:subject_id(name), batches:batch_id(name)').eq('student_id',studentId); enrollments=data||[]; } catch(e){}
+    
+    document.getElementById('cModalTitle').textContent = `Student Details — ${studentName}`;
+    document.getElementById('cModalBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem">
+      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;color:#fff;flex-shrink:0">${(profile.name||'S').charAt(0)}</div>
+      <div><div style="font-size:1.1rem;font-weight:800">${profile.name||'—'}</div><div style="font-size:.78rem;color:var(--muted2)">${profile.email||''}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:1rem"><div class="card-body">
+      <div style="font-weight:700;margin-bottom:.75rem;font-size:.9rem">Personal Information</div>
+      ${[['Name',profile.name],['Email',profile.email],['WhatsApp',profile.whatsapp],['NIC',profile.nic],['Birthday',profile.dob],['District',profile.district],['City',profile.city],['Address',profile.address],['Stream',profile.stream],['Created',profile.created_at?.split('T')[0]]].map(([l,v])=>
+        `<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-value">${v||'—'}</span></div>`
+      ).join('')}
+    </div></div>
+    <div class="card"><div class="card-body">
+      <div style="font-weight:700;margin-bottom:.75rem;font-size:.9rem">Enrollments (${enrollments.length})</div>
+      ${enrollments.map(e=>`<div class="detail-row"><span>${e.subjects?.name||e.subject_id} — ${e.batches?.name||e.batch_id}</span>
+        <span class="badge ${e.status==='approved'?'badge-free':e.status==='pending'?'badge-pending':'badge-rejected'}">${e.is_blocked?'🚫 Blocked':e.status}</span></div>`).join('')}
+    </div></div>`;
+    openModal('cModal');
+  };
+  doLoad();
 }
 
 async function renderTAccess(){
@@ -2622,17 +2797,17 @@ async function renderTAccess(){
       const profile = e.profiles || {};
       const batch = e.batches || CACHE.batches.find(b=>b.id===e.batch_id) || {};
       return `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div style="background:var(--surface);border:1px solid ${e.is_blocked?'rgba(247,102,79,.4)':'var(--border)'};border-radius:var(--radius);padding:.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
         <div>
-          <div style="font-weight:700;font-size:.88rem">${profile.name||'Student'}</div>
+          <div style="font-weight:700;font-size:.88rem">${profile.name||'Student'} ${e.is_blocked?'<span style="color:var(--accent2);font-size:.72rem">🚫 BLOCKED</span>':''}</div>
           <div style="font-size:.72rem;color:var(--muted2);margin-top:.1rem">
             ✉️ ${profile.email||'—'} · 📱 ${profile.whatsapp||'—'} · 🎓 ${batch.name||'—'}
           </div>
         </div>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap">
           <button class="btn btn-success btn-sm" onclick="grantFullAccess('${e.id}')">🔓 Full</button>
-          <button class="btn btn-danger btn-sm" onclick="blockStudent('${e.id}')">🚫 Block</button>
-          <button class="btn btn-warning btn-sm" onclick="customizeAccess('${e.id}','${profile.name||''}','${e.batch_id}','${profile.id||''}')">⚙️ Customize</button>
+          <button class="btn btn-danger btn-sm" onclick="blockStudent('${e.id}','${(profile.name||'').replace(/'/g,"\\'")}')">🚫 Block</button>
+          <button class="btn btn-warning btn-sm" onclick="customizeAccess('${e.id}','${(profile.name||'').replace(/'/g,"\\'")}')">⚙️ Customize</button>
         </div>
       </div>`;
     }).join('')}
@@ -2641,35 +2816,51 @@ async function renderTAccess(){
 
 async function grantFullAccess(enrollmentId){
   const ok = await setStudentBlocked(enrollmentId, false);
-  if(ok) toast('Full access granted ✅','success');
-  else toast('Failed to update access','error');
+  if(ok){
+    // Also clear all access rules to give full access
+    try { await sb.from('student_enrollments').update({access_rules:{}, is_blocked:false}).eq('id',enrollmentId); } catch(e){}
+    logActivity('🔓 Full access granted', `Enrollment ${enrollmentId}`, 'access');
+    toast('Full access granted ✅','success');
+  } else toast('Failed to update access','error');
 }
 
-async function blockStudent(enrollmentId){
-  confirmDo('Block this student from all content?', async () => {
+async function blockStudent(enrollmentId, studentName){
+  confirmDo(`Block ${studentName||'this student'} from all content?`, async () => {
     const ok = await setStudentBlocked(enrollmentId, true);
-    if(ok) toast('Student blocked 🚫','info');
-    else toast('Failed to block','error');
+    if(ok){
+      logActivity('🚫 Student blocked', `${studentName} (${enrollmentId})`, 'block');
+      toast('Student blocked 🚫','info');
+    } else toast('Failed to block','error');
     await tNav('students');
   }, 'Block');
 }
 
-function customizeAccess(enrollmentId, studentName, batchId, studentId){
+function customizeAccess(enrollmentId, studentName){
   const years = ['2024','2025','2026','2027'];
   const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
   const types = ['theory','paper','revision','extra'];
 
   document.getElementById('customizeTitle').textContent = `Customize Access — ${studentName}`;
 
-  // FIX: Now using the properly defined getStudentAccessRules function
-  getStudentAccessRules(studentId, batchId).then(existingRules => {
+  // FIX: Use enrollment ID directly for reliable access
+  getStudentAccessRules(enrollmentId).then(existingRules => {
     const rules = existingRules || {};
 
     document.getElementById('customizeBody').innerHTML = `
+    <div style="margin-bottom:.75rem;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-success btn-sm" onclick="selectAllAccessChecks(true)">✅ Select All</button>
+      <button class="btn btn-danger btn-sm" onclick="selectAllAccessChecks(false)">❌ Deselect All</button>
+    </div>
     <div class="custom-access-grid">
       ${years.map(y=>`
       <div class="custom-year-group">
-        <div class="custom-year-title">📅 ${y}</div>
+        <div class="custom-year-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>📅 ${y}</span>
+          <div style="display:flex;gap:.3rem">
+            <button class="btn btn-sm" style="padding:.15rem .4rem;font-size:.65rem;background:rgba(79,247,168,.1);color:var(--accent3);border:1px solid rgba(79,247,168,.3)" onclick="selectYearChecks('${y}',true)">All</button>
+            <button class="btn btn-sm" style="padding:.15rem .4rem;font-size:.65rem;background:rgba(247,102,79,.1);color:var(--accent2);border:1px solid rgba(247,102,79,.3)" onclick="selectYearChecks('${y}',false)">None</button>
+          </div>
+        </div>
         ${months.map(m=>`
         <div class="custom-month-row">
           <span class="custom-month-label">${monthName(m)}</span>
@@ -2678,7 +2869,7 @@ function customizeAccess(enrollmentId, studentName, batchId, studentId){
               const key = `${y}_${m}_${t}`;
               const checked = rules[key] !== false;
               return `<label class="custom-check-label">
-                <input type="checkbox" data-key="${key}" ${checked?'checked':''} style="accent-color:var(--accent)"/>
+                <input type="checkbox" data-key="${key}" data-year="${y}" ${checked?'checked':''} style="accent-color:var(--accent)"/>
                 ${typeIcon(t)} ${t}
               </label>`;
             }).join('')}
@@ -2692,14 +2883,132 @@ function customizeAccess(enrollmentId, studentName, batchId, studentId){
       document.querySelectorAll('#customizeBody [data-key]').forEach(input => {
         newRules[input.dataset.key] = input.checked;
       });
-      // FIX: Now using the properly defined saveStudentAccessRules function
-      const ok = await saveStudentAccessRules(studentId, batchId, newRules);
+      document.getElementById('customizeSaveBtn').disabled = true;
+      document.getElementById('customizeSaveBtn').innerHTML = '<span class="spinner"></span> Saving...';
+      const ok = await saveStudentAccessRules(enrollmentId, newRules);
+      document.getElementById('customizeSaveBtn').disabled = false;
+      document.getElementById('customizeSaveBtn').innerHTML = 'Save Access Rules';
       toast(ok ? 'Access rules saved! ⚙️' : 'Failed to save rules', ok?'success':'error');
-      closeModal('customizeModal');
+      if(ok) closeModal('customizeModal');
     };
   });
 
   openModal('customizeModal');
+}
+
+function selectAllAccessChecks(checked){
+  document.querySelectorAll('#customizeBody [data-key]').forEach(input => input.checked = checked);
+}
+function selectYearChecks(year, checked){
+  document.querySelectorAll(`#customizeBody [data-year="${year}"]`).forEach(input => input.checked = checked);
+}
+
+// ============================================================
+// ACTIVITY LOG RENDER
+// ============================================================
+function renderActivityLog(){
+  const log = getActivityLog();
+  return `
+  <div class="sec-tag">// Activity Log</div>
+  <div class="sec-header">
+    <div class="sec-title">Activity Log (${log.length})</div>
+    <button class="btn btn-danger btn-sm" onclick="clearActivityLog()">🗑 Clear</button>
+  </div>
+  ${!log.length ? '<div class="empty"><div class="ei">📋</div><p>No activity recorded yet.</p></div>' : ''}
+  <div class="card"><div style="max-height:600px;overflow-y:auto">
+    ${log.slice(0,200).map(entry => {
+      const date = new Date(entry.timestamp);
+      const timeStr = date.toLocaleDateString('en-LK') + ' ' + date.toLocaleTimeString('en-LK',{hour:'2-digit',minute:'2-digit'});
+      const dotClass = entry.type || 'info';
+      return `<div class="activity-log-item">
+        <div class="activity-dot ${dotClass}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.84rem">${entry.action}</div>
+          <div style="font-size:.74rem;color:var(--muted2);margin-top:.15rem">${entry.details}</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:.2rem;display:flex;gap:.6rem;flex-wrap:wrap">
+            <span>👤 ${entry.user}</span>
+            <span>🏷 ${entry.role}</span>
+            <span>🕐 ${timeStr}</span>
+            ${entry.ip && entry.ip !== 'unknown' ? `<span>🌐 ${entry.ip}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div></div>`;
+}
+
+function clearActivityLog(){
+  confirmDo('Clear all activity logs?', () => {
+    localStorage.removeItem(ACTIVITY_LOG_KEY);
+    toast('Activity log cleared','info');
+    if(CU?.role === 'teacher') tNav('activity');
+    else if(CU?.role === 'admin') aNav('activity');
+  }, 'Clear');
+}
+
+// ============================================================
+// SESSIONS RENDER
+// ============================================================
+async function renderSessionsView(){
+  // Load all students and their session info
+  let profiles = [];
+  try {
+    const {data} = await sb.from('profiles').select('id,name,email,role,other_notes,whatsapp').in('role',['student','teacher']);
+    profiles = data || [];
+  } catch(e){}
+
+  const sessions = profiles.map(p => {
+    let meta = {};
+    try { meta = JSON.parse(p.other_notes || '{}'); } catch(e){}
+    return { ...p, session: meta.active_session || null };
+  }).filter(p => p.session);
+
+  return `
+  <div class="sec-tag">// Sessions & Security</div>
+  <div class="sec-title" style="margin-bottom:.4rem">Active Sessions (${sessions.length})</div>
+  <p style="font-size:.8rem;color:var(--muted2);margin-bottom:1.5rem">Monitor active user sessions. Users are limited to one device at a time.</p>
+  ${!sessions.length ? '<div class="empty"><div class="ei">🛡️</div><p>No active sessions found.</p></div>' : ''}
+  <div style="display:grid;gap:.75rem">
+    ${sessions.map(s => {
+      const loginTime = s.session.loginAt ? new Date(s.session.loginAt).toLocaleString('en-LK') : '—';
+      const device = (s.session.device || 'Unknown').substring(0,60);
+      return `
+      <div class="card"><div class="card-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:700;font-size:.88rem">${s.name||s.email} <span class="badge badge-blue">${s.role}</span></div>
+            <div style="font-size:.74rem;color:var(--muted2);margin-top:.3rem;display:grid;gap:.2rem">
+              <span>✉️ ${s.email}</span>
+              <span>📱 ${s.whatsapp||'—'}</span>
+              <span>🕐 Login: ${loginTime}</span>
+              <span>🌐 IP: ${s.session.ip||'—'}</span>
+              <span>💻 ${device}...</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.35rem">
+            <button class="btn btn-danger btn-sm" onclick="forceLogout('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">🚫 Force Logout</button>
+          </div>
+        </div>
+      </div></div>`;
+    }).join('')}
+  </div>`;
+}
+
+async function forceLogout(userId, userName){
+  confirmDo(`Force logout ${userName}? Their session will be invalidated.`, async () => {
+    try {
+      // Clear their session token so their next check will fail
+      const {data} = await sb.from('profiles').select('other_notes').eq('id',userId).single();
+      let meta = {};
+      try { meta = JSON.parse(data?.other_notes || '{}'); } catch(e){}
+      meta.active_session = { ...meta.active_session, token: 'invalidated_' + Date.now() };
+      await sb.from('profiles').update({ other_notes: JSON.stringify(meta) }).eq('id',userId);
+      logActivity('🚫 Forced logout', `${userName} (${userId})`, 'security');
+      toast(`${userName} has been forced out 🚫`,'success');
+    } catch(e){ toast('Error: '+e.message,'error'); }
+    if(CU?.role === 'teacher') await tNav('sessions');
+    else await aNav('sessions');
+  }, 'Force Logout');
 }
 
 // ============================================================
@@ -2709,7 +3018,7 @@ function aNavMobile(sec, el){
   document.querySelectorAll('#adminMobileNav .mobile-nav-item').forEach(b => b.classList.remove('active'));
   if(el) el.classList.add('active');
   document.querySelectorAll('#adminSidebar .sidebar-item').forEach((b,i) => {
-    const secs = ['dashboard','students','teachers','subjects','batches','content','reports'];
+    const secs = ['dashboard','students','teachers','subjects','batches','content','reports','activity','sessions'];
     b.classList.toggle('active', secs[i] === sec);
   });
   aNav(sec);
@@ -2731,6 +3040,8 @@ async function aNav(sec, el){
     batches: renderABatches,
     content: renderAContent,
     reports: renderAReports,
+    activity: renderActivityLog,
+    sessions: renderSessionsView,
   };
   try {
     const html = await (renders[sec]||renders.dashboard)();
@@ -2774,7 +3085,7 @@ async function renderADashboard(){
   </div>`;
 }
 
-// FIX: Admin students using the fixed loadAllStudents function
+// FIX: Admin students with full details
 async function renderAStudents(){
   const students = await loadAllStudents();
   return `
@@ -2782,25 +3093,36 @@ async function renderAStudents(){
     <div><div class="sec-tag">// Students</div><div class="sec-title">All Students (${students.length})</div></div>
   </div>
   ${!students.length ? '<div class="empty"><div class="ei">👥</div><p>No students registered yet.</p></div>' : ''}
-  <div class="table-wrap"><table>
-    <thead><tr><th>Name</th><th>Email</th><th>WhatsApp</th><th>District</th><th>Stream</th><th>Enrollments</th><th>Actions</th></tr></thead>
-    <tbody>${students.map(s=>{
-      const enrollments = s.student_enrollments || [];
-      return `<tr>
-        <td><strong>${s.name||'—'}</strong></td>
-        <td style="font-size:.75rem">${s.email||'—'}</td>
-        <td style="font-size:.75rem">${s.whatsapp||'—'}</td>
-        <td style="font-size:.75rem">${s.district||'—'}</td>
-        <td><span class="pill pill-blue">${s.stream||'—'}</span></td>
-        <td style="font-size:.75rem">
-          ${enrollments.map(e=>`<div><span class="badge ${e.status==='approved'?'badge-free':e.status==='pending'?'badge-pending':'badge-rejected'}">${e.subjects?.name||''} · ${e.status}</span></div>`).join('')||'None'}
-        </td>
-        <td><div style="display:flex;gap:.3rem;flex-wrap:wrap">
-          <button class="btn btn-primary btn-sm" onclick="aManageEnrollments('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">📚</button>
-          <button class="btn btn-danger btn-sm" onclick="aDeleteUser('${s.id}')">🗑</button>
-        </div></td>
-      </tr>`;
-    }).join('')}</tbody></table></div>`;
+  ${students.map(s=>{
+    const enrollments = s.student_enrollments || [];
+    return `
+    <div class="card" style="margin-bottom:.75rem"><div class="card-body">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0">${(s.name||'S').charAt(0)}</div>
+            <div><div style="font-weight:700;font-size:.9rem">${s.name||'—'}</div><div style="font-size:.72rem;color:var(--muted2)">${s.email||''}</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.2rem .75rem;font-size:.76rem;margin-bottom:.5rem">
+            <div><span style="color:var(--muted2)">📱 </span>${s.whatsapp||'—'}</div>
+            <div><span style="color:var(--muted2)">🆔 </span>${s.nic||'—'}</div>
+            <div><span style="color:var(--muted2)">🏛️ </span>${s.district||'—'}</div>
+            <div><span style="color:var(--muted2)">🏙️ </span>${s.city||'—'}</div>
+            <div><span style="color:var(--muted2)">📚 </span>${s.stream||'—'}</div>
+            <div><span style="color:var(--muted2)">🎂 </span>${s.dob||'—'}</div>
+          </div>
+          <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+            ${enrollments.map(e=>`<span class="badge ${e.status==='approved'?'badge-free':e.status==='pending'?'badge-pending':'badge-rejected'}">${e.subjects?.name||''} · ${e.is_blocked?'🚫':e.status}</span>`).join('')||'<span style="font-size:.75rem;color:var(--muted2)">No enrollments</span>'}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;flex-shrink:0">
+          <button class="btn btn-primary btn-sm" onclick="aManageEnrollments('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">📚 Enrollments</button>
+          <button class="btn btn-ghost btn-sm" onclick="viewStudentDetail('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">👁 Full Details</button>
+          <button class="btn btn-danger btn-sm" onclick="aDeleteUser('${s.id}')">🗑 Delete</button>
+        </div>
+      </div>
+    </div></div>`;
+  }).join('')}`;
 }
 
 function aManageEnrollments(studentId, studentName){
@@ -2907,25 +3229,42 @@ async function renderATeachers(){
     <button class="btn btn-primary btn-sm" onclick="aTeacherModal()">+ Add Teacher</button>
   </div>
   <p style="font-size:.78rem;color:var(--muted2);margin-bottom:1rem">
-    ⚠️ To add teachers, go to Supabase Auth → Users → "Add User", then set their profile role to 'teacher' manually or use the form below.
+    ⚠️ To add teachers, register as teacher or go to Supabase Auth → Users → "Add User", then set role to 'teacher'.
   </p>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Name</th><th>Email</th><th>WhatsApp</th><th>Batches</th><th>Actions</th></tr></thead>
-    <tbody>${teachers.map(t=>`<tr>
-      <td><strong>${t.name||'—'}</strong></td>
-      <td>${t.email||'—'}</td>
-      <td>${t.whatsapp||'—'}</td>
-      <td>${CACHE.batches.filter(b=>b.teacher_id===t.id).length}</td>
-      <td><div style="display:flex;gap:.3rem">
-        <button class="btn btn-ghost btn-sm" onclick="aTeacherEditModal('${t.id}')">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="aDeleteTeacher('${t.id}')">🗑</button>
-      </div></td>
-    </tr>`).join('')}
-    </tbody></table></div>`;
+  ${teachers.map(t=>{
+    const myBatches = CACHE.batches.filter(b=>b.teacher_id===t.id);
+    const subNames = [...new Set(myBatches.map(b=>CACHE.subjects.find(x=>x.id===b.subject_id)?.name))].filter(Boolean);
+    return `
+    <div class="card" style="margin-bottom:.75rem"><div class="card-body">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent4));display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0">${(t.name||'T').charAt(0)}</div>
+            <div><div style="font-weight:700;font-size:.92rem">${t.name||'—'}</div><div style="font-size:.72rem;color:var(--muted2)">${t.email||''} · ${subNames.join(', ')||'No subjects'}</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.2rem .75rem;font-size:.76rem">
+            <div><span style="color:var(--muted2)">📱 WhatsApp: </span>${t.whatsapp||'—'}</div>
+            <div><span style="color:var(--muted2)">📞 Call: </span>${t.call_number||'—'}</div>
+            <div><span style="color:var(--muted2)">✈️ Telegram: </span>${t.telegram||'—'}</div>
+            <div><span style="color:var(--muted2)">🆔 NIC: </span>${t.nic||'—'}</div>
+            <div><span style="color:var(--muted2)">🏛️ District: </span>${t.district||'—'}</div>
+            <div><span style="color:var(--muted2)">📚 Subject: </span>${t.grade_subject||'—'}</div>
+            <div><span style="color:var(--muted2)">🎓 Experience: </span>${t.experience||'—'}</div>
+            <div><span style="color:var(--muted2)">📚 Batches: </span>${myBatches.length}</div>
+          </div>
+          ${t.bank_details ? `<div style="margin-top:.4rem;font-size:.74rem;color:var(--muted2)">🏦 Bank: ${t.bank_details.substring(0,80)}${t.bank_details.length>80?'...':''}</div>` : ''}
+          ${t.other_notes && !t.other_notes.startsWith('{') ? `<div style="margin-top:.3rem;font-size:.74rem;color:var(--muted2)">📝 ${t.other_notes.substring(0,80)}${t.other_notes.length>80?'...':''}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.3rem;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="aTeacherEditModal('${t.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="aDeleteTeacher('${t.id}')">🗑 Delete</button>
+        </div>
+      </div>
+    </div></div>`;
+  }).join('')}`;
 }
 
 function aTeacherModal(){
-  // FIX: Since admin.createUser needs service key, we show instructions
   document.getElementById('cModalTitle').textContent = 'Add Teacher';
   document.getElementById('cModalBody').innerHTML = `
   <div class="alert alert-warning">
@@ -3250,7 +3589,9 @@ async function renderAReports(){
       const { data: profile, error: pErr } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
       if(profile && !pErr){
         CU = { ...profile, completedQuizzes: {} };
-        await loadStaticData(); // refresh with auth context (better RLS access)
+        await loadStaticData();
+        await registerSession();
+        startSessionMonitor();
         await routeUser(CU);
       }
     }
