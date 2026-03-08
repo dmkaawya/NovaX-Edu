@@ -1036,11 +1036,23 @@ function clearRegistrationDraft(){
 }
 
 async function persistProfileAndEnrollments(userId, profileData, enrollments = []){
-  const cleanProfile = { ...profileData, id: userId };
+  // Keep payload compatible with the currently deployed profiles schema.
+  const cleanProfile = {
+    id: userId,
+    email: profileData?.email || null,
+    role: profileData?.role || 'student',
+    name: profileData?.name || null,
+    phone: profileData?.phone || profileData?.whatsapp || profileData?.call_number || null,
+  };
+
   const { error: profileError } = await sb.from('profiles').upsert(cleanProfile);
   if(profileError) throw new Error('Profile save failed: ' + profileError.message);
 
   if(cleanProfile.role !== 'student') return;
+
+  // Some databases may not have student_enrollments yet.
+  const probe = await sb.from('student_enrollments').select('id').limit(1);
+  if(probe.error && probe.error.code === '42P01') return;
 
   for(const enr of enrollments){
     if(!enr?.batch_id || !enr?.subject_id) continue;
@@ -1632,10 +1644,10 @@ async function doRegister(){
 
   try {
     const { data: authData, error: authError } = await sb.auth.signUp({
-      email,
+      email: email.trim().toLowerCase(),
       password: pass,
       options: {
-        data: { name, role },
+        emailRedirectTo: window.location.origin,
       }
     });
 
