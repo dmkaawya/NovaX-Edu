@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -963,6 +965,107 @@ const CACHE = {
   enrollments: [],
 };
 
+const REG_DRAFT_KEY = 'novax_registration_draft';
+
+function safeParseJsonObject(value){
+  if(!value) return {};
+  if(typeof value === 'object' && !Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(value);
+    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+  } catch(e){
+    return {};
+  }
+}
+
+function normalizeMonthValue(month){
+  return String(month || '').padStart(2, '0');
+}
+
+function getApprovedEnrollmentMap(enrollments){
+  const map = new Map();
+  (enrollments || []).forEach(enr => {
+    if(enr?.status === 'approved' && !enr?.is_blocked && enr?.batch_id){
+      map.set(enr.batch_id, enr);
+    }
+  });
+  return map;
+}
+
+function canAccessRecording(rec, enrollments){
+  const enrollment = getApprovedEnrollmentMap(enrollments).get(rec.batch_id);
+  if(!enrollment) return false;
+  const rules = safeParseJsonObject(enrollment.access_rules);
+  const key = `${rec.year}_${normalizeMonthValue(rec.month)}_${rec.type || 'theory'}`;
+  return rules[key] !== false;
+}
+
+function filterRecordingsByAccess(recs, enrollments){
+  const enrollmentMap = getApprovedEnrollmentMap(enrollments);
+  return (recs || []).filter(rec => {
+    const enrollment = enrollmentMap.get(rec.batch_id);
+    if(!enrollment) return false;
+    const rules = safeParseJsonObject(enrollment.access_rules);
+    const key = `${rec.year}_${normalizeMonthValue(rec.month)}_${rec.type || 'theory'}`;
+    return rules[key] !== false;
+  });
+}
+
+function saveRegistrationDraft(email, draft){
+  localStorage.setItem(REG_DRAFT_KEY, JSON.stringify({
+    email: (email || '').toLowerCase(),
+    saved_at: new Date().toISOString(),
+    ...draft,
+  }));
+}
+
+function getRegistrationDraft(email){
+  const raw = localStorage.getItem(REG_DRAFT_KEY);
+  if(!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if(!parsed?.email || parsed.email !== (email || '').toLowerCase()) return null;
+    return parsed;
+  } catch(e){
+    return null;
+  }
+}
+
+function clearRegistrationDraft(){
+  localStorage.removeItem(REG_DRAFT_KEY);
+}
+
+async function persistProfileAndEnrollments(userId, profileData, enrollments = []){
+  const cleanProfile = { ...profileData, id: userId };
+  const { error: profileError } = await sb.from('profiles').upsert(cleanProfile);
+  if(profileError) throw new Error('Profile save failed: ' + profileError.message);
+
+  if(cleanProfile.role !== 'student') return;
+
+  for(const enr of enrollments){
+    if(!enr?.batch_id || !enr?.subject_id) continue;
+    const { data: existing } = await sb.from('student_enrollments')
+      .select('id')
+      .eq('student_id', userId)
+      .eq('batch_id', enr.batch_id)
+      .maybeSingle();
+
+    if(existing?.id) continue;
+
+    const { error: enrErr } = await sb.from('student_enrollments').insert({
+      student_id: userId,
+      subject_id: enr.subject_id,
+      batch_id: enr.batch_id,
+      status: 'pending',
+      is_blocked: false,
+      access_rules: {},
+      created_at: new Date().toISOString(),
+    });
+
+    if(enrErr) throw new Error('Enrollment save failed: ' + enrErr.message);
+  }
+}
+
 // ============================================================
 // THEME & UI HELPERS
 // ============================================================
@@ -1231,10 +1334,21 @@ async function loadQuizzes(batchIds){
   } catch(e) { return []; }
 }
 
-// FIX: Load all students for teacher/admin using proper RLS join
+async function loadTeacherBatchIds(teacherId){
+  const cached = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
+  try {
+    const { data, error } = await sb.from('batches').select('id').eq('teacher_id', teacherId);
+    if(error) return cached;
+    return (data || []).map(b => b.id);
+  } catch(e){
+    return cached;
+  }
+}
+
+// FIX: Load all students for teacher/admin using real DB batch mapping
 async function loadPendingEnrollments(teacherId){
   try {
-    const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
+    const myBatchIds = await loadTeacherBatchIds(teacherId);
     if(!myBatchIds.length) return [];
     const { data, error } = await sb.from('student_enrollments')
       .select(`
@@ -1252,7 +1366,7 @@ async function loadPendingEnrollments(teacherId){
 
 async function loadApprovedStudents(teacherId){
   try {
-    const myBatchIds = CACHE.batches.filter(b => b.teacher_id === teacherId).map(b => b.id);
+    const myBatchIds = await loadTeacherBatchIds(teacherId);
     if(!myBatchIds.length) return [];
     const { data, error } = await sb.from('student_enrollments')
       .select(`
@@ -1369,13 +1483,28 @@ async function getStudentAccessRules(enrollmentId){
 
 async function saveStudentAccessRules(enrollmentId, rules){
   try {
-    const { error } = await sb.from('student_enrollments')
+    if(!enrollmentId) throw new Error('Missing enrollment id');
+
+    // Try with updated_at first (for newer schemas)
+    let { error } = await sb.from('student_enrollments')
       .update({ access_rules: rules, updated_at: new Date().toISOString() })
       .eq('id', enrollmentId);
+
+    // Backward compatibility: some older DBs don't have updated_at
+    if(error && /updated_at|column .* does not exist/i.test(error.message || '')){
+      const retry = await sb.from('student_enrollments')
+        .update({ access_rules: rules })
+        .eq('id', enrollmentId);
+      error = retry.error;
+    }
+
     if(error) throw error;
     logActivity('⚙️ Access rules updated', `Enrollment: ${enrollmentId}`, 'access');
     return true;
-  } catch(e) { console.error('saveStudentAccessRules error:', e); return false; }
+  } catch(e) {
+    console.error('saveStudentAccessRules error:', e);
+    return false;
+  }
 }
 
 // ============================================================
@@ -1393,10 +1522,23 @@ async function doLogin(){
     if(error) throw error;
 
     CU_AUTH = data.user;
+
+    const regDraft = getRegistrationDraft(data.user?.email || email);
+    if(regDraft){
+      const draftProfile = {
+        ...(regDraft.profileData || {}),
+        id: data.user.id,
+        email: data.user.email,
+        role: regDraft.role || regDraft.profileData?.role || 'student',
+        created_at: regDraft.profileData?.created_at || new Date().toISOString(),
+      };
+      await persistProfileAndEnrollments(data.user.id, draftProfile, regDraft.enrollments || []);
+      clearRegistrationDraft();
+    }
+
     const { data: profile, error: pErr } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
 
     if(pErr || !profile){
-      // Profile might not exist yet (edge case) — create a basic one
       const basicProfile = { id: data.user.id, email: data.user.email, role: 'student', name: data.user.email.split('@')[0] };
       await sb.from('profiles').upsert(basicProfile);
       CU = { ...basicProfile, completedQuizzes: {} };
@@ -1416,7 +1558,7 @@ async function doLogin(){
     console.error('Login error:', e);
     let msg = e.message || 'Login failed';
     if(msg.includes('Email not confirmed')){
-      msg = '⚠️ Email not confirmed. Please check your inbox OR disable email confirmation in Supabase Auth settings.';
+      msg = '⚠️ Email not confirmed. Please verify your email first.';
     } else if(msg.includes('Invalid login credentials')){
       msg = '❌ Invalid email or password.';
     }
@@ -1452,6 +1594,8 @@ async function doRegister(){
   }
   if(pass.length < 6){ al.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters.</div>'; return; }
 
+  let selectedEnrollments = [];
+
   // Role-specific validation
   if(role === 'student'){
     const wa = g('rg_wa'), dob = g('rg_dob'), district = g('rg_district');
@@ -1459,7 +1603,7 @@ async function doRegister(){
     if(!wa || !dob || !district || !city || !addr || !stream){
       al.innerHTML = '<div class="alert alert-error">Please fill in all student fields.</div>'; return;
     }
-    const selectedEnrollments = [];
+
     document.querySelectorAll('.subject-check-item.selected').forEach(item => {
       const subjectId = item.dataset.subjectId;
       const batchSel = item.querySelector('.batch-select');
@@ -1467,6 +1611,7 @@ async function doRegister(){
         selectedEnrollments.push({ subject_id: subjectId, batch_id: batchSel.value });
       }
     });
+
     if(selectedEnrollments.length === 0){
       al.innerHTML = '<div class="alert alert-error">Please select at least one subject and batch.</div>'; return;
     }
@@ -1533,38 +1678,10 @@ async function doRegister(){
       };
     }
 
-    const { error: profileError } = await sb.from('profiles').upsert(profileData);
-    if(profileError){
-      console.error('Profile insert error:', profileError);
-      throw new Error('Profile creation failed: ' + profileError.message);
-    }
-
-    // Insert enrollments for students only — status is PENDING (teacher must approve)
-    if(role === 'student'){
-      const selectedEnrollments = [];
-      document.querySelectorAll('.subject-check-item.selected').forEach(item => {
-        const subjectId = item.dataset.subjectId;
-        const batchSel = item.querySelector('.batch-select');
-        if(batchSel && batchSel.value){
-          selectedEnrollments.push({ subject_id: subjectId, batch_id: batchSel.value });
-        }
-      });
-      for(const enr of selectedEnrollments){
-        const { error: enrErr } = await sb.from('student_enrollments').insert({
-          student_id: userId,
-          subject_id: enr.subject_id,
-          batch_id: enr.batch_id,
-          status: 'pending',
-          is_blocked: false,
-          access_rules: {},
-          created_at: new Date().toISOString()
-        });
-        if(enrErr) console.error('Enrollment insert error:', enrErr);
-      }
-    }
-
-    // Check if session exists
+    // If session exists now, save profile + enrollments immediately.
+    // If email confirmation is required, keep a draft and complete on first login.
     if(authData.session){
+      await persistProfileAndEnrollments(userId, profileData, selectedEnrollments);
       CU_AUTH = authData.user;
       CU = { ...profileData, completedQuizzes: {} };
       al.innerHTML = '';
@@ -1580,9 +1697,14 @@ async function doRegister(){
         toast('Account created successfully! 🎉', 'success');
       }
     } else {
+      saveRegistrationDraft(email, {
+        role,
+        profileData,
+        enrollments: selectedEnrollments,
+      });
       al.innerHTML = '';
       closeModal('registerModal');
-      toast('✉️ Registration successful! Check your email to confirm, then log in.', 'success');
+      toast('✉️ Registration saved. Confirm email and login to complete setup.', 'success');
       setTimeout(() => openModal('loginModal'), 500);
     }
 
@@ -1646,7 +1768,7 @@ function renderSubjectMultiSelect(){
     return;
   }
   container.innerHTML = subjects.map(sub => {
-    const subBatches = CACHE.batches.filter(b => b.subject_id === sub.id);
+    const subBatches = CACHE.batches.filter(b => b.subject_id === sub.id && !!b.teacher_id);
     return `
     <div class="subject-check-item" data-subject-id="${sub.id}" onclick="toggleSubjectCheck(this)">
       <div class="subject-check-row">
@@ -1656,7 +1778,12 @@ function renderSubjectMultiSelect(){
       <div class="subject-batch-sel" onclick="event.stopPropagation()">
         <select class="form-select batch-select" style="margin-top:.5rem;font-size:.8rem">
           <option value="">-- Select Batch --</option>
-          ${subBatches.map(b => `<option value="${b.id}">${b.name}</option>`).join('')}
+          ${subBatches.length
+            ? subBatches.map(b => {
+                const teacher = CACHE.teachers.find(t => t.id === b.teacher_id);
+                return `<option value="${b.id}">${b.name}${teacher?.name ? ` · ${teacher.name}` : ''}</option>`;
+              }).join('')
+            : '<option value="" disabled>No teacher assigned yet</option>'}
         </select>
       </div>
     </div>`;
@@ -1717,11 +1844,12 @@ async function renderLanding(){
     gt.innerHTML = teachers.map(t => {
       const myBatches = batches.filter(b => b.teacher_id === t.id);
       const subNames = [...new Set(myBatches.map(b => { const s = subjects.find(x => x.id === b.subject_id); return s?.name; }))].filter(Boolean);
+      const subjectText = subNames.join(' · ') || t.grade_subject || 'Subject not set';
       return `
       <div class="teacher-card">
         <div class="teacher-av">${(t.name||'T').charAt(0)}</div>
         <div style="font-size:.95rem;font-weight:700;margin-bottom:.2rem">${t.name}</div>
-        <div style="font-size:.78rem;color:var(--muted2);margin-bottom:.8rem">${subNames.join(' · ')} · ${myBatches.length} Batches</div>
+        <div style="font-size:.78rem;color:var(--muted2);margin-bottom:.8rem">${subjectText} · ${myBatches.length} Batches</div>
         ${t.whatsapp ? `<div style="font-size:.76rem;color:var(--accent)">📱 ${t.whatsapp}</div>` : ''}
       </div>`;
     }).join('');
@@ -1764,7 +1892,7 @@ async function renderStudentSec(sec){
       <div style="text-align:center;padding:4rem 1rem">
         <div style="font-size:4rem;margin-bottom:1rem">🚫</div>
         <div style="font-size:1.5rem;font-weight:800;margin-bottom:.5rem;color:var(--accent2)">Account Blocked</div>
-        <div style="font-size:.9rem;color:var(--muted2);max-width:400px;margin:0 auto">Your access has been blocked by your teacher. Please contact support Hotline 0775048455.</div>
+        <div style="font-size:.9rem;color:var(--muted2);max-width:400px;margin:0 auto">Your access has been blocked by your teacher. Please contact support for more information.</div>
       </div>`;
     return;
   }
@@ -1798,7 +1926,10 @@ async function renderSDashboard(enrollments, batchIds){
   CU.completedQuizzes = completedQuizzes;
 
   let recentRecs = [];
-  if(batchIds.length){ recentRecs = (await loadRecordings(batchIds)).slice(0,4); }
+  if(batchIds.length){
+    const allRecs = await loadRecordings(batchIds);
+    recentRecs = filterRecordingsByAccess(allRecs, enrollments).slice(0,4);
+  }
 
   return `
   <div class="sec-tag">// Dashboard</div>
@@ -1873,7 +2004,8 @@ async function renderSLive(batchIds){
 
 async function renderSRecordings(batchIds, enrollments){
   if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
-  const recs = await loadRecordings(batchIds);
+  const allRecs = await loadRecordings(batchIds);
+  const recs = filterRecordingsByAccess(allRecs, enrollments);
   const viewedVideos = await loadVideoViews();
   window._viewedCache = viewedVideos;
   
@@ -1884,7 +2016,7 @@ async function renderSRecordings(batchIds, enrollments){
   <div class="sec-tag">// Recordings</div>
   <div class="sec-title" style="margin-bottom:.4rem">Recorded Classes</div>
   <p style="font-size:.8rem;color:var(--muted2);margin-bottom:1.25rem">Year → Month → Class Type</p>
-  ${!years.length ? '<div class="empty"><div class="ei">🎬</div><p>No recordings yet.</p></div>' : ''}
+  ${!recs.length ? '<div class="empty"><div class="ei">🔐</div><p>Your teacher has currently limited recording access for this enrollment.</p></div>' : ''}
   ${years.map(year => {
     const yearRecs = recs.filter(r => String(r.year) === String(year));
     const months = [...new Set(yearRecs.map(r => r.month))].sort();
@@ -1927,10 +2059,12 @@ function filterTypeS(year, month, type, btn){
   btn.classList.add('active');
   const grid = document.getElementById('vgrid'+year+month);
   const viewedVideos = window._viewedCache || [];
-  const batchIds = CACHE.enrollments.filter(e => e.status==='approved').map(e => e.batch_id);
+  const enrollments = CACHE.enrollments || [];
+  const batchIds = [...new Set(enrollments.filter(e => e.status==='approved' && !e.is_blocked).map(e => e.batch_id))];
   
-  loadRecordings(batchIds).then(recs => {
-    const filtered = recs.filter(r => String(r.year)===year && r.month===month && r.type===type);
+  loadRecordings(batchIds).then(allRecs => {
+    const allowedRecs = filterRecordingsByAccess(allRecs, enrollments);
+    const filtered = allowedRecs.filter(r => String(r.year)===year && normalizeMonthValue(r.month)===normalizeMonthValue(month) && r.type===type);
     grid.innerHTML = filtered.length === 0
       ? `<div style="grid-column:1/-1;text-align:center;padding:1.5rem;color:var(--muted2);font-size:.82rem">No ${type} classes for this month</div>`
       : filtered.map(r => recCard(r, viewedVideos)).join('');
@@ -3232,13 +3366,14 @@ async function renderATeachers(){
   ${teachers.map(t=>{
     const myBatches = CACHE.batches.filter(b=>b.teacher_id===t.id);
     const subNames = [...new Set(myBatches.map(b=>CACHE.subjects.find(x=>x.id===b.subject_id)?.name))].filter(Boolean);
+    const subjectText = subNames.join(', ') || t.grade_subject || 'No subjects';
     return `
     <div class="card" style="margin-bottom:.75rem"><div class="card-body">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
         <div style="flex:1;min-width:200px">
           <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
             <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent4));display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0">${(t.name||'T').charAt(0)}</div>
-            <div><div style="font-weight:700;font-size:.92rem">${t.name||'—'}</div><div style="font-size:.72rem;color:var(--muted2)">${t.email||''} · ${subNames.join(', ')||'No subjects'}</div></div>
+            <div><div style="font-weight:700;font-size:.92rem">${t.name||'—'}</div><div style="font-size:.72rem;color:var(--muted2)">${t.email||''} · ${subjectText}</div></div>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.2rem .75rem;font-size:.76rem">
             <div><span style="color:var(--muted2)">📱 WhatsApp: </span>${t.whatsapp||'—'}</div>
