@@ -383,35 +383,93 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
     <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
     <div class="modal-title">Create Account 🚀</div>
     <div id="regAlert"></div>
+    
+    <!-- ROLE SELECTION -->
+    <div style="font-size:.8rem;font-weight:700;color:var(--accent);margin-bottom:.75rem;letter-spacing:.5px">SELECT ACCOUNT TYPE</div>
+    <div style="display:flex;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div class="role-select-card selected" onclick="selectRegRole('student',this)" data-role="student" style="flex:1;min-width:120px;background:rgba(79,142,247,.1);border:2px solid var(--accent);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">🎓</div>
+        <div style="font-weight:700;font-size:.85rem">Student</div>
+      </div>
+      <div class="role-select-card" onclick="selectRegRole('teacher',this)" data-role="teacher" style="flex:1;min-width:120px;background:var(--surface2);border:2px solid var(--border2);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">👨‍🏫</div>
+        <div style="font-weight:700;font-size:.85rem">Teacher</div>
+      </div>
+      <div class="role-select-card" onclick="selectRegRole('admin',this)" data-role="admin" style="flex:1;min-width:120px;background:var(--surface2);border:2px solid var(--border2);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;transition:all .2s">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">🛡️</div>
+        <div style="font-weight:700;font-size:.85rem">Admin</div>
+      </div>
+    </div>
+
+    <!-- COMMON FIELDS -->
     <div style="font-size:.8rem;font-weight:700;color:var(--accent);margin-bottom:.75rem;letter-spacing:.5px">PERSONAL INFORMATION</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Full Name *</label><input class="form-input" id="rg_name" placeholder="Your full name"/></div>
-      <div class="form-group"><label class="form-label">WhatsApp Number *</label><input class="form-input" id="rg_wa" placeholder="07XXXXXXXX" type="tel"/></div>
-    </div>
-    <div class="form-row">
       <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="rg_email" type="email" placeholder="email@example.com"/></div>
+    </div>
+    <div class="form-row">
       <div class="form-group"><label class="form-label">Password *</label><input class="form-input" type="password" id="rg_pass" placeholder="Min 6 characters"/></div>
+      <div class="form-group"><label class="form-label">NIC / ID Number *</label><input class="form-input" id="rg_nic" placeholder="XXXXXXXXV or XXXXXXXXXXXX"/></div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">NIC ID No *</label><input class="form-input" id="rg_nic" placeholder="XXXXXXXXV or XXXXXXXXXXXX"/></div>
-      <div class="form-group"><label class="form-label">Birthday *</label><input class="form-input" type="date" id="rg_dob"/></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">District *</label><select class="form-select" id="rg_district">
-        <option value="">-- Select District --</option>
-        <option>Colombo</option><option>Gampaha</option><option>Kalutara</option><option>Kandy</option><option>Matale</option><option>Nuwara Eliya</option><option>Galle</option><option>Matara</option><option>Hambantota</option><option>Jaffna</option><option>Kilinochchi</option><option>Mannar</option><option>Vavuniya</option><option>Mullaitivu</option><option>Trincomalee</option><option>Batticaloa</option><option>Ampara</option><option>Kurunegala</option><option>Puttalam</option><option>Anuradhapura</option><option>Polonnaruwa</option><option>Badulla</option><option>Monaragala</option><option>Ratnapura</option><option>Kegalle</option>
+
+    <!-- STUDENT FIELDS -->
+    <div id="studentFields">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">WhatsApp Number *</label><input class="form-input" id="rg_wa" placeholder="07XXXXXXXX" type="tel"/></div>
+        <div class="form-group"><label class="form-label">Birthday *</label><input class="form-input" type="date" id="rg_dob"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">District *</label><select class="form-select" id="rg_district">
+          <option value="">-- Select District --</option>
+          <option>Colombo</option><option>Gampaha</option><option>Kalutara</option><option>Kandy</option><option>Matale</option><option>Nuwara Eliya</option><option>Galle</option><option>Matara</option><option>Hambantota</option><option>Jaffna</option><option>Kilinochchi</option><option>Mannar</option><option>Vavuniya</option><option>Mullaitivu</option><option>Trincomalee</option><option>Batticaloa</option><option>Ampara</option><option>Kurunegala</option><option>Puttalam</option><option>Anuradhapura</option><option>Polonnaruwa</option><option>Badulla</option><option>Monaragala</option><option>Ratnapura</option><option>Kegalle</option>
+        </select></div>
+        <div class="form-group"><label class="form-label">City *</label><input class="form-input" id="rg_city" placeholder="Your city"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Address *</label><input class="form-input" id="rg_addr" placeholder="Street address"/></div>
+      <div class="form-group"><label class="form-label">Stream *</label><select class="form-select" id="rg_stream">
+        <option value="">-- Select Stream --</option>
+        <option value="Art">Art</option><option value="Tech">Technology</option><option value="Commerce">Commerce</option><option value="Science">Science</option>
       </select></div>
-      <div class="form-group"><label class="form-label">City *</label><input class="form-input" id="rg_city" placeholder="Your city"/></div>
+      <hr/>
+      <div style="font-size:.8rem;font-weight:700;color:var(--accent);margin-bottom:.75rem;letter-spacing:.5px">SUBJECT & BATCH SELECTION</div>
+      <p style="font-size:.76rem;color:var(--muted2);margin-bottom:.75rem">Select one or more subjects and choose your batch for each.</p>
+      <div id="subjectMultiSelect" class="subject-multi-grid"></div>
     </div>
-    <div class="form-group"><label class="form-label">Address *</label><input class="form-input" id="rg_addr" placeholder="Street address"/></div>
-    <div class="form-group"><label class="form-label">Stream *</label><select class="form-select" id="rg_stream">
-      <option value="">-- Select Stream --</option>
-      <option value="Art">Art</option><option value="Tech">Technology</option><option value="Commerce">Commerce</option><option value="Science">Science</option>
-    </select></div>
-    <hr/>
-    <div style="font-size:.8rem;font-weight:700;color:var(--accent);margin-bottom:.75rem;letter-spacing:.5px">SUBJECT & BATCH SELECTION</div>
-    <p style="font-size:.76rem;color:var(--muted2);margin-bottom:.75rem">Select one or more subjects and choose your batch for each.</p>
-    <div id="subjectMultiSelect" class="subject-multi-grid"></div>
+
+    <!-- TEACHER FIELDS -->
+    <div id="teacherFields" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">District *</label><select class="form-select" id="rg_t_district">
+          <option value="">-- Select District --</option>
+          <option>Colombo</option><option>Gampaha</option><option>Kalutara</option><option>Kandy</option><option>Matale</option><option>Nuwara Eliya</option><option>Galle</option><option>Matara</option><option>Hambantota</option><option>Jaffna</option><option>Kilinochchi</option><option>Mannar</option><option>Vavuniya</option><option>Mullaitivu</option><option>Trincomalee</option><option>Batticaloa</option><option>Ampara</option><option>Kurunegala</option><option>Puttalam</option><option>Anuradhapura</option><option>Polonnaruwa</option><option>Badulla</option><option>Monaragala</option><option>Ratnapura</option><option>Kegalle</option>
+        </select></div>
+        <div class="form-group"><label class="form-label">Class Grade & Subject/Course *</label><input class="form-input" id="rg_t_grade_subject" placeholder="e.g. A/L Korean, O/L Media"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">WhatsApp Number *</label><input class="form-input" id="rg_t_wa" placeholder="07XXXXXXXX" type="tel"/></div>
+        <div class="form-group"><label class="form-label">Telegram Number</label><input class="form-input" id="rg_t_telegram" placeholder="07XXXXXXXX" type="tel"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Call Number *</label><input class="form-input" id="rg_t_call" placeholder="07XXXXXXXX" type="tel"/></div>
+        <div class="form-group"><label class="form-label">Experience *</label><input class="form-input" id="rg_t_experience" placeholder="e.g. 5 years teaching Korean"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Bank Details *</label><textarea class="form-input form-textarea" id="rg_t_bank" placeholder="Bank Name, Account No, Branch, Account Holder Name"></textarea></div>
+      <div class="form-group"><label class="form-label">Other Notes</label><textarea class="form-input form-textarea" id="rg_t_notes" placeholder="Any additional information"></textarea></div>
+    </div>
+
+    <!-- ADMIN FIELDS -->
+    <div id="adminFields" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Contact Number *</label><input class="form-input" id="rg_a_number" placeholder="07XXXXXXXX" type="tel"/></div>
+        <div class="form-group"><label class="form-label">District *</label><select class="form-select" id="rg_a_district">
+          <option value="">-- Select District --</option>
+          <option>Colombo</option><option>Gampaha</option><option>Kalutara</option><option>Kandy</option><option>Matale</option><option>Nuwara Eliya</option><option>Galle</option><option>Matara</option><option>Hambantota</option><option>Jaffna</option><option>Kilinochchi</option><option>Mannar</option><option>Vavuniya</option><option>Mullaitivu</option><option>Trincomalee</option><option>Batticaloa</option><option>Ampara</option><option>Kurunegala</option><option>Puttalam</option><option>Anuradhapura</option><option>Polonnaruwa</option><option>Badulla</option><option>Monaragala</option><option>Ratnapura</option><option>Kegalle</option>
+        </select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Bank Details *</label><textarea class="form-input form-textarea" id="rg_a_bank" placeholder="Bank Name, Account No, Branch, Account Holder Name"></textarea></div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input form-textarea" id="rg_a_notes" placeholder="Any additional information"></textarea></div>
+    </div>
+
     <button class="btn btn-primary" style="width:100%;padding:.75rem;margin-top:1rem" id="regBtn" onclick="doRegister()">Create Account</button>
     <p style="text-align:center;margin-top:1rem;font-size:.8rem;color:var(--muted2)">Have account? <span class="link" onclick="switchModal('registerModal','loginModal')">Sign In</span></p>
   </div>
@@ -697,12 +755,19 @@ const sb = createClient(SUPABASE_URL, SUPA_ANON);
 // SETUP SQL (for reference / copy)
 // ============================================================
 const SETUP_SQL = `-- Run this in Supabase SQL Editor
--- 1. profiles table
+-- 1. profiles table (supports student, teacher, admin roles)
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   name text, email text, role text default 'student',
   whatsapp text, nic text, dob date, district text,
   city text, address text, stream text,
+  -- Teacher specific fields
+  grade_subject text,
+  telegram text,
+  call_number text,
+  bank_details text,
+  experience text,
+  other_notes text,
   created_at timestamptz default now()
 );
 
@@ -1240,39 +1305,72 @@ async function doLogin(){
   setBtn('loginBtn', 'Sign In', false);
 }
 
+// Role selection for registration
+let selectedRegRole = 'student';
+function selectRegRole(role, el){
+  selectedRegRole = role;
+  document.querySelectorAll('.role-select-card').forEach(c => {
+    c.style.background = 'var(--surface2)';
+    c.style.borderColor = 'var(--border2)';
+  });
+  el.style.background = 'rgba(79,142,247,.1)';
+  el.style.borderColor = 'var(--accent)';
+  
+  document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
+  document.getElementById('teacherFields').style.display = role === 'teacher' ? 'block' : 'none';
+  document.getElementById('adminFields').style.display = role === 'admin' ? 'block' : 'none';
+}
+
 async function doRegister(){
   const al = document.getElementById('regAlert');
-  const name = g('rg_name'), wa = g('rg_wa'), email = g('rg_email'), pass = g('rg_pass');
-  const nic = g('rg_nic'), dob = g('rg_dob'), district = g('rg_district');
-  const city = g('rg_city'), addr = g('rg_addr'), stream = g('rg_stream');
+  const name = g('rg_name'), email = g('rg_email'), pass = g('rg_pass');
+  const nic = g('rg_nic');
+  const role = selectedRegRole;
 
-  if(!name || !wa || !email || !pass || !nic || !dob || !district || !city || !addr || !stream){
-    al.innerHTML = '<div class="alert alert-error">Please fill in all required fields.</div>'; return;
+  if(!name || !email || !pass || !nic){
+    al.innerHTML = '<div class="alert alert-error">Please fill in all required fields (Name, Email, Password, NIC).</div>'; return;
   }
   if(pass.length < 6){ al.innerHTML = '<div class="alert alert-error">Password must be at least 6 characters.</div>'; return; }
 
-  const selectedEnrollments = [];
-  document.querySelectorAll('.subject-check-item.selected').forEach(item => {
-    const subjectId = item.dataset.subjectId;
-    const batchSel = item.querySelector('.batch-select');
-    if(batchSel && batchSel.value){
-      selectedEnrollments.push({ subject_id: subjectId, batch_id: batchSel.value });
+  // Role-specific validation
+  if(role === 'student'){
+    const wa = g('rg_wa'), dob = g('rg_dob'), district = g('rg_district');
+    const city = g('rg_city'), addr = g('rg_addr'), stream = g('rg_stream');
+    if(!wa || !dob || !district || !city || !addr || !stream){
+      al.innerHTML = '<div class="alert alert-error">Please fill in all student fields.</div>'; return;
     }
-  });
-  if(selectedEnrollments.length === 0){
-    al.innerHTML = '<div class="alert alert-error">Please select at least one subject and batch.</div>'; return;
+    const selectedEnrollments = [];
+    document.querySelectorAll('.subject-check-item.selected').forEach(item => {
+      const subjectId = item.dataset.subjectId;
+      const batchSel = item.querySelector('.batch-select');
+      if(batchSel && batchSel.value){
+        selectedEnrollments.push({ subject_id: subjectId, batch_id: batchSel.value });
+      }
+    });
+    if(selectedEnrollments.length === 0){
+      al.innerHTML = '<div class="alert alert-error">Please select at least one subject and batch.</div>'; return;
+    }
+  } else if(role === 'teacher'){
+    const tDistrict = g('rg_t_district'), tGrade = g('rg_t_grade_subject');
+    const tWa = g('rg_t_wa'), tCall = g('rg_t_call'), tBank = g('rg_t_bank'), tExp = g('rg_t_experience');
+    if(!tDistrict || !tGrade || !tWa || !tCall || !tBank || !tExp){
+      al.innerHTML = '<div class="alert alert-error">Please fill in all teacher fields.</div>'; return;
+    }
+  } else if(role === 'admin'){
+    const aNumber = g('rg_a_number'), aDistrict = g('rg_a_district'), aBank = g('rg_a_bank');
+    if(!aNumber || !aDistrict || !aBank){
+      al.innerHTML = '<div class="alert alert-error">Please fill in all admin fields.</div>'; return;
+    }
   }
 
   setBtn('regBtn', '<span class="spinner"></span> Creating...', true);
 
   try {
-    // FIX: signUp with emailRedirectTo disabled behavior — use options to skip confirmation
     const { data: authData, error: authError } = await sb.auth.signUp({
       email,
       password: pass,
       options: {
-        data: { name, role: 'student' },
-        // emailRedirectTo: window.location.origin  // uncomment if you want email confirm
+        data: { name, role },
       }
     });
 
@@ -1281,13 +1379,39 @@ async function doRegister(){
     const userId = authData.user?.id;
     if(!userId) throw new Error('No user ID returned. Check Supabase Auth settings.');
 
-    // FIX: If email confirmation is required, session will be null
-    // We insert the profile regardless using the user ID
-    const profileData = {
-      id: userId, name, email, role: 'student',
-      whatsapp: wa, nic, dob, district, city, address: addr, stream,
+    // Build profile data based on role
+    let profileData = {
+      id: userId, name, email, role, nic,
       created_at: new Date().toISOString()
     };
+
+    if(role === 'student'){
+      profileData = {
+        ...profileData,
+        whatsapp: g('rg_wa'), dob: g('rg_dob'), district: g('rg_district'),
+        city: g('rg_city'), address: g('rg_addr'), stream: g('rg_stream'),
+      };
+    } else if(role === 'teacher'){
+      profileData = {
+        ...profileData,
+        district: g('rg_t_district'),
+        grade_subject: g('rg_t_grade_subject'),
+        whatsapp: g('rg_t_wa'),
+        telegram: g('rg_t_telegram'),
+        call_number: g('rg_t_call'),
+        bank_details: g('rg_t_bank'),
+        experience: g('rg_t_experience'),
+        other_notes: g('rg_t_notes'),
+      };
+    } else if(role === 'admin'){
+      profileData = {
+        ...profileData,
+        whatsapp: g('rg_a_number'),
+        district: g('rg_a_district'),
+        bank_details: g('rg_a_bank'),
+        other_notes: g('rg_a_notes'),
+      };
+    }
 
     const { error: profileError } = await sb.from('profiles').upsert(profileData);
     if(profileError){
@@ -1295,32 +1419,44 @@ async function doRegister(){
       throw new Error('Profile creation failed: ' + profileError.message);
     }
 
-// Insert enrollments - Auto-approved (no teacher approval needed)
-    for(const enr of selectedEnrollments){
-      const { error: enrErr } = await sb.from('student_enrollments').insert({
-        student_id: userId,
-        subject_id: enr.subject_id,
-        batch_id: enr.batch_id,
-        status: 'approved',
-        is_blocked: false,
-        access_rules: {},
-        created_at: new Date().toISOString()
+    // Insert enrollments for students only — status is PENDING (teacher must approve)
+    if(role === 'student'){
+      const selectedEnrollments = [];
+      document.querySelectorAll('.subject-check-item.selected').forEach(item => {
+        const subjectId = item.dataset.subjectId;
+        const batchSel = item.querySelector('.batch-select');
+        if(batchSel && batchSel.value){
+          selectedEnrollments.push({ subject_id: subjectId, batch_id: batchSel.value });
+        }
       });
-      if(enrErr) console.error('Enrollment insert error:', enrErr);
+      for(const enr of selectedEnrollments){
+        const { error: enrErr } = await sb.from('student_enrollments').insert({
+          student_id: userId,
+          subject_id: enr.subject_id,
+          batch_id: enr.batch_id,
+          status: 'pending',
+          is_blocked: false,
+          access_rules: {},
+          created_at: new Date().toISOString()
+        });
+        if(enrErr) console.error('Enrollment insert error:', enrErr);
+      }
     }
 
-    // FIX: Check if session exists (no email confirmation) or not
+    // Check if session exists
     if(authData.session){
-      // Auto-login: session exists, email confirmation is disabled
       CU_AUTH = authData.user;
       CU = { ...profileData, completedQuizzes: {} };
       al.innerHTML = '';
       closeModal('registerModal');
       await loadStaticData();
       await routeUser(CU);
-      toast('Welcome to NovaX Edu! 🎉 You now have full access.', 'success');
+      if(role === 'student'){
+        toast('Welcome! Your enrollment is pending teacher approval. ⏳', 'success');
+      } else {
+        toast('Account created successfully! 🎉', 'success');
+      }
     } else {
-      // Email confirmation required
       al.innerHTML = '';
       closeModal('registerModal');
       toast('✉️ Registration successful! Check your email to confirm, then log in.', 'success');
@@ -1490,8 +1626,22 @@ async function renderStudentSec(sec){
   const el = document.getElementById('sContent');
   el.innerHTML = '<div class="loading-overlay"><div class="spinner"></div>Loading...</div>';
   const enrollments = await loadMyEnrollments();
-  const approvedEnrollments = enrollments.filter(e => e.status === 'approved');
+  
+  // FIX: Check if student is blocked in any enrollment
+  const blockedEnrollments = enrollments.filter(e => e.is_blocked === true);
+  const approvedEnrollments = enrollments.filter(e => e.status === 'approved' && !e.is_blocked);
   const batchIds = approvedEnrollments.map(e => e.batch_id);
+
+  // If ALL enrollments are blocked, show blocked message
+  if(enrollments.length > 0 && blockedEnrollments.length === enrollments.length){
+    el.innerHTML = `
+      <div style="text-align:center;padding:4rem 1rem">
+        <div style="font-size:4rem;margin-bottom:1rem">🚫</div>
+        <div style="font-size:1.5rem;font-weight:800;margin-bottom:.5rem;color:var(--accent2)">Account Blocked</div>
+        <div style="font-size:.9rem;color:var(--muted2);max-width:400px;margin:0 auto">Your access has been blocked by your teacher. Please contact support for more information.</div>
+      </div>`;
+    return;
+  }
 
   const renders = {
     dashboard: () => renderSDashboard(enrollments, batchIds),
@@ -1513,9 +1663,10 @@ async function renderStudentSec(sec){
 }
 
 async function renderSDashboard(enrollments, batchIds){
-  const approved = enrollments.filter(e => e.status === 'approved');
+  const approved = enrollments.filter(e => e.status === 'approved' && !e.is_blocked);
   const pending = enrollments.filter(e => e.status === 'pending');
   const rejected = enrollments.filter(e => e.status === 'rejected');
+  const blocked = enrollments.filter(e => e.is_blocked);
   const viewedVideos = await loadVideoViews();
   const completedQuizzes = await loadQuizResults();
   CU.completedQuizzes = completedQuizzes;
@@ -1527,8 +1678,9 @@ async function renderSDashboard(enrollments, batchIds){
   <div class="sec-tag">// Dashboard</div>
   <div style="font-size:1.2rem;font-weight:800;letter-spacing:-.5px;margin-bottom:1.25rem">Good day, ${(CU.name||'Student').split(' ')[0]}! 👋</div>
   
-  ${pending.length ? `<div class="alert alert-info">ℹ️ You have ${pending.length} enrollment(s) being processed.</div>` : ''}
+  ${pending.length ? `<div class="alert alert-info">ℹ️ You have ${pending.length} enrollment(s) pending teacher approval.</div>` : ''}
   ${rejected.length ? `<div class="alert alert-error">❌ ${rejected.length} enrollment(s) were rejected. Contact support for more info.</div>` : ''}
+  ${blocked.length ? `<div class="alert alert-error">🚫 ${blocked.length} enrollment(s) have been blocked by your teacher.</div>` : ''}
   ${enrollments.length === 0 ? `<div class="alert alert-info">You have no enrollments yet. Contact your teacher or re-register to enroll in a subject.</div>` : ''}
   
   ${enrollments.length > 0 ? `
