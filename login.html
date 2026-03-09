@@ -274,7 +274,7 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
 .access-grid{display:grid;gap:.4rem}
 .access-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem .9rem;background:var(--surface2);border-radius:8px;font-size:.82rem;gap:.5rem;flex-wrap:wrap}
 
-.mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:.5rem 0;z-index:250;grid-template-columns:repeat(8,1fr)}
+.mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:.5rem 0;z-index:250;grid-template-columns:repeat(5,1fr)}
 .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.4rem .2rem;cursor:pointer;font-size:.52rem;color:var(--muted2);transition:color .2s;border:none;background:none;font-family:inherit}
 .mobile-nav-item.active{color:var(--accent)}
 .mobile-nav-item .mni{font-size:1.1rem}
@@ -670,6 +670,7 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
       <button class="sidebar-item" onclick="sNav('notes',this)"><span class="icon">📄</span>Notes</button>
       <button class="sidebar-item" onclick="sNav('quiz',this)"><span class="icon">🧠</span>Quizzes</button>
       <button class="sidebar-item" onclick="sNav('payments',this)"><span class="icon">💳</span>Payments</button>
+      <button class="sidebar-item" onclick="sNav('activity',this)"><span class="icon">📋</span>Activity Log</button>
       <button class="sidebar-item" onclick="sNav('support',this)"><span class="icon">🎧</span>Support</button>
       <button class="sidebar-item" onclick="sNav('profile',this)"><span class="icon">👤</span>My Profile</button>
     </div>
@@ -677,12 +678,9 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
   </div>
   <nav class="mobile-bottom-nav" id="mobileBottomNav">
     <button class="mobile-nav-item active" onclick="sNav('dashboard',this,true)" data-s="dashboard"><span class="mni">🏠</span>Home</button>
-    <button class="mobile-nav-item" onclick="sNav('live',this,true)" data-s="live"><span class="mni">📡</span>Live</button>
     <button class="mobile-nav-item" onclick="sNav('recordings',this,true)" data-s="recordings"><span class="mni">🎬</span>Videos</button>
-    <button class="mobile-nav-item" onclick="sNav('notes',this,true)" data-s="notes"><span class="mni">📄</span>Notes</button>
     <button class="mobile-nav-item" onclick="sNav('quiz',this,true)" data-s="quiz"><span class="mni">🧠</span>Quiz</button>
-    <button class="mobile-nav-item" onclick="sNav('payments',this,true)" data-s="payments"><span class="mni">💳</span>Pay</button>
-    <button class="mobile-nav-item" onclick="sNav('support',this,true)" data-s="support"><span class="mni">🎧</span>Help</button>
+    <button class="mobile-nav-item" onclick="sNav('activity',this,true)" data-s="activity"><span class="mni">📋</span>Log</button>
     <button class="mobile-nav-item" onclick="sNav('profile',this,true)" data-s="profile"><span class="mni">👤</span>Me</button>
   </nav>
 </div>
@@ -741,6 +739,7 @@ hr{border:none;border-top:1px solid var(--border);margin:1.25rem 0}
     <div class="sidebar" id="adminSidebar">
       <div class="sidebar-section">Admin Panel</div>
       <button class="sidebar-item active" onclick="aNav('dashboard',this)"><span class="icon">📊</span>Dashboard</button>
+      <button class="sidebar-item" onclick="aNav('teacherApprovals',this)"><span class="icon">⏳</span>Teacher Approvals <span class="sidebar-badge" id="teacherPendingBadge">0</span></button>
       <button class="sidebar-item" onclick="aNav('students',this)"><span class="icon">👥</span>Students</button>
       <button class="sidebar-item" onclick="aNav('teachers',this)"><span class="icon">🎓</span>Teachers</button>
       <button class="sidebar-item" onclick="aNav('subjects',this)"><span class="icon">📖</span>Subjects</button>
@@ -993,9 +992,12 @@ function getApprovedEnrollmentMap(enrollments){
 }
 
 function canAccessRecording(rec, enrollments){
+  // Free content is always accessible
+  if(rec.is_free) return true;
   const enrollment = getApprovedEnrollmentMap(enrollments).get(rec.batch_id);
   if(!enrollment) return false;
   const rules = safeParseJsonObject(enrollment.access_rules);
+  if(Object.keys(rules).length === 0) return true; // No rules = full access
   const key = `${rec.year}_${normalizeMonthValue(rec.month)}_${rec.type || 'theory'}`;
   return rules[key] !== false;
 }
@@ -1003,9 +1005,12 @@ function canAccessRecording(rec, enrollments){
 function filterRecordingsByAccess(recs, enrollments){
   const enrollmentMap = getApprovedEnrollmentMap(enrollments);
   return (recs || []).filter(rec => {
+    // Free content is always accessible to any logged-in user
+    if(rec.is_free) return true;
     const enrollment = enrollmentMap.get(rec.batch_id);
     if(!enrollment) return false;
     const rules = safeParseJsonObject(enrollment.access_rules);
+    if(Object.keys(rules).length === 0) return true; // No rules = full access
     const key = `${rec.year}_${normalizeMonthValue(rec.month)}_${rec.type || 'theory'}`;
     return rules[key] !== false;
   });
@@ -1088,23 +1093,43 @@ function closeSidebar(){
 }
 
 // ============================================================
-// ACTIVITY LOG (in-memory + localStorage)
+// ACTIVITY LOG (Supabase DB + localStorage fallback)
 // ============================================================
 const ACTIVITY_LOG_KEY = 'novax_activity_log';
-function getActivityLog(){
+let _activityLogCache = null;
+
+async function getActivityLog(){
+  try {
+    const { data, error } = await sb.from('activity_log').select('*').order('timestamp', { ascending: false }).limit(500);
+    if(!error && data) return data;
+  } catch(e){}
+  // Fallback to localStorage
   try { return JSON.parse(localStorage.getItem(ACTIVITY_LOG_KEY) || '[]'); } catch(e){ return []; }
 }
-function logActivity(action, details='', type='info'){
-  const log = getActivityLog();
-  log.unshift({
+
+function getActivityLogSync(){
+  if(_activityLogCache) return _activityLogCache;
+  try { return JSON.parse(localStorage.getItem(ACTIVITY_LOG_KEY) || '[]'); } catch(e){ return []; }
+}
+
+async function logActivity(action, details='', type='info'){
+  const entry = {
     action, details, type,
-    user: CU?.name || 'System',
+    user_name: CU?.name || 'System',
     role: CU?.role || 'unknown',
-    userId: CU?.id || '',
+    user_id: CU?.id || null,
     timestamp: new Date().toISOString(),
     ip: window._clientIP || 'unknown'
-  });
-  // Keep last 500 entries
+  };
+  // Save to Supabase
+  try {
+    await sb.from('activity_log').insert(entry);
+  } catch(e){
+    console.warn('Activity log DB save failed, using localStorage:', e);
+  }
+  // Also save to localStorage as fallback
+  const log = getActivityLogSync();
+  log.unshift({...entry, user: entry.user_name, userId: entry.user_id});
   if(log.length > 500) log.length = 500;
   localStorage.setItem(ACTIVITY_LOG_KEY, JSON.stringify(log));
 }
@@ -1423,6 +1448,7 @@ async function markVideoViewed(recId){
       recording_id: recId,
       viewed_at: new Date().toISOString()
     }, { onConflict: 'student_id,recording_id' });
+    logActivity('🎬 Video watched', `Recording: ${recId}`, 'access');
   } catch(e) {}
 }
 
@@ -1657,6 +1683,11 @@ async function doRegister(){
         city: g('rg_city'), address: g('rg_addr'), stream: g('rg_stream'),
       };
     } else if(role === 'teacher'){
+      const teacherNotes = g('rg_t_notes') || '';
+      // Store is_approved=false in other_notes for admin approval
+      let notesObj = {};
+      try { if(teacherNotes) notesObj = { custom_notes: teacherNotes }; } catch(e){}
+      notesObj.is_approved = false;
       profileData = {
         ...profileData,
         district: g('rg_t_district'),
@@ -1666,7 +1697,7 @@ async function doRegister(){
         call_number: g('rg_t_call'),
         bank_details: g('rg_t_bank'),
         experience: g('rg_t_experience'),
-        other_notes: g('rg_t_notes'),
+        other_notes: JSON.stringify(notesObj),
       };
     } else if(role === 'admin'){
       profileData = {
@@ -1734,6 +1765,21 @@ async function doLogout(){
 async function routeUser(u){
   if(u.role === 'admin'){ showPage('adminPage'); await aNav('dashboard'); }
   else if(u.role === 'teacher'){
+    // Check if teacher is approved
+    let isApproved = true;
+    try {
+      const meta = JSON.parse(u.other_notes || '{}');
+      if(meta.is_approved === false) isApproved = false;
+    } catch(e){}
+    
+    if(!isApproved){
+      showPage('landingPage');
+      toast('⏳ Your teacher account is pending admin approval. Please wait.', 'warning');
+      try { await sb.auth.signOut(); } catch(e){}
+      CU = null; CU_AUTH = null;
+      return;
+    }
+    
     showPage('teacherPage');
     const el = document.getElementById('tName'); el.textContent = u.name; el.style.display = 'block';
     await tNav('dashboard');
@@ -1864,7 +1910,7 @@ function sNav(sec, el, isMobile){
     document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
     if(el) el.classList.add('active');
     document.querySelectorAll('#studentSidebar .sidebar-item').forEach((b,i) => {
-      const secs = ['dashboard','live','recordings','notes','quiz','payments','support','profile'];
+      const secs = ['dashboard','live','recordings','notes','quiz','payments','activity','support','profile'];
       b.classList.toggle('active', secs[i] === sec);
     });
   } else {
@@ -1904,6 +1950,7 @@ async function renderStudentSec(sec){
     notes: () => renderSNotes(batchIds, enrollments),
     quiz: () => renderSQuizList(batchIds, enrollments),
     payments: renderSPayments,
+    activity: () => renderStudentActivityLog(),
     support: renderSSupport,
     profile: () => renderSProfile(enrollments),
   };
@@ -2003,8 +2050,19 @@ async function renderSLive(batchIds){
 }
 
 async function renderSRecordings(batchIds, enrollments){
-  if(!batchIds.length) return `<div class="empty"><div class="ei">🎬</div><p>No approved enrollments yet.</p></div>`;
-  const allRecs = await loadRecordings(batchIds);
+  // Load recordings from enrolled batches
+  let allRecs = batchIds.length ? await loadRecordings(batchIds) : [];
+  
+  // Also load ALL free recordings from all batches so free content is always visible
+  try {
+    const { data: freeRecs } = await sb.from('recordings').select('*').eq('is_free', true).order('year', { ascending: false }).order('month', { ascending: false });
+    if(freeRecs){
+      const existingIds = new Set(allRecs.map(r => r.id));
+      freeRecs.forEach(r => { if(!existingIds.has(r.id)) allRecs.push(r); });
+    }
+  } catch(e){}
+  
+  if(!allRecs.length) return `<div class="empty"><div class="ei">🎬</div><p>No recordings available yet.</p></div>`;
   const recs = filterRecordingsByAccess(allRecs, enrollments);
   const viewedVideos = await loadVideoViews();
   window._viewedCache = viewedVideos;
@@ -2131,8 +2189,16 @@ function openVideoModal(recId, metaEncoded){
 function closeYtModal(){ document.getElementById('ytFrame').src = ''; closeModal('ytModal'); }
 
 async function renderSNotes(batchIds, enrollments){
-  if(!batchIds.length) return `<div class="empty"><div class="ei">📄</div><p>No approved enrollments yet.</p></div>`;
-  const notes = await loadNotes(batchIds);
+  // Load notes from enrolled batches
+  let notes = batchIds.length ? await loadNotes(batchIds) : [];
+  // Also load ALL free notes
+  try {
+    const { data: freeNotes } = await sb.from('notes').select('*').eq('is_free', true);
+    if(freeNotes){
+      const existingIds = new Set(notes.map(n => n.id));
+      freeNotes.forEach(n => { if(!existingIds.has(n.id)) notes.push(n); });
+    }
+  } catch(e){}
   return `
   <div class="sec-tag">// Notes</div>
   <div class="sec-title" style="margin-bottom:1.25rem">Notes & Resources</div>
@@ -3038,8 +3104,8 @@ function selectYearChecks(year, checked){
 // ============================================================
 // ACTIVITY LOG RENDER
 // ============================================================
-function renderActivityLog(){
-  const log = getActivityLog();
+async function renderActivityLog(){
+  const log = await getActivityLog();
   return `
   <div class="sec-tag">// Activity Log</div>
   <div class="sec-header">
@@ -3052,13 +3118,14 @@ function renderActivityLog(){
       const date = new Date(entry.timestamp);
       const timeStr = date.toLocaleDateString('en-LK') + ' ' + date.toLocaleTimeString('en-LK',{hour:'2-digit',minute:'2-digit'});
       const dotClass = entry.type || 'info';
+      const userName = entry.user_name || entry.user || 'Unknown';
       return `<div class="activity-log-item">
         <div class="activity-dot ${dotClass}"></div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:.84rem">${entry.action}</div>
           <div style="font-size:.74rem;color:var(--muted2);margin-top:.15rem">${entry.details}</div>
           <div style="font-size:.68rem;color:var(--muted);margin-top:.2rem;display:flex;gap:.6rem;flex-wrap:wrap">
-            <span>👤 ${entry.user}</span>
+            <span>👤 ${userName}</span>
             <span>🏷 ${entry.role}</span>
             <span>🕐 ${timeStr}</span>
             ${entry.ip && entry.ip !== 'unknown' ? `<span>🌐 ${entry.ip}</span>` : ''}
@@ -3069,8 +3136,38 @@ function renderActivityLog(){
   </div></div>`;
 }
 
+async function renderStudentActivityLog(){
+  // Show only this student's activity
+  let log = [];
+  try {
+    const { data } = await sb.from('activity_log').select('*').eq('user_id', CU.id).order('timestamp', { ascending: false }).limit(200);
+    log = data || [];
+  } catch(e){
+    log = getActivityLogSync().filter(e => e.userId === CU.id || e.user_id === CU.id);
+  }
+  return `
+  <div class="sec-tag">// My Activity</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">My Activity Log (${log.length})</div>
+  ${!log.length ? '<div class="empty"><div class="ei">📋</div><p>No activity recorded yet.</p></div>' : ''}
+  <div class="card"><div style="max-height:600px;overflow-y:auto">
+    ${log.slice(0,100).map(entry => {
+      const date = new Date(entry.timestamp);
+      const timeStr = date.toLocaleDateString('en-LK') + ' ' + date.toLocaleTimeString('en-LK',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="activity-log-item">
+        <div class="activity-dot ${entry.type||'info'}"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.84rem">${entry.action}</div>
+          <div style="font-size:.74rem;color:var(--muted2);margin-top:.15rem">${entry.details}</div>
+          <div style="font-size:.68rem;color:var(--muted);margin-top:.2rem">🕐 ${timeStr}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div></div>`;
+}
+
 function clearActivityLog(){
-  confirmDo('Clear all activity logs?', () => {
+  confirmDo('Clear all activity logs?', async () => {
+    try { await sb.from('activity_log').delete().neq('id', '00000000-0000-0000-0000-000000000000'); } catch(e){}
     localStorage.removeItem(ACTIVITY_LOG_KEY);
     toast('Activity log cleared','info');
     if(CU?.role === 'teacher') tNav('activity');
@@ -3118,7 +3215,7 @@ async function renderSessionsView(){
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:.35rem">
-            <button class="btn btn-danger btn-sm" onclick="forceLogout('${s.id}','${(s.name||'').replace(/'/g,"\\'")}')">🚫 Force Logout</button>
+            <button class="btn btn-danger btn-sm" onclick="forceLogout('${s.id}',decodeURIComponent('${encodeURIComponent(s.name||'')}'))">🚫 Force Logout</button>
           </div>
         </div>
       </div></div>`;
@@ -3150,7 +3247,7 @@ function aNavMobile(sec, el){
   document.querySelectorAll('#adminMobileNav .mobile-nav-item').forEach(b => b.classList.remove('active'));
   if(el) el.classList.add('active');
   document.querySelectorAll('#adminSidebar .sidebar-item').forEach((b,i) => {
-    const secs = ['dashboard','students','teachers','subjects','batches','content','reports','activity','sessions'];
+    const secs = ['dashboard','teacherApprovals','students','teachers','subjects','batches','content','reports','activity','sessions'];
     b.classList.toggle('active', secs[i] === sec);
   });
   aNav(sec);
@@ -3166,6 +3263,7 @@ async function aNav(sec, el){
 
   const renders = {
     dashboard: renderADashboard,
+    teacherApprovals: renderATeacherApprovals,
     students: renderAStudents,
     teachers: renderATeachers,
     subjects: renderASubjects,
@@ -3349,6 +3447,87 @@ async function aDeleteUser(id){
     } catch(e) { toast('Error deleting: '+e.message,'error'); }
     await aNav('students');
   });
+}
+
+// Teacher Approval System for Admin
+async function renderATeacherApprovals(){
+  let pendingTeachers = [];
+  try {
+    const { data } = await sb.from('profiles').select('*').eq('role', 'teacher').order('created_at', { ascending: false });
+    // Teachers that have no batches assigned are considered "pending approval"
+    const allTeachers = data || [];
+    // Check which teachers have is_approved field
+    pendingTeachers = allTeachers.filter(t => {
+      try {
+        const meta = JSON.parse(t.other_notes || '{}');
+        return meta.is_approved === false || meta.is_approved === undefined;
+      } catch(e){ return true; }
+    });
+  } catch(e){}
+
+  // Update badge
+  const badge = document.getElementById('teacherPendingBadge');
+  if(badge) badge.textContent = pendingTeachers.length;
+
+  return `
+  <div class="sec-tag">// Teacher Approvals</div>
+  <div class="sec-title" style="margin-bottom:1.25rem">Pending Teacher Approvals (${pendingTeachers.length})</div>
+  ${!pendingTeachers.length ? '<div class="empty"><div class="ei">✅</div><p>No pending teacher approvals.</p></div>' : ''}
+  ${pendingTeachers.map(t => `
+  <div class="card" style="margin-bottom:.75rem;border-left:3px solid var(--accent4)"><div class="card-body">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+          <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent4));display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0">${(t.name||'T').charAt(0)}</div>
+          <div>
+            <div style="font-weight:700;font-size:.92rem">${t.name||'—'} <span class="badge badge-pending">⏳ Pending</span></div>
+            <div style="font-size:.72rem;color:var(--muted2)">${t.email||''}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.2rem .75rem;font-size:.76rem">
+          <div><span style="color:var(--muted2)">📱 WhatsApp: </span>${t.whatsapp||'—'}</div>
+          <div><span style="color:var(--muted2)">📞 Call: </span>${t.call_number||'—'}</div>
+          <div><span style="color:var(--muted2)">🆔 NIC: </span>${t.nic||'—'}</div>
+          <div><span style="color:var(--muted2)">🏛️ District: </span>${t.district||'—'}</div>
+          <div><span style="color:var(--muted2)">📚 Subject: </span>${t.grade_subject||'—'}</div>
+          <div><span style="color:var(--muted2)">🎓 Experience: </span>${t.experience||'—'}</div>
+        </div>
+        ${t.bank_details ? `<div style="margin-top:.4rem;font-size:.74rem;color:var(--muted2)">🏦 Bank: ${t.bank_details.substring(0,80)}${t.bank_details.length>80?'...':''}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem;flex-shrink:0">
+        <button class="btn btn-success btn-sm" onclick="approveTeacher('${t.id}','${(t.name||'').replace(/'/g,"\\'")}')">✅ Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectTeacher('${t.id}','${(t.name||'').replace(/'/g,"\\'")}')">❌ Reject</button>
+      </div>
+    </div>
+  </div></div>`).join('')}`;
+}
+
+async function approveTeacher(teacherId, teacherName){
+  try {
+    const {data} = await sb.from('profiles').select('other_notes').eq('id',teacherId).single();
+    let meta = {};
+    try { meta = JSON.parse(data?.other_notes || '{}'); } catch(e){}
+    meta.is_approved = true;
+    meta.approved_at = new Date().toISOString();
+    meta.approved_by = CU?.name || 'Admin';
+    await sb.from('profiles').update({ other_notes: JSON.stringify(meta) }).eq('id',teacherId);
+    logActivity('✅ Teacher approved', `${teacherName} (${teacherId})`, 'approve');
+    toast(`${teacherName} approved! ✅`, 'success');
+    await loadTeachers();
+    await aNav('teacherApprovals');
+  } catch(e) { toast('Error: '+e.message, 'error'); }
+}
+
+async function rejectTeacher(teacherId, teacherName){
+  confirmDo(`Reject teacher ${teacherName}? This will delete their profile.`, async () => {
+    try {
+      await sb.from('profiles').delete().eq('id',teacherId);
+      logActivity('❌ Teacher rejected', `${teacherName} (${teacherId})`, 'block');
+      toast(`${teacherName} rejected`, 'info');
+      await loadTeachers();
+      await aNav('teacherApprovals');
+    } catch(e) { toast('Error: '+e.message, 'error'); }
+  }, 'Reject');
 }
 
 // FIX: Teachers management
