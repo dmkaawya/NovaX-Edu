@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Teachers - NovaX Edu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { display: ['Space Grotesk', 'sans-serif'], body: ['Inter', 'sans-serif'] } } }
+        }
+    </script>
+    <style>
+        :root { --bg: #faf9f7; --bg-alt: #f0efec; --fg: #1a1a1a; --fg-muted: #6b6b6b; --accent: #e85d04; --accent-light: #f48c06; --primary: #0077b6; --primary-dark: #023e8a; --card: #ffffff; --border: #e5e5e5; --glow: rgba(232, 93, 4, 0.15); }
+        .dark { --bg: #0a0a0b; --bg-alt: #141416; --fg: #f5f5f5; --fg-muted: #a0a0a0; --accent: #f48c06; --accent-light: #ffaa33; --primary: #00b4d8; --primary-dark: #0077b6; --card: #1a1a1c; --border: #2a2a2e; --glow: rgba(244, 140, 6, 0.2); }
+        * { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--fg); overflow-x: hidden; }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .bg-pattern { background-image: radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 119, 182, 0.1) 0%, transparent 50%); }
+        .dark .bg-pattern { background-image: radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 180, 216, 0.1) 0%, transparent 50%); }
+        .grid-pattern { background-size: 60px 60px; background-image: linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px); opacity: 0.4; }
+        .floating-shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; animation: float 20s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(0, -50px) rotate(180deg); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.8s ease-out forwards; }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -15px var(--glow); }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; }
+        .nav-link { position: relative; }
+        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s ease; }
+        .nav-link:hover::after { width: 100%; }
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        .mobile-menu { transform: translateX(100%); transition: transform 0.3s ease; }
+        .mobile-menu.open { transform: translateX(0); }
+        .theme-toggle { width: 60px; height: 30px; border-radius: 15px; background: var(--bg-alt); border: 1px solid var(--border); position: relative; cursor: pointer; }
+        .theme-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); transition: transform 0.3s ease; }
+        .dark .theme-toggle::after { transform: translateX(30px); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="fixed inset-0 bg-pattern pointer-events-none z-0"></div>
+    <div class="fixed inset-0 grid-pattern pointer-events-none z-0"></div>
+    <div class="floating-shape w-96 h-96 bg-gradient-to-br from-orange-500/30 to-yellow-500/30 top-20 -left-48"></div>
+    <div class="floating-shape w-80 h-80 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 bottom-20 -right-40"></div>
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl" style="background: rgba(250, 249, 247, 0.8);">
+        <div class="absolute inset-0 border-b" style="border-color: var(--border);"></div>
+        <nav class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 lg:h-20">
+                <a href="index.html" class="flex items-center gap-2 group">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <span class="font-display font-bold text-xl" style="color: var(--fg);">NovaX <span style="color: var(--accent);">Edu</span></span>
+                </a>
+                <div class="hidden lg:flex items-center gap-8">
+                    <a href="index.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Home</a>
+                    <a href="about.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">About</a>
+                    <a href="course.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Courses</a>
+                    <a href="time.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Time Table</a>
+                    <a href="guru.html" class="nav-link font-medium text-sm" style="color: var(--fg);">Teachers</a>
+                    <a href="contact.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Contact Us</a>
+                    <a href="rules.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Terms</a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme"></button>
+                    <a href="login.html" class="hidden sm:inline-flex btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">Login</a>
+                    <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg" style="color: var(--fg);" aria-label="Menu">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 h-full w-72 z-50 lg:hidden" style="background: var(--card);">
+            <div class="p-6">
+                <button id="closeMobileMenu" class="absolute top-4 right-4 p-2" style="color: var(--fg);" aria-label="Close">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <div class="mt-12 flex flex-col gap-4">
+                    <a href="index.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Home</a>
+                    <a href="about.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">About</a>
+                    <a href="course.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Courses</a>
+                    <a href="time.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Time Table</a>
+                    <a href="guru.html" class="py-3 px-4 rounded-xl font-medium" style="background: var(--bg-alt); color: var(--fg);">Teachers</a>
+                    <a href="contact.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Contact Us</a>
+                    <a href="rules.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Terms</a>
+                    <a href="login.html" class="btn-primary py-3 px-4 rounded-xl font-semibold text-center text-white mt-4">Login</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative pt-32 pb-12 lg:pt-40 lg:pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium animate-slide-up opacity-0" style="background: var(--glow); color: var(--accent); animation-delay: 0.1s;">
+                    Expert Educators
+                </span>
+                <h1 class="font-display font-bold text-4xl sm:text-5xl lg:text-6xl mt-6 animate-slide-up opacity-0" style="color: var(--fg); animation-delay: 0.2s;">
+                    Meet Our <span style="color: var(--accent);">Teachers</span>
+                </h1>
+                <p class="mt-4 text-lg max-w-2xl mx-auto animate-slide-up opacity-0" style="color: var(--fg-muted); animation-delay: 0.3s;">
+                    Learn from the best educators in Sri Lanka with decades of experience and proven results.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Teachers Grid -->
+    <section class="py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Teacher 1 -->
+                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
+                    <div class="h-48 relative" style="background: linear-gradient(135deg, #0077b6, #00b4d8);">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-display font-semibold text-xl" style="color: var(--fg);">Mr. Nimal Perera</h3>
+                        <p class="text-sm mt-1" style="color: var(--accent);">Physics - A/L</p>
+                        <p class="text-sm mt-3" style="color: var(--fg-muted);">20+ years of teaching experience. Former university lecturer with a passion for making physics simple and engaging.</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex items-center gap-1">
+                                <svg class="w-4 h-4" style="color: var(--accent);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                <span class="text-sm font-medium" style="color: var(--fg);">4.9</span>
+                            </div>
+                            <div class="text-sm" style="color: var(--fg-muted);">500+ students</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher 2 -->
+                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
+                    <div class="h-48 relative" style="background: linear-gradient(135deg, #e85d04, #f48c06);">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-display font-semibold text-xl" style="color: var(--fg);">Mrs. Sandhya Fernando</h3>
+                        <p class="text-sm mt-1" style="color: var(--accent);">Chemistry - O/L & A/L</p>
+                        <p class="text-sm mt-3" style="color: var(--fg-muted);">Curriculum specialist with expertise in organic chemistry. Known for innovative teaching methods.</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex items-center gap-1">
+                                <svg class="w-4 h-4" style="color: var(--accent);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                <span class="text-sm font-medium" style="color: var(--fg);">4.8</span>
+                            </div>
+                            <div class="text-sm" style="color: var(--fg-muted);">650+ students</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher 3 -->
+                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
+                    <div class="h-48 relative" style="background: linear-gradient(135deg, #2d6a4f, #40916c);">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-display font-semibold text-xl" style="color: var(--fg);">Mr. Kasun Wickramasinghe</h3>
+                        <p class="text-sm mt-1" style="color: var(--accent);">Combined Mathematics - A/L</p>
+                        <p class="text-sm mt-3" style="color: var(--fg-muted);">Engineering graduate turned educator. Specializes in applied mathematics and problem-solving techniques.</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex items-center gap-1">
+                                <svg class="w-4 h-4" style="color: var(--accent);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                <span class="text-sm font-medium" style="color: var(--fg);">4.9</span>
+                            </div>
+                            <div class="text-sm" style="color: var(--fg-muted);">400+ students</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher 4 -->
+                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
+                    <div class="h-48 relative" style="background: linear-gradient(135deg, #7b2cbf, #c77dff);">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-display font-semibold text-xl" style="color: var(--fg);">Ms. Dilini Silva</h3>
+                        <p class="text-sm mt-1" style="color: var(--accent);">English - All Levels</p>
+                        <p class="text-sm mt-3" style="color: var(--fg-muted);">CELTA certified English instructor. Helps students improve communication skills and exam preparation.</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex items-center gap-1">
+                                <svg class="w-4 h-4" style="color: var(--accent);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                <span class="text-sm font-medium" style="color: var(--fg);">4.7</span>
+                            </div>
+                            <div class="text-sm" style="color: var(--fg-muted);">800+ students</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher 5 -->
+                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
+                    <div class="h-48 relative" style="background: linear-gradient(135deg, #d62828, #f77f00);">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-display font-semibold text-xl" style="color: var(--fg);">Dr. Chaminda Malli</h3>
+                        <p class="text-sm mt-1" style="color: var(--accent);">Biology - A/L</p>
+                        <p class="text-sm mt-3" style="color: var(--fg-muted);">PhD in Molecular Biology. Makes complex biological concepts easy to understand with visual learning.</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex items-center gap-1">
+                                <svg class="w-4 h-4" style="color: var(--accent);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                <span class="text-sm font-medium" style="color: var(--fg);">4.9</span>
+                            </div>
+                            <div class="text-sm" style="color: var(--fg-muted);">350+ students</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher 6 -->
+                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
+                    <div class="h-48 relative" style="background: linear-gradient(135deg, #1d3557, #457b9d);">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white/60" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-display font-semibold text-xl" style="color: var(--fg);">Mr. Pradeep Dissanayake</h3>
+                        <p class="text-sm mt-1" style="color: var(--accent);">ICT - A/L</p>
+                        <p class="text-sm mt-3" style="color: var(--fg-muted);">Software engineer with 15 years in the industry. Teaches programming and ICT with practical applications.</p>
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="flex items-center gap-1">
+                                <svg class="w-4 h-4" style="color: var(--accent);" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                <span class="text-sm font-medium" style="color: var(--fg);">4.8</span>
+                            </div>
+                            <div class="text-sm" style="color: var(--fg-muted);">450+ students</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-16 mt-12" style="background: var(--bg-alt);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="lg:col-span-1">
+                    <a href="index.html" class="flex items-center gap-2">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <span class="font-display font-bold text-xl" style="color: var(--fg);">NovaX <span style="color: var(--accent);">Edu</span></span>
+                    </a>
+                    <p class="mt-4 text-sm" style="color: var(--fg-muted);">Sri Lanka's leading online education platform.</p>
+                </div>
+                <div>
+                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="about.html" class="text-sm hover:underline" style="color: var(--fg-muted);">About Us</a></li>
+                        <li><a href="course.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Courses</a></li>
+                        <li><a href="guru.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Teachers</a></li>
+                        <li><a href="time.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Time Table</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Support</h4>
+                    <ul class="space-y-2">
+                        <li><a href="contact.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Contact Us</a></li>
+                        <li><a href="rules.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Contact Us</h4>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-2 text-sm" style="color: var(--fg-muted);"><svg class="w-4 h-4" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg> 0775048455</li>
+                        <li class="flex items-center gap-2 text-sm" style="color: var(--fg-muted);"><svg class="w-4 h-4" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg> 0762717144</li>
+                        <li class="flex items-center gap-2 text-sm" style="color: var(--fg-muted);"><svg class="w-4 h-4" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> nov.x.team001@gmail.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4" style="border-top: 1px solid var(--border);">
+                <p class="text-sm" style="color: var(--fg-muted);">2026 NovaX Edu. All rights reserved.</p>
+                <p class="text-sm" style="color: var(--fg-muted);">Developed by <a href="http://vezlo-web.vercel.app/" target="_blank" class="font-semibold hover:underline" style="color: var(--accent);">Vezlo Web</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMobileMenu = document.getElementById('closeMobileMenu');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+        initTheme();
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
+        closeMobileMenu.addEventListener('click', () => mobileMenu.classList.remove('open'));
+        mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.remove('open')));
+
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+        }, { threshold: 0.1 });
+        reveals.forEach(reveal => observer.observe(reveal));
+    </script>
+</body>
+</html>
