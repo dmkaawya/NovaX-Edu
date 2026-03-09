@@ -1,781 +1,234 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
-<title>NovaX Edu</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-/* Theme & Reset */
-[data-theme="dark"]{--bg:#07080f;--surface:#0f1019;--surface2:#161724;--surface3:#1d1e2e;--border:#252638;--border2:#2e3050;--text:#e8eaf5;--muted:#6b7099;--muted2:#9096c0;--card-shadow:0 4px 24px rgba(0,0,0,.4);--nav-bg:rgba(7,8,15,.92);--sidebar-bg:#0f1019;--input-bg:#161724;--modal-bg:#0f1019;}
-[data-theme="light"]{--bg:#f0f2fa;--surface:#ffffff;--surface2:#f4f5fb;--surface3:#eaecf8;--border:#dde0f0;--border2:#c8ccec;--text:#1a1d3a;--muted:#8890c0;--muted2:#5560a0;--card-shadow:0 4px 24px rgba(79,142,247,.08);--nav-bg:rgba(255,255,255,.92);--sidebar-bg:#ffffff;--input-bg:#f4f5fb;--modal-bg:#ffffff;}
-:root{--accent:#4f8ef7;--accent2:#f7664f;--accent3:#4ff7a8;--accent4:#f7c94f;--radius:12px;--radius-lg:18px;}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
-[data-theme="dark"] body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 15% 10%,rgba(79,142,247,.07),transparent 60%),radial-gradient(ellipse 50% 60% at 85% 85%,rgba(247,102,79,.05),transparent 60%);pointer-events:none;z-index:0}
-.page{display:none;position:relative;z-index:1;min-height:100vh}
-.page.active{display:block}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:var(--surface)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-
-/* Navigation */
-.top-nav{position:sticky;top:0;z-index:300;background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 1.5rem;height:60px;display:flex;align-items:center;justify-content:space-between;gap:.5rem;transition:background .3s}
-.logo{font-size:1.3rem;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;white-space:nowrap}
-.nav-right{display:flex;gap:.5rem;align-items:center;flex-shrink:0}
-
-/* Theme Toggle */
-.theme-toggle{width:44px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;cursor:pointer;position:relative;transition:all .3s;flex-shrink:0}
-.theme-toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--accent);transition:transform .3s}
-[data-theme="light"] .theme-toggle::after{transform:translateX(20px);background:var(--accent4)}
-
-/* Buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:8px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;border:none;text-decoration:none;white-space:nowrap}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
-.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text)}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-.btn-danger{background:rgba(247,102,79,.12);border:1px solid rgba(247,102,79,.3);color:var(--accent2)}
-.btn-danger:hover{background:var(--accent2);color:#fff}
-.btn-success{background:rgba(79,247,168,.12);border:1px solid rgba(79,247,168,.3);color:var(--accent3)}
-.btn-sm{padding:.3rem .75rem;font-size:.74rem}
-
-/* Cards & Badges */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--card-shadow)}
-.card-body{padding:1.25rem}
-.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .65rem;border-radius:100px;font-size:.68rem;font-weight:700;letter-spacing:.4px}
-.badge-free{background:rgba(79,247,168,.12);color:var(--accent3);border:1px solid rgba(79,247,168,.25)}
-.badge-paid{background:rgba(247,102,79,.12);color:var(--accent2);border:1px solid rgba(247,102,79,.25)}
-.badge-blue{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.25)}
-.badge-pending{background:rgba(247,201,79,.12);color:var(--accent4);border:1px solid rgba(247,201,79,.25)}
-
-/* Forms */
-.form-group{margin-bottom:1.1rem}
-.form-label{display:block;font-size:.75rem;font-weight:600;color:var(--muted2);margin-bottom:.4rem;letter-spacing:.3px}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--input-bg);border:1px solid var(--border2);color:var(--text);padding:.65rem .9rem;border-radius:8px;font-family:inherit;font-size:.87rem;transition:all .2s;outline:none}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,142,247,.12)}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-@media(max-width:480px){.form-row{grid-template-columns:1fr}}
-
-/* Modals */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:600;display:none;align-items:flex-start;justify-content:center;padding:1rem;overflow-y:auto}
-.modal-overlay.open{display:flex}
-.modal{background:var(--modal-bg);border:1px solid var(--border2);border-radius:20px;padding:1.5rem;width:100%;max-width:520px;margin:auto;position:relative;animation:modalIn .25s ease;box-shadow:0 24px 80px rgba(0,0,0,.5)}
-.modal-lg{max-width:680px}
-.modal-xl{max-width:900px}
-@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
-.modal-title{font-size:1.15rem;font-weight:700;margin-bottom:1.3rem;letter-spacing:-.4px}
-.modal-close{position:absolute;top:1rem;right:1rem;background:var(--surface2);border:1px solid var(--border);color:var(--muted2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.modal-close:hover{color:var(--text);border-color:var(--border2)}
-
-/* Sidebar */
-.sidebar-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px)}
-.sidebar{background:var(--sidebar-bg);border-right:1px solid var(--border);padding:1rem .75rem;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;transition:all .3s}
-.sidebar-section{font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:.4rem .75rem;margin:.6rem 0 .2rem}
-.sidebar-item{display:flex;align-items:center;gap:.65rem;padding:.6rem .8rem;border-radius:9px;font-size:.83rem;font-weight:500;color:var(--muted2);cursor:pointer;transition:all .2s;margin-bottom:.1rem;border:none;background:none;width:100%;text-align:left;font-family:inherit}
-.sidebar-item:hover{background:var(--surface2);color:var(--text)}
-.sidebar-item.active{background:rgba(79,142,247,.1);color:var(--accent);font-weight:600}
-.sidebar-badge{margin-left:auto;background:var(--accent);color:#fff;border-radius:100px;font-size:.62rem;font-weight:700;padding:.1rem .45rem;min-width:18px;text-align:center}
-.main-content{padding:1.5rem;overflow-y:auto;min-width:0}
-
-/* Mobile Sidebar */
-.sidebar-toggle{display:none;background:var(--surface2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1rem;align-items:center;justify-content:center;flex-shrink:0}
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250}
-@media(max-width:768px){
-  .sidebar-layout{grid-template-columns:1fr}
-  .sidebar{position:fixed;left:-260px;top:60px;height:calc(100vh - 60px);width:240px;z-index:260;transition:left .3s}
-  .sidebar.open{left:0;box-shadow:4px 0 24px rgba(0,0,0,.3)}
-  .sidebar-overlay.open{display:block}
-  .sidebar-toggle{display:flex}
-  .main-content{padding:1rem}
-}
-
-/* Mobile Bottom Nav */
-.mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--nav-bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:.5rem 0;z-index:400;grid-template-columns:repeat(6,1fr)} /* Increased z-index */
-.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:.2rem;padding:.4rem .2rem;cursor:pointer;font-size:.52rem;color:var(--muted2);transition:color .2s;border:none;background:none;font-family:inherit}
-.mobile-nav-item.active{color:var(--accent)}
-.mobile-nav-item .mni{font-size:1.1rem}
-@media(max-width:640px){
-  .mobile-bottom-nav{display:grid}
-  #studentPage .sidebar-layout, #teacherPage .sidebar-layout, #adminPage .sidebar-layout{padding-bottom:60px}
-}
-
-/* Grids & Stats */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-@media(max-width:640px){.g2{grid-template-columns:1fr}.g3,.g4{grid-template-columns:1fr 1fr}}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem;transition:all .3s}
-.stat-icon{font-size:1.6rem;margin-bottom:.6rem}
-.stat-val{font-size:1.8rem;font-weight:800;letter-spacing:-1px;line-height:1}
-.stat-label{font-size:.72rem;color:var(--muted2);margin-top:.25rem}
-
-/* Table */
-.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border)}
-table{width:100%;border-collapse:collapse;min-width:500px}
-th{background:var(--surface2);padding:.65rem .9rem;text-align:left;font-size:.72rem;font-weight:600;color:var(--muted2);letter-spacing:.4px;border-bottom:1px solid var(--border)}
-td{padding:.7rem .9rem;font-size:.82rem;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:rgba(79,142,247,.03)}
-
-/* Store Specific */
-.store-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:all .3s}
-.store-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:var(--card-shadow)}
-.store-thumb{height:140px;background:linear-gradient(135deg,#0d1b2e,#1a2e4a);display:flex;align-items:center;justify-content:center;font-size:3rem}
-.store-body{padding:1rem}
-.store-price{font-size:1.2rem;font-weight:800;color:var(--accent);margin-bottom:.5rem}
-.cart-badge{position:absolute;top:-5px;right:-5px;background:var(--accent2);color:#fff;width:20px;height:20px;border-radius:50%;font-size:.7rem;display:flex;align-items:center;justify-content:center;font-weight:700}
-
-/* Tabs */
-.tabs{display:flex;gap:.3rem;background:var(--surface2);border-radius:10px;padding:.3rem;flex-wrap:wrap}
-.tab-btn{padding:.42rem 1rem;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--muted2);font-family:inherit;transition:all .2s}
-.tab-btn.active{background:var(--accent);color:#fff}
-
-/* Alert */
-.alert{padding:.7rem .9rem;border-radius:8px;font-size:.82rem;margin-bottom:.9rem}
-.alert-error{background:rgba(247,102,79,.1);border:1px solid rgba(247,102,79,.3);color:var(--accent2)}
-.alert-success{background:rgba(79,247,168,.1);border:1px solid rgba(79,247,168,.3);color:var(--accent3)}
-.alert-warning{background:rgba(247,201,79,.1);border:1px solid rgba(247,201,79,.3);color:var(--accent4)}
-.alert-info{background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.3);color:var(--accent)}
-
-/* Misc */
-.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-overlay{display:flex;align-items:center;justify-content:center;padding:3rem;flex-direction:column;gap:1rem;color:var(--muted2);font-size:.88rem}
-.sec-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;gap:.75rem;flex-wrap:wrap}
-.sec-title{font-size:1.1rem;font-weight:700;letter-spacing:-.4px}
-.sec-tag{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem}
-.link{color:var(--accent);cursor:pointer;font-weight:600}
-
-/* Role Selection Tabs */
-.role-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;justify-content:center}
-.role-tab{flex:1;max-width:150px;padding:1rem .5rem;text-align:center;border:2px solid var(--border2);border-radius:var(--radius);cursor:pointer;transition:all .3s;background:transparent;color:var(--muted2)}
-.role-tab:hover{border-color:var(--accent)}
-.role-tab.active{border-color:var(--accent);background:rgba(79,142,247,.1);color:var(--accent)}
-.role-tab .icon{font-size:1.5rem;display:block;margin-bottom:.3rem}
-
-/* Approval Banner */
-.approval-banner{background:linear-gradient(135deg,rgba(247,201,79,.1),rgba(247,102,79,.1));border:1px solid var(--accent4);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.5rem}
-.approval-banner h3{color:var(--accent4);margin-bottom:.5rem}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NovaX Edu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { display: ['Space Grotesk', 'sans-serif'], body: ['Inter', 'sans-serif'] } } }
+        }
+    </script>
+    <style>
+        :root { --bg: #faf9f7; --bg-alt: #f0efec; --fg: #1a1a1a; --fg-muted: #6b6b6b; --accent: #e85d04; --accent-light: #f48c06; --primary: #0077b6; --primary-dark: #023e8a; --card: #ffffff; --border: #e5e5e5; --glow: rgba(232, 93, 4, 0.15); }
+        .dark { --bg: #0a0a0b; --bg-alt: #141416; --fg: #f5f5f5; --fg-muted: #a0a0a0; --accent: #f48c06; --accent-light: #ffaa33; --primary: #00b4d8; --primary-dark: #0077b6; --card: #1a1a1c; --border: #2a2a2e; --glow: rgba(244, 140, 6, 0.2); }
+        * { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--fg); overflow-x: hidden; }
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .bg-pattern { background-image: radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 119, 182, 0.1) 0%, transparent 50%); }
+        .dark .bg-pattern { background-image: radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 180, 216, 0.1) 0%, transparent 50%); }
+        .grid-pattern { background-size: 60px 60px; background-image: linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px); opacity: 0.4; }
+        .floating-shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; animation: float 20s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(0, -50px) rotate(180deg); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.8s ease-out forwards; }
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; position: relative; overflow: hidden; }
+        .btn-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s ease; }
+        .btn-primary:hover::before { left: 100%; }
+        .nav-link { position: relative; }
+        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s ease; }
+        .nav-link:hover::after { width: 100%; }
+        .mobile-menu { transform: translateX(100%); transition: transform 0.3s ease; }
+        .mobile-menu.open { transform: translateX(0); }
+        .theme-toggle { width: 60px; height: 30px; border-radius: 15px; background: var(--bg-alt); border: 1px solid var(--border); position: relative; cursor: pointer; }
+        .theme-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); transition: transform 0.3s ease; }
+        .dark .theme-toggle::after { transform: translateX(30px); }
+        input { background: var(--bg-alt); border: 1px solid var(--border); color: var(--fg); }
+        input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--glow); }
+        .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--fg-muted); }
+        .divider { display: flex; align-items: center; text-align: center; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+        .divider::before { margin-right: 16px; }
+        .divider::after { margin-left: 16px; }
+    </style>
 </head>
-<body>
+<body class="min-h-screen">
+    <div class="fixed inset-0 bg-pattern pointer-events-none z-0"></div>
+    <div class="fixed inset-0 grid-pattern pointer-events-none z-0"></div>
+    <div class="floating-shape w-96 h-96 bg-gradient-to-br from-orange-500/30 to-yellow-500/30 top-20 -left-48"></div>
+    <div class="floating-shape w-80 h-80 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 bottom-20 -right-40"></div>
 
-<div class="toast-container" id="toastCont"></div>
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-<!-- LOGIN MODAL -->
-<div class="modal-overlay" id="loginModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('loginModal')">✕</button>
-    <div class="modal-title">Welcome Back 👋</div>
-    <div id="loginAlert"></div>
-    <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="li_user" placeholder="Enter email" type="email"/></div>
-    <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="li_pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-    <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="doLogin()">Sign In</button>
-    <p style="text-align:center;margin-top:1rem;font-size:.8rem;color:var(--muted2)">No account? <span class="link" onclick="switchModal('loginModal','registerModal')">Register Free</span></p>
-  </div>
-</div>
-
-<!-- REGISTER MODAL -->
-<div class="modal-overlay" id="registerModal">
-  <div class="modal modal-lg">
-    <button class="modal-close" onclick="closeModal('registerModal')">✕</button>
-    <div class="modal-title">Create Account 🚀</div>
-    
-    <!-- Role Selection -->
-    <div id="regRoleSelection">
-      <p style="text-align:center;margin-bottom:1rem;color:var(--muted2)">I am a...</p>
-      <div class="role-tabs">
-        <div class="role-tab active" onclick="selectRegRole('student', this)">
-          <span class="icon">👨‍🎓</span> Student
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl" style="background: rgba(250, 249, 247, 0.8);">
+        <div class="absolute inset-0 border-b" style="border-color: var(--border);"></div>
+        <nav class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 lg:h-20">
+                <a href="index.html" class="flex items-center gap-2 group">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <span class="font-display font-bold text-xl" style="color: var(--fg);">NovaX <span style="color: var(--accent);">Edu</span></span>
+                </a>
+                <div class="hidden lg:flex items-center gap-8">
+                    <a href="index.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Home</a>
+                    <a href="about.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">About</a>
+                    <a href="course.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Courses</a>
+                    <a href="time.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Time Table</a>
+                    <a href="guru.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Teachers</a>
+                    <a href="contact.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Contact Us</a>
+                    <a href="rules.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Terms</a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme"></button>
+                    <a href="login.html" class="hidden sm:inline-flex btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">Login</a>
+                    <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg" style="color: var(--fg);" aria-label="Menu">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 h-full w-72 z-50 lg:hidden" style="background: var(--card);">
+            <div class="p-6">
+                <button id="closeMobileMenu" class="absolute top-4 right-4 p-2" style="color: var(--fg);" aria-label="Close">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <div class="mt-12 flex flex-col gap-4">
+                    <a href="index.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Home</a>
+                    <a href="about.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">About</a>
+                    <a href="course.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Courses</a>
+                    <a href="time.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Time Table</a>
+                    <a href="guru.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Teachers</a>
+                    <a href="contact.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Contact Us</a>
+                    <a href="rules.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Terms</a>
+                    <a href="login.html" class="btn-primary py-3 px-4 rounded-xl font-semibold text-center text-white mt-4">Login</a>
+                </div>
+            </div>
         </div>
-        <div class="role-tab" onclick="selectRegRole('teacher', this)">
-          <span class="icon">👨‍🏫</span> Teacher
+    </header>
+
+    <!-- Login Section -->
+    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-32 min-h-screen flex items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Left Side - Branding -->
+                <div class="text-center lg:text-left animate-slide-up opacity-0" style="animation-delay: 0.1s;">
+                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style="background: var(--glow); color: var(--accent);">
+                        Welcome Back
+                    </span>
+                    <h1 class="font-display font-bold text-4xl sm:text-5xl lg:text-6xl mt-6" style="color: var(--fg);">
+                        Access Your <span style="color: var(--accent);">Learning</span>
+                    </h1>
+                    <p class="mt-4 text-lg" style="color: var(--fg-muted);">
+                        Log in to continue your educational journey with access to courses, live classes, and study materials.
+                    </p>
+                    
+                    <div class="mt-8 grid grid-cols-3 gap-4">
+                        <div class="p-4 rounded-2xl text-center" style="background: var(--card); border: 1px solid var(--border);">
+                            <div class="font-display font-bold text-2xl" style="color: var(--accent);">200+</div>
+                            <div class="text-xs mt-1" style="color: var(--fg-muted);">Courses</div>
+                        </div>
+                        <div class="p-4 rounded-2xl text-center" style="background: var(--card); border: 1px solid var(--border);">
+                            <div class="font-display font-bold text-2xl" style="color: var(--accent);">50+</div>
+                            <div class="text-xs mt-1" style="color: var(--fg-muted);">Teachers</div>
+                        </div>
+                        <div class="p-4 rounded-2xl text-center" style="background: var(--card); border: 1px solid var(--border);">
+                            <div class="font-display font-bold text-2xl" style="color: var(--accent);">15K+</div>
+                            <div class="text-xs mt-1" style="color: var(--fg-muted);">Students</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side - Login Form -->
+                <div class="animate-slide-up opacity-0" style="animation-delay: 0.2s;">
+                    <div class="rounded-3xl p-8 lg:p-10" style="background: var(--card); border: 1px solid var(--border);">
+                        <div class="text-center mb-8">
+                            <h2 class="font-display font-semibold text-2xl" style="color: var(--fg);">Sign In</h2>
+                            <p class="mt-2 text-sm" style="color: var(--fg-muted);">Enter your credentials to continue</p>
+                        </div>
+
+                        <form class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-medium mb-2" style="color: var(--fg);">Email Address</label>
+                                <div class="relative">
+                                    <svg class="input-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                    <input type="email" class="w-full pl-12 pr-4 py-3.5 rounded-xl" placeholder="Enter your email">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2" style="color: var(--fg);">Password</label>
+                                <div class="relative">
+                                    <svg class="input-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    <input type="password" class="w-full pl-12 pr-4 py-3.5 rounded-xl" placeholder="Enter your password">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" class="w-4 h-4 rounded" style="accent-color: var(--accent);">
+                                    <span class="text-sm" style="color: var(--fg-muted);">Remember me</span>
+                                </label>
+                                <a href="#" class="text-sm font-medium" style="color: var(--accent);">Forgot Password?</a>
+                            </div>
+
+                            <button type="submit" class="btn-primary w-full py-4 rounded-xl font-semibold text-lg">
+                                Sign In
+                            </button>
+                        </form>
+
+                        <div class="divider my-6" style="color: var(--fg-muted);">
+                            <span class="text-sm px-4">or continue with</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="flex items-center justify-center gap-2 py-3 rounded-xl font-medium" style="background: var(--bg-alt); border: 1px solid var(--border); color: var(--fg);">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                Google
+                            </button>
+                            <button class="flex items-center justify-center gap-2 py-3 rounded-xl font-medium" style="background: var(--bg-alt); border: 1px solid var(--border); color: var(--fg);">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                Facebook
+                            </button>
+                        </div>
+
+                        <p class="text-center mt-6 text-sm" style="color: var(--fg-muted);">
+                            Don't have an account? 
+                            <a href="#" class="font-semibold" style="color: var(--accent);">Sign Up</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="role-tab" onclick="selectRegRole('admin', this)">
-          <span class="icon">🛡️</span> Admin
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8" style="background: var(--bg-alt);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <p class="text-sm" style="color: var(--fg-muted);">2026 NovaX Edu. All rights reserved.</p>
+                <p class="text-sm" style="color: var(--fg-muted);">Developed by <a href="http://vezlo-web.vercel.app/" target="_blank" class="font-semibold hover:underline" style="color: var(--accent);">Vezlo Web</a></p>
+            </div>
         </div>
-      </div>
-      <button class="btn btn-primary" style="width:100%" onclick="showRegForm()">Next →</button>
-    </div>
+    </footer>
 
-    <!-- Dynamic Form Area -->
-    <div id="regFormArea" style="display:none">
-      <button class="btn btn-ghost btn-sm" onclick="backToRoleSelect()">← Back</button>
-      <div id="regAlert"></div>
-      <div id="regDynamicFields"></div>
-      <button class="btn btn-primary" style="width:100%;margin-top:1rem" id="regBtn" onclick="doRegister()">Create Account</button>
-      <p style="text-align:center;margin-top:1rem;font-size:.8rem;color:var(--muted2)">Have account? <span class="link" onclick="switchModal('registerModal','loginModal')">Sign In</span></p>
-    </div>
-  </div>
-</div>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMobileMenu = document.getElementById('closeMobileMenu');
+        const mobileMenu = document.getElementById('mobileMenu');
 
-<!-- GENERIC MODAL -->
-<div class="modal-overlay" id="cModal">
-  <div class="modal modal-lg" id="cModalBox">
-    <button class="modal-close" onclick="closeModal('cModal')">✕</button>
-    <div class="modal-title" id="cModalTitle"></div>
-    <div id="cModalBody"></div>
-  </div>
-</div>
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+        initTheme();
 
-<!-- CART MODAL -->
-<div class="modal-overlay" id="cartModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('cartModal')">✕</button>
-    <div class="modal-title">🛒 Your Cart</div>
-    <div id="cartBody"></div>
-  </div>
-</div>
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
 
-<!-- LANDING PAGE -->
-<div id="landingPage" class="page active">
-  <nav class="top-nav">
-    <div class="logo" onclick="goHome()">NovaX Edu</div>
-    <div class="nav-right">
-      <button class="theme-toggle" onclick="toggleTheme()"></button>
-      <button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">Sign In</button>
-      <button class="btn btn-primary btn-sm" onclick="openModal('registerModal')">Register</button>
-    </div>
-  </nav>
-  <div class="main-content" style="max-width:1200px;margin:0 auto">
-     <!-- Simple Hero -->
-     <div style="text-align:center;padding:4rem 1rem">
-       <h1 style="font-size:2.5rem;font-weight:800;margin-bottom:1rem">Learn <span style="color:var(--accent)">Korean</span> & <span style="color:var(--accent3)">Media</span></h1>
-       <p style="color:var(--muted2);max-width:500px;margin:0 auto 2rem">Join thousands of students mastering new skills.</p>
-       <button class="btn btn-primary btn-lg" onclick="openModal('registerModal')">Get Started</button>
-     </div>
-  </div>
-</div>
-
-<!-- STUDENT PORTAL -->
-<div id="studentPage" class="page">
-  <nav class="top-nav">
-    <button class="sidebar-toggle" onclick="toggleSidebar('studentSidebar')">☰</button>
-    <div class="logo">NovaX Edu</div>
-    <div class="nav-right">
-      <button class="theme-toggle" onclick="toggleTheme()"></button>
-      <div style="position:relative;cursor:pointer" onclick="openModal('cartModal')">
-        🛒 <span id="cartCount" class="cart-badge" style="display:none">0</span>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
-    </div>
-  </nav>
-  <div class="sidebar-layout">
-    <div class="sidebar" id="studentSidebar">
-      <div class="sidebar-section">Student</div>
-      <button class="sidebar-item active" onclick="sNav('dashboard',this)">🏠 Dashboard</button>
-      <button class="sidebar-item" onclick="sNav('recordings',this)">🎬 Videos</button>
-      <button class="sidebar-item" onclick="sNav('store',this)">🛍️ Store</button>
-      <button class="sidebar-item" onclick="sNav('orders',this)">📦 My Orders</button>
-      <button class="sidebar-item" onclick="sNav('profile',this)">👤 Profile</button>
-    </div>
-    <div class="main-content" id="sContent"></div>
-  </div>
-  <nav class="mobile-bottom-nav">
-    <button class="mobile-nav-item active" onclick="sNav('dashboard',this,true)"><span class="mni">🏠</span>Home</button>
-    <button class="mobile-nav-item" onclick="sNav('recordings',this,true)"><span class="mni">🎬</span>Vids</button>
-    <button class="mobile-nav-item" onclick="sNav('store',this,true)"><span class="mni">🛍️</span>Store</button>
-    <button class="mobile-nav-item" onclick="sNav('orders',this,true)"><span class="mni">📦</span>Orders</button>
-    <button class="mobile-nav-item" onclick="sNav('profile',this,true)"><span class="mni">👤</span>Me</button>
-  </nav>
-</div>
-
-<!-- TEACHER PORTAL -->
-<div id="teacherPage" class="page">
-  <nav class="top-nav">
-    <button class="sidebar-toggle" onclick="toggleSidebar('teacherSidebar')">☰</button>
-    <div class="logo">Teacher Panel</div>
-    <div class="nav-right">
-      <button class="theme-toggle" onclick="toggleTheme()"></button>
-      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
-    </div>
-  </nav>
-  <div class="sidebar-layout">
-    <div class="sidebar" id="teacherSidebar">
-      <div class="sidebar-section">Teacher</div>
-      <button class="sidebar-item active" onclick="tNav('dashboard',this)">🏠 Dashboard</button>
-      <button class="sidebar-item" onclick="tNav('approvals',this)">⏳ Approvals <span class="sidebar-badge" id="tPendingBadge">0</span></button>
-      <button class="sidebar-item" onclick="tNav('recordings',this)">🎬 Recordings</button>
-      <button class="sidebar-item" onclick="tNav('live',this)">📡 Live</button>
-      <button class="sidebar-item" onclick="tNav('store',this)">🛍️ Store</button>
-      <button class="sidebar-item" onclick="tNav('orders',this)">🛒 Orders</button>
-      <button class="sidebar-item" onclick="tNav('profile',this)">👤 Profile</button>
-    </div>
-    <div class="main-content" id="tContent"></div>
-  </nav>
-</div>
-
-<!-- ADMIN PORTAL -->
-<div id="adminPage" class="page">
-  <nav class="top-nav">
-    <button class="sidebar-toggle" onclick="toggleSidebar('adminSidebar')">☰</button>
-    <div class="logo">Admin Panel</div>
-    <div class="nav-right">
-      <button class="theme-toggle" onclick="toggleTheme()"></button>
-      <button class="btn btn-ghost btn-sm" onclick="doLogout()">Logout</button>
-    </div>
-  </nav>
-  <div class="sidebar-layout">
-    <div class="sidebar" id="adminSidebar">
-      <div class="sidebar-section">Admin</div>
-      <button class="sidebar-item active" onclick="aNav('dashboard',this)">🏠 Overview</button>
-      <button class="sidebar-item" onclick="aNav('approvals',this)">⏳ Approvals <span class="sidebar-badge" id="aPendingBadge">0</span></button>
-      <button class="sidebar-item" onclick="aNav('teachers',this)">👨‍🏫 Teachers</button>
-      <button class="sidebar-item" onclick="aNav('store',this)">🛍️ Store</button>
-      <button class="sidebar-item" onclick="aNav('orders',this)">🛒 All Orders</button>
-    </div>
-    <div class="main-content" id="aContent"></div>
-  </div>
-</div>
-
-<script>
-// ========== SUPABASE CONFIG ==========
-const SUPABASE_URL = 'https://qvbfoebshouvspsoksxp.supabase.co'; // Replace
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Replace
-
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPA_ANON);
-
-// ========== STATE ==========
-let CU = null; // Current User Profile
-let CART = [];
-let SELECTED_ROLE = 'student';
-
-// ========== UI HELPERS ==========
-const $ = id => document.getElementById(id);
-const g = id => ($(id)?.value || '').trim();
-
-function toast(msg, type='info'){
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = `${{success:'✅',error:'❌'}[type]||'ℹ️'} ${msg}`;
-  $('toastCont').appendChild(el);
-  setTimeout(() => el.remove(), 4000);
-}
-function openModal(id){ $(id).classList.add('open') }
-function closeModal(id){ $(id).classList.remove('open') }
-function switchModal(a,b){ closeModal(a); setTimeout(()=>openModal(b),200) }
-function toggleTheme(){
-  const t = document.documentElement.getAttribute('data-theme');
-  document.documentElement.setAttribute('data-theme', t==='dark'?'light':'dark');
-}
-function toggleSidebar(id){ $(id).classList.toggle('open') }
-function closeSidebar(){ document.querySelectorAll('.sidebar').forEach(s=>s.classList.remove('open')) }
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  $(id).classList.add('active');
-}
-
-// ========== AUTH LOGIC ==========
-async function doLogin(){
-  const email = g('li_user'), pass = g('li_pass');
-  if(!email||!pass) return toast('Missing fields','error');
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-    if(error) throw error;
-    
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
-    CU = profile;
-    
-    // Check Approval
-    if(!CU.is_approved && CU.role !== 'admin'){
-       showPage('studentPage'); // Or a specific pending page
-       $('sContent').innerHTML = `<div class="approval-banner"><h3>⏳ Account Pending Approval</h3><p>Your account is under review. You have limited access.</p><button class="btn btn-ghost" onclick="doLogout()">Logout</button></div>`;
-       return;
-    }
-
-    routeUser(CU);
-    toast(`Welcome ${CU.name}!`,'success');
-    closeModal('loginModal');
-  } catch(e) {
-    $('loginAlert').innerHTML = `<div class="alert alert-error">${e.message}</div>`;
-  }
-}
-
-function routeUser(u){
-  if(u.role === 'admin') showPage('adminPage');
-  else if(u.role === 'teacher') showPage('teacherPage');
-  else showPage('studentPage');
-  
-  // Trigger initial nav
-  if(u.role === 'admin') aNav('dashboard');
-  else if(u.role === 'teacher') tNav('dashboard');
-  else sNav('dashboard');
-}
-
-async function doLogout(){
-  await sb.auth.signOut();
-  CU = null;
-  showPage('landingPage');
-}
-
-// ========== REGISTRATION LOGIC ==========
-function selectRegRole(role, el){
-  SELECTED_ROLE = role;
-  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function showRegForm(){
-  $('regRoleSelection').style.display = 'none';
-  $('regFormArea').style.display = 'block';
-  
-  let html = '';
-  const common = `<div class="form-row"><div class="form-group"><label>Full Name</label><input class="form-input" id="rg_name"/></div><div class="form-group"><label>Email</label><input class="form-input" id="rg_email" type="email"/></div></div><div class="form-row"><div class="form-group"><label>Password</label><input class="form-input" type="password" id="rg_pass"/></div><div class="form-group"><label>WhatsApp</label><input class="form-input" id="rg_wa"/></div></div>`;
-  
-  if(SELECTED_ROLE === 'student'){
-    html = `<p style="color:var(--accent);margin-bottom:1rem">Student Registration</p>${common}<div class="form-row"><div class="form-group"><label>District</label><input class="form-input" id="rg_district"/></div><div class="form-group"><label>Stream</label><select class="form-select" id="rg_stream"><option>Art</option><option>Science</option><option>Commerce</option><option>Tech</option></select></div></div>`;
-  } else if(SELECTED_ROLE === 'teacher'){
-    html = `<p style="color:var(--accent);margin-bottom:1rem">Teacher Registration (Requires Admin Approval)</p>${common}<div class="form-group"><label>NIC</label><input class="form-input" id="rg_nic"/></div><div class="form-group"><label>Qualifications</label><input class="form-input" id="rg_qual" placeholder="BSc, MSc..."/></div><div class="form-group"><label>Subjects to Teach</label><input class="form-input" id="rg_subs" placeholder="Korean, Media..."/></div><div class="form-group"><label>Description</label><textarea class="form-input" id="rg_desc"></textarea></div><div class="form-group"><label>Bank Details</label><input class="form-input" id="rg_bank" placeholder="Bank Name, Acc No"/></div>`;
-  } else {
-    html = `<p style="color:var(--accent);margin-bottom:1rem">Admin Registration (Requires Current Admin Approval)</p>${common}`;
-  }
-  
-  $('regDynamicFields').innerHTML = html;
-}
-
-function backToRoleSelect(){
-  $('regRoleSelection').style.display = 'block';
-  $('regFormArea').style.display = 'none';
-}
-
-async function doRegister(){
-  const name = g('rg_name'), email = g('rg_email'), pass = g('rg_pass'), wa = g('rg_wa');
-  if(!name || !email || !pass) return toast('Fill required fields','error');
-  
-  try {
-    const { data: authData, error: authErr } = await sb.auth.signUp({ email, password: pass });
-    if(authErr) throw authErr;
-    
-    const payload = { id: authData.user.id, name, email, role: SELECTED_ROLE, whatsapp: wa, is_approved: false };
-    
-    if(SELECTED_ROLE === 'student'){
-      payload.district = g('rg_district');
-      payload.stream = g('rg_stream');
-      // Students are auto-approved for FREE content, but need teacher approval for paid? 
-      // Or just leave is_approved false until teacher action. 
-      // Logic: If is_approved false, show limited content.
-    } else if(SELECTED_ROLE === 'teacher'){
-      payload.nic = g('rg_nic');
-      payload.qualifications = g('rg_qual');
-      payload.description = g('rg_desc');
-      payload.bank_details = { info: g('rg_bank') };
-      // Needs Admin approval
-    }
-    
-    await sb.from('profiles').insert(payload);
-    toast('Registered! Please login.','success');
-    switchModal('registerModal', 'loginModal');
-    
-  } catch(e) {
-    $('regAlert').innerHTML = `<div class="alert alert-error">${e.message}</div>`;
-  }
-}
-
-// ========== STUDENT VIEWS ==========
-async function sNav(sec, el, isMob){
-  closeSidebar();
-  $('sContent').innerHTML = '<div class="loading-overlay"><div class="spinner"></div></div>';
-  const f = { 
-    dashboard: sDashboard, 
-    recordings: sRecordings, 
-    store: sStore, 
-    orders: sOrders, 
-    profile: sProfile 
-  }[sec] || sDashboard;
-  $('sContent').innerHTML = await f();
-}
-
-async function sDashboard(){
-  const myOrders = (await sb.from('orders').select('id').eq('student_id', CU.id)).data.length;
-  return `<div class="sec-tag">// Dashboard</div>
-  <h2 style="margin-bottom:1.5rem">Hello, ${CU.name}!</h2>
-  <div class="g3">
-    <div class="stat-card"><div class="stat-val">${myOrders}</div><div class="stat-label">Orders</div></div>
-    <div class="stat-card"><div class="stat-val">0</div><div class="stat-label">Progress</div></div>
-    <div class="stat-card"><div class="stat-val">🏆</div><div class="stat-label">Rank</div></div>
-  </div>`;
-}
-
-async function sStore(){
-  const { data: items } = await sb.from('store_items').select('*');
-  return `<div class="sec-header"><h2>Store</h2></div>
-  <div class="g3">
-    ${items?.map(i=>`
-      <div class="store-card">
-        <div class="store-thumb">${i.category==='book'?'📕':i.category==='paper'?'📄':'🛍️'}</div>
-        <div class="store-body">
-          <h3 style="font-size:.9rem;margin-bottom:.3rem">${i.title}</h3>
-          <p style="font-size:.75rem;color:var(--muted2);margin-bottom:.5rem">${i.description||''}</p>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="store-price">Rs. ${i.price}</span>
-            <button class="btn btn-primary btn-sm" onclick="addToCart('${i.id}','${i.title}',${i.price})">Add</button>
-          </div>
-        </div>
-      </div>
-    `).join('')}
-  </div>`;
-}
-
-function addToCart(id, title, price){
-  CART.push({ id, title, price });
-  updateCartUI();
-  toast('Added to cart','success');
-}
-
-function updateCartUI(){
-  const count = CART.length;
-  $('cartCount').textContent = count;
-  $('cartCount').style.display = count > 0 ? 'flex' : 'none';
-}
-
-function openCartModal(){
-  let total = 0;
-  $('cartBody').innerHTML = CART.map((c,i)=>{ total+=c.price; return `
-    <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;font-size:.85rem">
-      <span>${c.title}</span>
-      <span>Rs. ${c.price} <button onclick="removeFromCart(${i})" style="color:var(--accent2);border:none;background:none;cursor:pointer">✕</button></span>
-    </div>
-  `;}).join('') || '<p style="text-align:center;color:var(--muted2)">Cart empty</p>';
-  
-  $('cartBody').innerHTML += `
-    <hr/>
-    <div style="display:flex;justify-content:space-between;font-weight:700"><span>Total</span><span>Rs. ${total}</span></div>
-    <div class="form-row" style="margin-top:1rem">
-       <select class="form-select" id="payMethod"><option value="bank">Bank</option><option value="cod">COD</option></select>
-       <button class="btn btn-success" style="flex:1" onclick="placeOrder(${total})">Order</button>
-    </div>`;
-  openModal('cartModal');
-}
-
-function removeFromCart(index){
-  CART.splice(index,1);
-  updateCartUI();
-  openCartModal();
-}
-
-async function placeOrder(total){
-  if(CART.length===0) return;
-  try {
-    await sb.from('orders').insert({
-      student_id: CU.id,
-      items: CART,
-      total,
-      payment_method: g('payMethod'),
-      status: 'pending'
-    });
-    CART = [];
-    updateCartUI();
-    closeModal('cartModal');
-    toast('Order placed!','success');
-    sNav('orders');
-  } catch(e){ toast('Error','error') }
-}
-
-async function sOrders(){
-  const { data: orders } = await sb.from('orders').select('*').eq('student_id', CU.id).order('created_at', {ascending:false});
-  return `<div class="sec-header"><h2>My Orders</h2></div>
-  <div class="table-wrap"><table><thead><tr><th>ID</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
-  <tbody>${orders?.map(o=>`
-    <tr>
-      <td style="font-size:.7rem">${o.id.substring(0,8)}...</td>
-      <td>${o.items.length}</td>
-      <td>Rs. ${o.total}</td>
-      <td><span class="badge badge-${o.status==='paid'?'free':'pending'}">${o.status}</span></td>
-      <td style="font-size:.7rem">${new Date(o.created_at).toLocaleDateString()}</td>
-    </tr>
-  `).join('')}</tbody></table></div>`;
-}
-
-// ========== TEACHER VIEWS ==========
-async function tNav(sec, el){
-  closeSidebar();
-  $('tContent').innerHTML = '<div class="loading-overlay"><div class="spinner"></div></div>';
-  const f = { 
-    dashboard: tDashboard, 
-    approvals: tApprovals, 
-    recordings: tRecordings, 
-    live: tLive, 
-    store: manageStore, 
-    orders: tOrders, 
-    profile: editProfile 
-  }[sec] || tDashboard;
-  $('tContent').innerHTML = await f();
-}
-
-async function tDashboard(){
-  const { count } = await sb.from('student_enrollments').select('*', {count:'exact'}).eq('batch_id', 'some_batch_id'); // Simplified
-  return `<div class="sec-tag">// Teacher</div><h2>Teacher Dashboard</h2>`;
-}
-
-async function tApprovals(){
-  // Find students enrolled in teacher's batches (simplified logic: assume teacher has batches)
-  // In real app, filter by batch_id belonging to teacher
-  const { data: pendings } = await sb.from('student_enrollments').select('*, profiles(name, email)').eq('status', 'pending');
-  
-  return `<div class="sec-header"><h2>Pending Approvals</h2></div>
-  <div style="display:grid;gap:.5rem">
-    ${pendings?.map(p=>`
-      <div class="card" style="padding:.8rem;display:flex;justify-content:space-between;align-items:center">
-        <div><strong>${p.profiles?.name}</strong><br><span style="font-size:.75rem;color:var(--muted2)">${p.profiles?.email}</span></div>
-        <div style="display:flex;gap:.3rem">
-          <button class="btn btn-success btn-sm" onclick="appStudent('${p.id}')">✅</button>
-          <button class="btn btn-danger btn-sm" onclick="rejStudent('${p.id}')">❌</button>
-        </div>
-      </div>
-    `).join('')}
-  </div>`;
-}
-
-async function appStudent(eid){
-  await sb.from('student_enrollments').update({status:'approved'}).eq('id', eid);
-  toast('Approved','success');
-  tNav('approvals');
-}
-
-async function tLive(){
-  return `<div class="sec-header"><h2>Schedule Class</h2><button class="btn btn-primary btn-sm" onclick="openLiveModal()">+ Add</button></div>
-  <div id="liveList"></div>`;
-}
-
-function openLiveModal(){
-  $('cModalTitle').textContent = 'Schedule Live';
-  $('cModalBody').innerHTML = `
-    <div class="form-group"><label>Title</label><input class="form-input" id="lv_title"/></div>
-    <div class="form-group"><label>Date</label><input class="form-input" type="date" id="lv_date"/></div>
-    <div class="form-group"><label>Time</label><input class="form-input" type="time" id="lv_time"/></div> <!-- Fixed: Time Picker -->
-    <div class="form-group"><label>Zoom Link</label><input class="form-input" id="lv_link"/></div>
-    <button class="btn btn-primary" onclick="saveLive()">Save</button>
-  `;
-  openModal('cModal');
-}
-
-// ========== ADMIN VIEWS ==========
-async function aNav(sec, el){
-  closeSidebar();
-  $('aContent').innerHTML = '<div class="loading-overlay"><div class="spinner"></div></div>';
-  const f = { 
-    dashboard: aDash, 
-    approvals: aApprovals, 
-    teachers: aTeachers, 
-    store: manageStore, 
-    orders: aOrders 
-  }[sec] || aDash;
-  $('aContent').innerHTML = await f();
-}
-
-async function aApprovals(){
-  // Teachers pending approval
-  const { data: pendings } = await sb.from('profiles').select('*').eq('role', 'teacher').eq('is_approved', false);
-  return `<div class="sec-header"><h2>Teacher Approvals</h2></div>
-  <div style="display:grid;gap:.5rem">
-    ${pendings?.map(p=>`
-      <div class="card" style="padding:1rem">
-        <div style="display:flex;justify-content:space-between">
-          <div>
-            <h3>${p.name}</h3>
-            <p style="font-size:.8rem;color:var(--muted2)">${p.email} | ${p.qualifications}</p>
-            <p style="font-size:.75rem;margin-top:.3rem">${p.description}</p>
-          </div>
-          <button class="btn btn-success btn-sm" onclick="approveTeacher('${p.id}')">Approve</button>
-        </div>
-      </div>
-    `).join('')}
-  </div>`;
-}
-
-async function approveTeacher(id){
-  await sb.from('profiles').update({is_approved: true}).eq('id', id);
-  toast('Teacher Approved','success');
-  aNav('approvals');
-}
-
-// ========== SHARED STORE MANAGEMENT ==========
-async function manageStore(){
-  const { data: items } = await sb.from('store_items').select('*');
-  return `<div class="sec-header"><h2>Manage Store</h2><button class="btn btn-primary btn-sm" onclick="addItemModal()">+ Add</button></div>
-  <div class="table-wrap"><table><thead><tr><th>Title</th><th>Cat</th><th>Price</th><th>Action</th></tr></thead>
-  <tbody>${items?.map(i=>`
-    <tr>
-      <td>${i.title}</td><td>${i.category}</td><td>Rs.${i.price}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="delItem('${i.id}')">🗑</button></td>
-    </tr>
-  `).join('')}</tbody></table></div>`;
-}
-
-function addItemModal(){
-  $('cModalTitle').textContent = 'Add Item';
-  $('cModalBody').innerHTML = `
-    <div class="form-group"><label>Title</label><input class="form-input" id="it_title"/></div>
-    <div class="form-row">
-      <div class="form-group"><label>Category</label>
-        <select class="form-select" id="it_cat"><option>book</option><option>paper</option><option>tute</option></select>
-      </div>
-      <div class="form-group"><label>Price</label><input class="form-input" type="number" id="it_price"/></div>
-    </div>
-    <div class="form-group"><label>Description</label><textarea class="form-input" id="it_desc"></textarea></div>
-    <button class="btn btn-primary" onclick="saveItem()">Save</button>
-  `;
-  openModal('cModal');
-}
-
-async function saveItem(){
-  try {
-    await sb.from('store_items').insert({
-      title: g('it_title'), category: g('it_cat'), price: g('it_price'), description: g('it_desc')
-    });
-    closeModal('cModal');
-    toast('Added','success');
-    tNav('store'); // or aNav('store')
-  } catch(e){ toast('Error','error') }
-}
-
-async function aOrders(){
-  const { data: orders } = await sb.from('orders').select('*, profiles(name, email, whatsapp)').order('created_at', {ascending:false});
-  return `<div class="sec-header"><h2>All Orders</h2></div>
-  <div class="table-wrap"><table><thead><tr><th>Student</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
-  <tbody>${orders?.map(o=>`
-    <tr>
-      <td>${o.profiles?.name}<br><span style="font-size:.7rem;color:var(--muted2)">${o.profiles?.whatsapp}</span></td>
-      <td>${o.items.length}</td>
-      <td>Rs. ${o.total}</td>
-      <td><span class="badge badge-${o.status==='paid'?'free':'pending'}">${o.status}</span></td>
-      <td><button class="btn btn-ghost btn-sm" onclick="markPaid('${o.id}')">✅ Paid</button></td>
-    </tr>
-  `).join('')}</tbody></table></div>`;
-}
-
-async function markPaid(id){
-  await sb.from('orders').update({status: 'paid'}).eq('id', id);
-  aNav('orders');
-}
-
-async function editProfile(){
-  return `<div class="sec-tag">// Profile</div><h2>My Profile</h2>
-  <div class="card" style="max-width:500px"><div class="card-body">
-    <p><strong>Name:</strong> ${CU.name}</p>
-    <p><strong>Email:</strong> ${CU.email}</p>
-    <p><strong>Role:</strong> ${CU.role}</p>
-  </div></div>`;
-}
-
-// ========== INIT ==========
-document.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if(session){
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
-    CU = profile;
-    routeUser(CU);
-  }
-  
-  sb.auth.onAuthStateChange((e,s) => {
-    if(e==='SIGNED_OUT') { CU=null; showPage('landingPage'); }
-  });
-});
-</script>
+        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
+        closeMobileMenu.addEventListener('click', () => mobileMenu.classList.remove('open'));
+        mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.remove('open')));
+    </script>
 </body>
 </html>
