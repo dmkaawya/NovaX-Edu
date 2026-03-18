@@ -1371,6 +1371,7 @@ async function loadTeacherBatchIds(teacherId){
 }
 
 // FIX: Load all students for teacher/admin using real DB batch mapping
+// මේකෙන් Pending ඉන්න ළමයි ටික අරන් එනවා
 async function loadPendingEnrollments(teacherId){
   try {
     const myBatchIds = await loadTeacherBatchIds(teacherId);
@@ -1378,9 +1379,9 @@ async function loadPendingEnrollments(teacherId){
     const { data, error } = await sb.from('student_enrollments')
       .select(`
         *,
-        profiles:student_id(id, name, email, whatsapp, district, nic, stream),
-        batches:batch_id(id, name, grade),
-        subjects:subject_id(id, name, icon)
+        profiles (id, name, email, whatsapp, district, nic, stream),
+        batches (id, name, grade),
+        subjects (id, name, icon)
       `)
       .in('batch_id', myBatchIds)
       .eq('status', 'pending');
@@ -1389,6 +1390,7 @@ async function loadPendingEnrollments(teacherId){
   } catch(e) { console.error(e); return []; }
 }
 
+// මේකෙන් Approve කරපු ළමයි ටික අරන් එනවා
 async function loadApprovedStudents(teacherId){
   try {
     const myBatchIds = await loadTeacherBatchIds(teacherId);
@@ -1396,9 +1398,9 @@ async function loadApprovedStudents(teacherId){
     const { data, error } = await sb.from('student_enrollments')
       .select(`
         *,
-        profiles:student_id(id, name, email, whatsapp, district, nic, stream),
-        batches:batch_id(id, name, grade),
-        subjects:subject_id(id, name, icon)
+        profiles (id, name, email, whatsapp, district, nic, stream),
+        batches (id, name, grade),
+        subjects (id, name, icon)
       `)
       .in('batch_id', myBatchIds)
       .in('status', ['approved']);
