@@ -1,952 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovaX Edu - Sri Lanka's #1 Learning Platform</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        display: ['Space Grotesk', 'sans-serif'],
-                        body: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <title>NovaX Edu - Korean LMS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg: #faf9f7;
-            --bg-alt: #f0efec;
-            --fg: #1a1a1a;
-            --fg-muted: #6b6b6b;
-            --accent: #e85d04;
-            --accent-light: #f48c06;
-            --primary: #0077b6;
-            --primary-dark: #023e8a;
-            --card: #ffffff;
-            --border: #e5e5e5;
-            --glow: rgba(232, 93, 4, 0.15);
-        }
-
-        .dark {
-            --bg: #0a0a0b;
-            --bg-alt: #141416;
-            --fg: #f5f5f5;
-            --fg-muted: #a0a0a0;
-            --accent: #f48c06;
-            --accent-light: #ffaa33;
-            --primary: #00b4d8;
-            --primary-dark: #0077b6;
-            --card: #1a1a1c;
-            --border: #2a2a2e;
-            --glow: rgba(244, 140, 6, 0.2);
-        }
-
-        * {
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--fg);
-            overflow-x: hidden;
-        }
-
-        .font-display {
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        /* Background Pattern */
-        .bg-pattern {
-            background-image: 
-                radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(0, 119, 182, 0.1) 0%, transparent 50%);
-        }
-
-        .dark .bg-pattern {
-            background-image: 
-                radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(0, 180, 216, 0.1) 0%, transparent 50%);
-        }
-
-        /* Grid Pattern */
-        .grid-pattern {
-            background-size: 60px 60px;
-            background-image: 
-                linear-gradient(to right, var(--border) 1px, transparent 1px),
-                linear-gradient(to bottom, var(--border) 1px, transparent 1px);
-            opacity: 0.4;
-        }
-
-        /* Floating Shapes */
-        .floating-shape {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.5;
-            animation: float 20s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(30px, -30px) rotate(90deg); }
-            50% { transform: translate(0, -50px) rotate(180deg); }
-            75% { transform: translate(-30px, -30px) rotate(270deg); }
-        }
-
-        /* Hero Animation */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes scaleIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .animate-slide-up {
-            animation: slideUp 0.8s ease-out forwards;
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 1s ease-out forwards;
-        }
-
-        .animate-scale-in {
-            animation: scaleIn 0.6s ease-out forwards;
-        }
-
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.2s; }
-        .delay-300 { animation-delay: 0.3s; }
-        .delay-400 { animation-delay: 0.4s; }
-        .delay-500 { animation-delay: 0.5s; }
-
-        /* Card Hover Effects */
-        .card-hover {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card-hover:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px -15px var(--glow);
-        }
-
-        /* Button Styles */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .btn-primary:hover::before {
-            left: 100%;
-        }
-
-        .btn-secondary {
-            border: 2px solid var(--accent);
-            color: var(--accent);
-        }
-
-        .btn-secondary:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        /* Nav Link Hover */
-        .nav-link {
-            position: relative;
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        /* Scroll Reveal */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Counter Animation */
-        .counter {
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Mobile Menu */
-        .mobile-menu {
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .mobile-menu.open {
-            transform: translateX(0);
-        }
-
-        /* Theme Toggle */
-        .theme-toggle {
-            width: 60px;
-            height: 30px;
-            border-radius: 15px;
-            background: var(--bg-alt);
-            border: 1px solid var(--border);
-            position: relative;
-            cursor: pointer;
-        }
-
-        .theme-toggle::after {
-            content: '';
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: var(--accent);
-            transition: transform 0.3s ease;
-        }
-
-        .dark .theme-toggle::after {
-            transform: translateX(30px);
-        }
-
-        /* Feature Icon */
-        .feature-icon {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        }
-
-        /* Marquee */
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        .marquee {
-            animation: marquee 30s linear infinite;
-        }
-
-        /* Focus States */
-        *:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
-        }
-
-        /* Reduced Motion */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-alt);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
-            border-radius: 5px;
-        }
+        /* Dark/Light custom adjustments */
+        .dark { background-color: #121212; color: #ffffff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-<body class="min-h-screen">
-    <!-- Background Elements -->
-    <div class="fixed inset-0 bg-pattern pointer-events-none z-0"></div>
-    <div class="fixed inset-0 grid-pattern pointer-events-none z-0"></div>
-    <div class="floating-shape w-96 h-96 bg-gradient-to-br from-orange-500/30 to-yellow-500/30 top-20 -left-48" style="animation-delay: 0s;"></div>
-    <div class="floating-shape w-80 h-80 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 bottom-20 -right-40" style="animation-delay: -5s;"></div>
-    <div class="floating-shape w-64 h-64 bg-gradient-to-br from-teal-500/20 to-emerald-500/20 top-1/2 left-1/3" style="animation-delay: -10s;"></div>
+<body class="bg-slate-50 text-slate-900 dark:bg-zinc-900 dark:text-zinc-100 font-sans min-h-screen flex flex-col md:flex-row">
 
-    <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl" style="background: rgba(var(--bg), 0.8);">
-        <div class="absolute inset-0 border-b" style="border-color: var(--border);"></div>
-        <nav class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 lg:h-20">
-                <!-- Logo -->
-                <a href="index.html" class="flex items-center gap-2 group">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                    </div>
-                    <span class="font-display font-bold text-xl" style="color: var(--fg);">NovaX <span style="color: var(--accent);">Edu</span></span>
-                </a>
-
-                <!-- Desktop Navigation -->
-                <div class="hidden lg:flex items-center gap-8">
-                    <a href="index.html" class="nav-link font-medium text-sm" style="color: var(--fg);">Home</a>
-                    <a href="about.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">About</a>
-                    <a href="course.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Courses</a>
-                    <a href="time.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Time Table</a>
-                    <a href="guru.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Teachers</a>
-                    <a href="contact.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Contact Us</a>
-                    <a href="rules.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Terms</a>
-                </div>
-
-                <!-- Right Actions -->
-                <div class="flex items-center gap-4">
-                    <!-- Theme Toggle -->
-                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
-                        <span class="sr-only">Toggle theme</span>
-                    </button>
-
-                    <!-- Login Button -->
-                    <a href="login.html" class="hidden sm:inline-flex btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">
-                        Login
-                    </a>
-
-                    <!-- Mobile Menu Button -->
-                    <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg" style="color: var(--fg);" aria-label="Menu">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        </svg>
-                    </button>
-                </div>
+    <aside class="w-full md:w-64 bg-zinc-900 text-white flex flex-col justify-between p-5 border-r border-zinc-800">
+        <div>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="bg-red-600 text-white p-2 rounded-lg font-bold text-xl">NX</div>
+                <h1 class="text-xl font-bold tracking-wider text-blue-500">NovaX <span class="text-white">Edu</span></h1>
             </div>
-        </nav>
 
-        <!-- Mobile Menu -->
-        <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 h-full w-72 z-50 lg:hidden" style="background: var(--card);">
-            <div class="p-6">
-                <button id="closeMobileMenu" class="absolute top-4 right-4 p-2" style="color: var(--fg);" aria-label="Close menu">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-                <div class="mt-12 flex flex-col gap-4">
-                    <a href="index.html" class="py-3 px-4 rounded-xl font-medium" style="background: var(--bg-alt); color: var(--fg);">Home</a>
-                    <a href="about.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">About</a>
-                    <a href="course.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Courses</a>
-                    <a href="time.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Time Table</a>
-                    <a href="guru.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Teachers</a>
-                    <a href="contact.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Contact Us</a>
-                    <a href="rules.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Terms</a>
-                    <a href="login.html" class="btn-primary py-3 px-4 rounded-xl font-semibold text-center text-white mt-4">Login</a>
-                </div>
-            </div>
+            <button id="themeToggle" class="w-full mb-6 py-2 px-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg flex items-center justify-between cursor-pointer transition">
+                <span>Theme Mode</span>
+                <i id="themeIcon" class="fas fa-moon text-yellow-400"></i>
+            </button>
+
+            <nav class="space-y-1">
+                <button onclick="switchTab('dashboard')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg bg-red-600 text-white font-medium flex items-center gap-3 cursor-pointer"><i class="fas fa-chart-pie w-5"></i> Dashboard</button>
+                <button onclick="switchTab('articles')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white flex items-center gap-3 cursor-pointer"><i class="fas fa-newspaper w-5"></i> Articles</button>
+                <button onclick="switchTab('videos')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white flex items-center gap-3 cursor-pointer"><i class="fas fa-video w-5"></i> Videos</button>
+                <button onclick="switchTab('audio')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white flex items-center gap-3 cursor-pointer"><i class="fas fa-headphones w-5"></i> Audio Tracks</button>
+                <button onclick="switchTab('notes')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white flex items-center gap-3 cursor-pointer"><i class="fas fa-file-pdf w-5"></i> Notes & PDFs</button>
+                <button onclick="switchTab('quizzes')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white flex items-center gap-3 cursor-pointer"><i class="fas fa-tasks w-5"></i> Quizzes</button>
+                <button onclick="switchTab('live')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white flex items-center gap-3 cursor-pointer"><i class="fas fa-broadcast-tower w-5"></i> Live Classes</button>
+                <button onclick="switchTab('profile')" class="tab-btn w-full text-left py-2.5 px-4 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-white flex items-center gap-3 cursor-pointer"><i class="fas fa-user-circle w-5"></i> Profile</button>
+            </nav>
         </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-32 overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <!-- Hero Content -->
-                <div class="text-center lg:text-left">
-                    <div class="animate-slide-up opacity-0" style="animation-delay: 0.1s;">
-                        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style="background: var(--glow); color: var(--accent);">
-                            <span class="w-2 h-2 rounded-full animate-pulse" style="background: var(--accent);"></span>
-                            Sri Lanka's #1 Education Platform
-                        </span>
-                    </div>
-                    
-                    <h1 class="font-display font-bold text-4xl sm:text-5xl lg:text-6xl xl:text-7xl mt-6 leading-tight animate-slide-up opacity-0" style="color: var(--fg); animation-delay: 0.2s;">
-                        Learn Without
-                        <span class="block" style="background: linear-gradient(135deg, var(--accent), var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Limits</span>
-                    </h1>
-                    
-                    <p class="mt-6 text-lg lg:text-xl max-w-xl mx-auto lg:mx-0 animate-slide-up opacity-0" style="color: var(--fg-muted); animation-delay: 0.3s;">
-                        Access premium courses, live classes, expert teachers, and comprehensive study materials. Your journey to excellence starts here.
-                    </p>
-                    
-                    <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-slide-up opacity-0" style="animation-delay: 0.4s;">
-                        <a href="course.html" class="btn-primary px-8 py-4 rounded-xl font-semibold text-lg">
-                            Explore Courses
-                        </a>
-                        <a href="about.html" class="btn-secondary px-8 py-4 rounded-xl font-semibold text-lg" style="border-color: var(--border);">
-                            Learn More
-                        </a>
-                    </div>
-
-                    <!-- Stats -->
-                    <div class="mt-12 grid grid-cols-3 gap-6 animate-slide-up opacity-0" style="animation-delay: 0.5s;">
-                        <div class="text-center lg:text-left">
-                            <div class="font-display font-bold text-3xl lg:text-4xl counter" style="color: var(--accent);" data-target="15000">0</div>
-                            <div class="text-sm mt-1" style="color: var(--fg-muted);">Students</div>
-                        </div>
-                        <div class="text-center lg:text-left">
-                            <div class="font-display font-bold text-3xl lg:text-4xl counter" style="color: var(--accent);" data-target="200">0</div>
-                            <div class="text-sm mt-1" style="color: var(--fg-muted);">Courses</div>
-                        </div>
-                        <div class="text-center lg:text-left">
-                            <div class="font-display font-bold text-3xl lg:text-4xl counter" style="color: var(--accent);" data-target="50">0</div>
-                            <div class="text-sm mt-1" style="color: var(--fg-muted);">Teachers</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hero Visual -->
-                <div class="relative animate-scale-in opacity-0" style="animation-delay: 0.3s;">
-                    <div class="relative z-10 rounded-3xl overflow-hidden shadow-2xl" style="background: var(--card); border: 1px solid var(--border);">
-                        <div class="p-6">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-3 h-3 rounded-full" style="background: #ef4444;"></div>
-                                <div class="w-3 h-3 rounded-full" style="background: #f59e0b;"></div>
-                                <div class="w-3 h-3 rounded-full" style="background: #22c55e;"></div>
-                            </div>
-                            <div class="rounded-2xl overflow-hidden" style="background: var(--bg-alt);">
-                                <div class="aspect-video flex items-center justify-center">
-                                    <div class="text-center p-8">
-                                        <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
-                                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M8 5v14l11-7z"/>
-                                            </svg>
-                                        </div>
-                                        <div class="font-display font-semibold text-lg" style="color: var(--fg);">Live Classes</div>
-                                        <div class="text-sm mt-1" style="color: var(--fg-muted);">Interactive learning experience</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Floating Cards -->
-                    <div class="absolute -top-4 -right-4 p-4 rounded-2xl shadow-xl animate-fade-in" style="background: var(--card); border: 1px solid var(--border); animation-delay: 0.8s;">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="font-semibold text-sm" style="color: var(--fg);">Course Completed</div>
-                                <div class="text-xs" style="color: var(--fg-muted);">Physics - Grade 12</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="absolute -bottom-4 -left-4 p-4 rounded-2xl shadow-xl animate-fade-in" style="background: var(--card); border: 1px solid var(--border); animation-delay: 1s;">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="font-semibold text-sm" style="color: var(--fg);">Notes Available</div>
-                                <div class="text-xs" style="color: var(--fg-muted);">500+ PDF Resources</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="mt-6 pt-4 border-t border-zinc-800 text-xs text-zinc-500">
+            <p>Support: 0775048455</p>
         </div>
-    </section>
+    </aside>
 
-    <!-- Features Section -->
-    <section class="py-20 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center reveal">
-                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style="background: var(--bg-alt); color: var(--fg-muted);">
-                    What We Offer
-                </span>
-                <h2 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mt-4" style="color: var(--fg);">
-                    Everything You Need to
-                    <span style="color: var(--accent);">Succeed</span>
-                </h2>
-            </div>
-
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-                <!-- Feature Cards -->
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-4">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Live Classes</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Interactive live sessions with expert teachers. Ask questions and learn in real-time.</p>
-                </div>
-
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-4">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Video Recordings</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Missed a class? Access all recordings anytime, anywhere at your convenience.</p>
-                </div>
-
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-4">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Study Notes</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Comprehensive notes and PDF materials for all subjects and grades.</p>
-                </div>
-
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-4">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Past Papers</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Practice with past examination papers and model answers.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Courses Preview -->
-    <section class="py-20 relative" style="background: var(--bg-alt);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 reveal">
-                <div>
-                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style="background: var(--card); color: var(--fg-muted);">
-                        Popular Courses
-                    </span>
-                    <h2 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mt-4" style="color: var(--fg);">
-                        Start Learning
-                        <span style="color: var(--accent);">Today</span>
-                    </h2>
-                </div>
-                <a href="course.html" class="btn-secondary px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2">
-                    View All Courses
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-                    </svg>
-                </a>
-            </div>
-
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-                <!-- Course Card 1 -->
-                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="h-48 relative" style="background: linear-gradient(135deg, #0077b6, #00b4d8);">
-                        <span class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold text-white" style="background: rgba(0,0,0,0.3);">Free</span>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <svg class="w-16 h-16 text-white/30" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-xs font-medium px-2 py-1 rounded" style="background: var(--bg-alt); color: var(--fg-muted);">Grade 12</span>
-                            <span class="text-xs font-medium px-2 py-1 rounded" style="background: var(--bg-alt); color: var(--fg-muted);">Physics</span>
-                        </div>
-                        <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Advanced Level Physics</h3>
-                        <p class="mt-2 text-sm" style="color: var(--fg-muted);">Complete A/L Physics course with theory and practical sessions.</p>
-                        <div class="mt-4 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));"></div>
-                                <span class="text-sm font-medium" style="color: var(--fg);">Mr. Perera</span>
-                            </div>
-                            <span class="font-display font-bold" style="color: var(--accent);">Free</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course Card 2 -->
-                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="h-48 relative" style="background: linear-gradient(135deg, #e85d04, #f48c06);">
-                        <span class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold text-white" style="background: rgba(0,0,0,0.3);">Premium</span>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <svg class="w-16 h-16 text-white/30" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-xs font-medium px-2 py-1 rounded" style="background: var(--bg-alt); color: var(--fg-muted);">Grade 11</span>
-                            <span class="text-xs font-medium px-2 py-1 rounded" style="background: var(--bg-alt); color: var(--fg-muted);">Chemistry</span>
-                        </div>
-                        <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">O/L Chemistry Masterclass</h3>
-                        <p class="mt-2 text-sm" style="color: var(--fg-muted);">Comprehensive O/L Chemistry with past paper discussions.</p>
-                        <div class="mt-4 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full" style="background: linear-gradient(135deg, #0077b6, #00b4d8);"></div>
-                                <span class="text-sm font-medium" style="color: var(--fg);">Mrs. Fernando</span>
-                            </div>
-                            <span class="font-display font-bold" style="color: var(--accent);">Rs.2,500</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course Card 3 -->
-                <div class="card-hover rounded-2xl overflow-hidden reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="h-48 relative" style="background: linear-gradient(135deg, #2d6a4f, #40916c);">
-                        <span class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold text-white" style="background: rgba(0,0,0,0.3);">Free</span>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <svg class="w-16 h-16 text-white/30" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-xs font-medium px-2 py-1 rounded" style="background: var(--bg-alt); color: var(--fg-muted);">All Grades</span>
-                            <span class="text-xs font-medium px-2 py-1 rounded" style="background: var(--bg-alt); color: var(--fg-muted);">English</span>
-                        </div>
-                        <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Spoken English Course</h3>
-                        <p class="mt-2 text-sm" style="color: var(--fg-muted);">Improve your English speaking skills with expert guidance.</p>
-                        <div class="mt-4 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full" style="background: linear-gradient(135deg, #9d4edd, #c77dff);"></div>
-                                <span class="text-sm font-medium" style="color: var(--fg);">Ms. Silva</span>
-                            </div>
-                            <span class="font-display font-bold" style="color: var(--accent);">Free</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Why Choose Us -->
-    <section class="py-20 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <div class="reveal">
-                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium" style="background: var(--bg-alt); color: var(--fg-muted);">
-                        Why NovaX Edu
-                    </span>
-                    <h2 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl mt-4" style="color: var(--fg);">
-                        Built for
-                        <span style="color: var(--accent);">Success</span>
-                    </h2>
-                    <p class="mt-4 text-lg" style="color: var(--fg-muted);">
-                        We understand the Sri Lankan education system and have designed our platform to help students excel in their examinations.
-                    </p>
-
-                    <div class="mt-8 space-y-4">
-                        <div class="flex items-start gap-4 p-4 rounded-xl" style="background: var(--card); border: 1px solid var(--border);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold" style="color: var(--fg);">Expert Teachers</h4>
-                                <p class="text-sm mt-1" style="color: var(--fg-muted);">Learn from experienced teachers with proven track records in O/L and A/L examinations.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4 p-4 rounded-xl" style="background: var(--card); border: 1px solid var(--border);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold" style="color: var(--fg);">Flexible Learning</h4>
-                                <p class="text-sm mt-1" style="color: var(--fg-muted);">Study at your own pace with recorded sessions and downloadable materials.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-4 p-4 rounded-xl" style="background: var(--card); border: 1px solid var(--border);">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h4 class="font-semibold" style="color: var(--fg);">Quality Content</h4>
-                                <p class="text-sm mt-1" style="color: var(--fg-muted);">Carefully curated content aligned with the local curriculum and exam patterns.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Testimonial -->
-                <div class="reveal">
-                    <div class="rounded-3xl p-8 relative overflow-hidden" style="background: var(--card); border: 1px solid var(--border);">
-                        <div class="absolute top-0 right-0 w-32 h-32 rounded-full" style="background: var(--glow); filter: blur(40px);"></div>
-                        
-                        <div class="relative">
-                            <svg class="w-12 h-12 mb-4" style="color: var(--accent);" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-                            </svg>
-                            
-                            <p class="text-lg lg:text-xl" style="color: var(--fg);">
-                                "NovaX Edu transformed my learning experience. The teachers are incredible, and the resources helped me score 3A's in my A/L examination. Highly recommended!"
-                            </p>
-                            
-                            <div class="mt-6 flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-full" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));"></div>
-                                <div>
-                                    <div class="font-semibold" style="color: var(--fg);">Kasun Rathnayake</div>
-                                    <div class="text-sm" style="color: var(--fg-muted);">A/L Student - 2024</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="py-20 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="rounded-3xl p-8 lg:p-16 text-center relative overflow-hidden reveal" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                <div class="absolute inset-0 opacity-20">
-                    <div class="absolute top-0 left-0 w-64 h-64 rounded-full bg-white/20" style="filter: blur(60px);"></div>
-                    <div class="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-white/20" style="filter: blur(60px);"></div>
-                </div>
-                
-                <div class="relative">
-                    <h2 class="font-display font-bold text-3xl sm:text-4xl lg:text-5xl text-white">
-                        Ready to Start Your Journey?
-                    </h2>
-                    <p class="mt-4 text-lg text-white/90 max-w-2xl mx-auto">
-                        Join thousands of students who are already learning with NovaX Edu. Access free courses today or upgrade to premium for unlimited access.
-                    </p>
-                    <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="login.html" class="px-8 py-4 rounded-xl font-semibold text-lg bg-white" style="color: var(--accent);">
-                            Get Started Free
-                        </a>
-                        <a href="course.html" class="px-8 py-4 rounded-xl font-semibold text-lg border-2 border-white text-white hover:bg-white/10 transition-colors">
-                            Browse Courses
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="py-16" style="background: var(--bg-alt);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Brand -->
-                <div class="lg:col-span-1">
-                    <a href="index.html" class="flex items-center gap-2">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                            </svg>
-                        </div>
-                        <span class="font-display font-bold text-xl" style="color: var(--fg);">NovaX <span style="color: var(--accent);">Edu</span></span>
-                    </a>
-                    <p class="mt-4 text-sm" style="color: var(--fg-muted);">
-                        Sri Lanka's leading online education platform. Empowering students to achieve their academic dreams.
-                    </p>
-                </div>
-
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Quick Links</h4>
-                    <ul class="space-y-2">
-                        <li><a href="about.html" class="text-sm hover:underline" style="color: var(--fg-muted);">About Us</a></li>
-                        <li><a href="course.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Courses</a></li>
-                        <li><a href="guru.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Teachers</a></li>
-                        <li><a href="time.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Time Table</a></li>
-                    </ul>
-                </div>
-
-                <!-- Support -->
-                <div>
-                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Support</h4>
-                    <ul class="space-y-2">
-                        <li><a href="contact.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Contact Us</a></li>
-                        <li><a href="rules.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Terms & Conditions</a></li>
-                        <li><a href="rules.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Privacy Policy</a></li>
-                        <li><a href="#" class="text-sm hover:underline" style="color: var(--fg-muted);">FAQ</a></li>
-                    </ul>
-                </div>
-
-                <!-- Contact -->
-                <div>
-                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Contact Us</h4>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 flex-shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                            </svg>
-                            <span class="text-sm" style="color: var(--fg-muted);">0775048455</span>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 flex-shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                            </svg>
-                            <span class="text-sm" style="color: var(--fg-muted);">0762717144</span>
-                        </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 flex-shrink-0" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                            <span class="text-sm" style="color: var(--fg-muted);">nov.x.team001@gmail.com</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Bottom Bar -->
-            <div class="mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4" style="border-top: 1px solid var(--border);">
-                <p class="text-sm" style="color: var(--fg-muted);">
-                    2026 NovaX Edu. All rights reserved.
-                </p>
-                <p class="text-sm" style="color: var(--fg-muted);">
-                    Developed by 
-                    <a href="http://vezlo-web.vercel.app/" target="_blank" rel="noopener noreferrer" class="font-semibold hover:underline" style="color: var(--accent);">
-                        Vezlo Web
-                    </a>
-                </p>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        // Initialize variables first
-        const themeToggle = document.getElementById('themeToggle');
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const closeMobileMenu = document.getElementById('closeMobileMenu');
-        const mobileMenu = document.getElementById('mobileMenu');
-
-        // Theme Toggle
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            }
-        }
+    <main class="flex-1 p-6 md:p-10 overflow-y-auto">
         
-        initTheme();
+        <div class="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-sm">
+            <div class="relative w-full sm:w-72">
+                <i class="fas fa-search absolute left-3 top-3.5 text-zinc-400"></i>
+                <input type="text" placeholder="Search lessons, papers..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-transparent focus:outline-none focus:border-blue-500">
+            </div>
+            <select class="w-full sm:w-48 p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-transparent focus:outline-none">
+                <option>All Lessons</option>
+                <option>Lesson 01</option>
+                <option>Lesson 02</option>
+                <option>Past Papers</option>
+            </select>
+        </div>
 
-        themeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        });
+        <div id="dashboard" class="tab-content active space-y-6">
+            <h2 class="text-2xl font-bold">Welcome Back, Student!</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-red-500 text-white p-6 rounded-xl shadow-md flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90 uppercase tracking-wider font-semibold">2026 A/L Exam Countdown</p>
+                        <h3 id="countdown" class="text-3xl font-extrabold mt-2">Loading Timer...</h3>
+                    </div>
+                    <i class="fas fa-clock text-4xl opacity-30"></i>
+                </div>
+                <div class="bg-blue-600 text-white p-6 rounded-xl shadow-md flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90 uppercase tracking-wider font-semibold">Daily Korean Word</p>
+                        <h3 class="text-2xl font-bold mt-2">안녕하세요 (An-nyeong-ha-se-yo)</h3>
+                        <p class="text-xs opacity-70 mt-1">Meaning: Hello / Hi</p>
+                    </div>
+                    <i class="fas fa-language text-4xl opacity-30"></i>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-sm">
+                <h3 class="font-bold mb-4"><i class="fas fa-chart-line text-green-500 mr-2"></i> Quiz Performance Analytics</h3>
+                <div class="h-48 bg-zinc-100 dark:bg-zinc-700 rounded-lg flex items-center justify-center text-zinc-400">[ Score Analytics Chart Here ]</div>
+            </div>
+        </div>
 
-        // Mobile Menu
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.add('open');
-        });
+        <div id="articles" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Learning Articles</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-zinc-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+                    <div class="h-40 bg-zinc-300 dark:bg-zinc-700"></div>
+                    <div class="p-5 space-y-3">
+                        <span class="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold rounded">Free</span>
+                        <h3 class="font-bold text-lg">How to master Korean Grammar Rules easily</h3>
+                        <p class="text-sm text-zinc-500">Short caption description about this Korean article...</p>
+                        <button class="text-blue-500 font-medium text-sm hover:underline cursor-pointer">Read Full Article →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        closeMobileMenu.addEventListener('click', () => {
-            mobileMenu.classList.remove('open');
-        });
+        <div id="videos" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Video Catalog</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-zinc-800 rounded-xl overflow-hidden shadow-sm border border-zinc-100 dark:border-zinc-700">
+                    <div class="h-40 bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center"><i class="fas fa-folder-open text-4xl text-zinc-400"></i></div>
+                    <div class="p-4 space-y-2">
+                        <div class="text-xs text-zinc-400 flex justify-between"><span>Uploaded by: Admin Kamal</span><span class="text-green-500 font-bold">Free</span></div>
+                        <h3 class="font-bold">Lesson 01 - Introduction basics</h3>
+                        <p class="text-xs text-zinc-500">Contains 5 detailed lecture videos.</p>
+                        <button class="w-full mt-2 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 font-medium text-sm rounded-lg cursor-pointer">Open Folder</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        // Close mobile menu on link click
-        mobileMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                mobileMenu.classList.remove('open');
-            });
-        });
+        <div id="audio" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Listening Audio Tracks</h2>
+            <div class="bg-white dark:bg-zinc-800 p-4 rounded-xl shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-zinc-100 dark:border-zinc-700 gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-lg"><i class="fas fa-play"></i></div>
+                        <div>
+                            <h4 class="font-bold text-sm">Track 01 - Pronunciation Exam Paper 2024</h4>
+                            <p class="text-xs text-zinc-400">Duration: 12:45 Mins</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold text-green-500">Free</span>
+                </div>
+            </div>
+        </div>
 
-        // Counter Animation
-        function animateCounters() {
-            const counters = document.querySelectorAll('.counter');
-            
-            counters.forEach(counter => {
-                const target = parseInt(counter.getAttribute('data-target'));
-                const duration = 2000;
-                const step = target / (duration / 16);
-                let current = 0;
-                
-                const updateCounter = () => {
-                    current += step;
-                    if (current < target) {
-                        counter.textContent = Math.floor(current).toLocaleString();
-                        requestAnimationFrame(updateCounter);
-                    } else {
-                        counter.textContent = target.toLocaleString() + '+';
-                    }
-                };
-                
-                updateCounter();
-            });
-        }
+        <div id="notes" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Notes & PDFs Folder</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-zinc-800 p-5 rounded-xl shadow-sm border-l-4 border-red-500 space-y-4">
+                    <div class="flex justify-between items-start">
+                        <h3 class="font-bold">Complete Grammar Pack (PDF)</h3>
+                        <span class="px-2 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded">LKR 1,500</span>
+                    </div>
+                    <p class="text-xs text-zinc-500">This contains all hidden grammar formulas required for A/L Korean.</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="py-2 bg-zinc-100 dark:bg-zinc-700 rounded-lg text-xs font-medium opacity-50 cursor-not-allowed" disabled>Preview</button>
+                        <button onclick="triggerPayment('Complete Grammar Pack', 'LKR 1,500')" class="py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"><i class="fab fa-whatsapp"></i> Pay Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        // Scroll Reveal
-        function initScrollReveal() {
-            const reveals = document.querySelectorAll('.reveal');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('active');
-                    }
-                });
-            }, {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            });
-            
-            reveals.forEach(reveal => {
-                observer.observe(reveal);
-            });
-        }
+        <div id="quizzes" class="tab-content">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h2 class="text-2xl font-bold">Examination Quizzes</h2>
+                <div class="flex flex-wrap gap-1 bg-zinc-200 dark:bg-zinc-800 p-1 rounded-lg text-xs">
+                    <button class="px-3 py-1.5 bg-white dark:bg-zinc-700 font-bold rounded shadow-sm">All Papers</button>
+                    <button class="px-3 py-1.5 rounded text-zinc-500">Lesson Wise</button>
+                    <button class="px-3 py-1.5 rounded text-zinc-500">Past Papers</button>
+                    <button class="px-3 py-1.5 rounded text-zinc-500">School Papers</button>
+                </div>
+            </div>
+            <div class="bg-white dark:bg-zinc-800 p-6 rounded-xl text-center text-zinc-400 py-12">[ Quizzes Interface Loaded From Supabase ]</div>
+        </div>
 
-        // Initialize on DOM ready
-        document.addEventListener('DOMContentLoaded', () => {
-            // Start counter animation after a delay
-            setTimeout(animateCounters, 500);
-            initScrollReveal();
-        });
+        <div id="live" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Upcoming Live Classes</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-zinc-800 p-5 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded animate-pulse">LIVE NOW</span>
+                        <span class="text-xs text-green-500 font-bold">Free Class</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Special Paper Discussion (2026 Batch)</h3>
+                        <p class="text-sm text-zinc-500 mt-1">Duration: 2 Hours | Platform: Zoom</p>
+                    </div>
+                    <a href="https://zoom.us" target="_blank" class="block text-center w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition text-sm">Join Lecture via Zoom</a>
+                </div>
+            </div>
+        </div>
 
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-    </script>
+        <div id="profile" class="tab-content space-y-6">
+            <h2 class="text-2xl font-bold">My Creator Profile</h2>
+            <div class="bg-white dark:bg-zinc-800 p-6 rounded-xl shadow-sm space-y-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-full bg-zinc-300 dark:bg-zinc-600 flex items-center justify-center text-2xl font-bold"><i class="fas fa-user text-zinc-500"></i></div>
+                    <div>
+                        <h3 class="text-xl font-bold">User Full Name</h3>
+                        <p class="text-sm text-zinc-400">Role: Student / Sub-Creator</p>
+                    </div>
+                </div>
+                <hr class="border-zinc-100 dark:border-zinc-700">
+                <div>
+                    <h4 class="font-bold mb-3"><i class="fas fa-cloud-upload-alt text-blue-500 mr-2"></i> My Content Submissions</h4>
+                    <div class="border border-zinc-100 dark:border-zinc-700 rounded-lg p-4 space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span>Vocabulary_Lesson_04.pdf</span>
+                            <span class="px-2 py-0.5 bg-amber-100 text-amber-700 font-semibold text-xs rounded">Pending Approval</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="app.js"></script>
 </body>
 </html>
