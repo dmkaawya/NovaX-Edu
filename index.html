@@ -1,926 +1,501 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NovaX Edu - Korean Learning LMS</title>
-  <meta name="description" content="Comprehensive Korean Language Learning Management System for A/L Students">
-  <meta name="theme-color" content="#E53935">
-  <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTm92YVggRWR1Iiwic2hvcnRfbmFtZSI6Ik5vdmFYIiwic3RhcnRfdXJsIjoiLi8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMEEwQTBBIiwidGhlbWVfY29sb3IiOiIjRTUzOTM1In0=">
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style type="text/tailwindcss">
-    @custom-variant dark (&:where(.dark, .dark *));
-    @theme {
-      --color-nova-red: #E53935;
-      --color-nova-red-dark: #B71C1C;
-      --color-nova-red-light: #FF5252;
-      --color-nova-blue: #1565C0;
-      --color-nova-blue-dark: #0D47A1;
-      --color-nova-blue-light: #42A5F5;
-      --color-nova-green: #2E7D32;
-      --color-nova-green-dark: #1B5E20;
-      --color-nova-green-light: #66BB6A;
-      --color-nova-black: #0A0A0A;
-      --color-nova-dark: #121212;
-      --color-nova-dark-2: #1E1E1E;
-      --color-nova-dark-3: #2A2A2A;
-      --color-nova-white: #FAFAFA;
-      --color-nova-gray: #B0B0B0;
-      --color-nova-gray-light: #E0E0E0;
-      --font-outfit: 'Outfit', sans-serif;
-      --font-space: 'Space Grotesk', sans-serif;
-    }
-  </style>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Outfit', sans-serif; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    .dark ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-    @keyframes marquee-scroll {
-      0% { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-    .marquee-content { animation: marquee-scroll 30s linear infinite; }
-    .marquee-content:hover { animation-play-state: paused; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .tab-fade-in { animation: fadeIn 0.35s ease-out; }
-    @keyframes flipCard {
-      0% { transform: rotateY(0deg); }
-      100% { transform: rotateY(180deg); }
-    }
-    .flashcard-flip { transform: rotateY(180deg); }
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 5px rgba(229,57,53,0.3); }
-      50% { box-shadow: 0 0 20px rgba(229,57,53,0.6); }
-    }
-    .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-    @keyframes countdown-tick {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    .countdown-tick { animation: countdown-tick 1s ease-in-out infinite; }
-    .perspective-1000 { perspective: 1000px; }
-    .backface-hidden { backface-visibility: hidden; }
-    .rotate-y-180 { transform: rotateY(180deg); }
-    .preserve-3d { transform-style: preserve-3d; }
-    .audio-wave { display: inline-block; width: 3px; margin: 0 1px; border-radius: 2px; background: currentColor; animation: audioWave 0.8s ease-in-out infinite; }
-    .audio-wave:nth-child(2) { animation-delay: 0.1s; }
-    .audio-wave:nth-child(3) { animation-delay: 0.2s; }
-    .audio-wave:nth-child(4) { animation-delay: 0.3s; }
-    .audio-wave:nth-child(5) { animation-delay: 0.4s; }
-    @keyframes audioWave {
-      0%, 100% { height: 4px; }
-      50% { height: 16px; }
-    }
-    .watermark-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none; overflow: hidden; z-index: 10;
-    }
-    .watermark-text {
-      position: absolute; font-size: 18px; color: rgba(229,57,53,0.15);
-      transform: rotate(-35deg); white-space: nowrap; font-weight: 700;
-    }
-    input[type="range"] { -webkit-appearance: none; height: 4px; border-radius: 2px; }
-    .dark input[type="range"] { background: #333; }
-    input[type="range"] { background: #ddd; }
-    input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #E53935; cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovaX Edu - Learn Korean</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        nova: { red: '#E53E3E', black: '#1A202C', white: '#FFFFFF', blue: '#3182CE', green: '#38A169', darkBg: '#111827', darkCard: '#1F2937' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dark ::-webkit-scrollbar-track { background: #1A202C; }
+        ::-webkit-scrollbar-thumb { background: #3182CE; border-radius: 4px; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .animate-marquee { animation: marquee 15s linear infinite; }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-preserve-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
 </head>
-<body class="bg-nova-white dark:bg-nova-black text-nova-black dark:text-nova-white font-outfit transition-colors duration-300">
-
-  <!-- ==================== AUTH OVERLAY ==================== -->
-  <div id="authOverlay" class="fixed inset-0 z-[100] flex items-center justify-center bg-nova-black">
-    <div class="absolute inset-0 overflow-hidden">
-      <div class="absolute -top-40 -right-40 w-96 h-96 bg-nova-red/20 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-nova-blue/20 rounded-full blur-3xl"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-nova-red/10 rounded-full blur-3xl"></div>
-    </div>
-    <div class="relative z-10 w-full max-w-md mx-4">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 bg-nova-red rounded-xl flex items-center justify-center">
-            <span class="text-white font-space font-bold text-xl">N</span>
-          </div>
-          <span class="text-3xl font-space font-bold text-white">NovaX <span class="text-nova-red">Edu</span></span>
-        </div>
-        <p class="text-nova-gray text-sm">Korean Language Learning Platform</p>
-      </div>
-
-      <!-- Login Form -->
-      <div id="loginForm" class="bg-nova-dark-2 rounded-2xl p-8 border border-nova-dark-3">
-        <h2 class="text-xl font-bold text-white mb-6">Sign In</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm text-nova-gray mb-1">Email</label>
-            <input id="loginEmail" type="email" placeholder="your@email.com"
-              class="w-full px-4 py-3 bg-nova-dark-3 border border-nova-dark-3 rounded-xl text-white placeholder-nova-gray/50 focus:outline-none focus:border-nova-red transition-colors">
-          </div>
-          <div>
-            <label class="block text-sm text-nova-gray mb-1">Password</label>
-            <input id="loginPassword" type="password" placeholder="Enter password"
-              class="w-full px-4 py-3 bg-nova-dark-3 border border-nova-dark-3 rounded-xl text-white placeholder-nova-gray/50 focus:outline-none focus:border-nova-red transition-colors">
-          </div>
-          <button id="loginBtn" class="w-full py-3 bg-nova-red hover:bg-nova-red-dark text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
-            <i class="fas fa-sign-in-alt"></i> Sign In
-          </button>
-          <div class="bg-nova-dark-3/50 border border-nova-dark-3 rounded-xl p-3 mt-3">
-            <p class="text-xs text-nova-gray text-center">Having a problem logging in? Contact Support: <span class="text-nova-green font-semibold">0775048455</span> (WhatsApp Available)</p>
-          </div>
-        </div>
-        <p class="text-center text-nova-gray text-sm mt-6">Don't have an account? <button id="showRegister" class="text-nova-red hover:text-nova-red-light font-semibold transition-colors">Register</button></p>
-      </div>
-
-      <!-- Register Form -->
-      <div id="registerForm" class="bg-nova-dark-2 rounded-2xl p-8 border border-nova-dark-3 hidden">
-        <h2 class="text-xl font-bold text-white mb-6">Create Account</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm text-nova-gray mb-1">Full Name</label>
-            <input id="regName" type="text" placeholder="Your full name"
-              class="w-full px-4 py-3 bg-nova-dark-3 border border-nova-dark-3 rounded-xl text-white placeholder-nova-gray/50 focus:outline-none focus:border-nova-red transition-colors">
-          </div>
-          <div>
-            <label class="block text-sm text-nova-gray mb-1">Email</label>
-            <input id="regEmail" type="email" placeholder="your@email.com"
-              class="w-full px-4 py-3 bg-nova-dark-3 border border-nova-dark-3 rounded-xl text-white placeholder-nova-gray/50 focus:outline-none focus:border-nova-red transition-colors">
-          </div>
-          <div>
-            <label class="block text-sm text-nova-gray mb-1">Password</label>
-            <input id="regPassword" type="password" placeholder="Min 6 characters"
-              class="w-full px-4 py-3 bg-nova-dark-3 border border-nova-dark-3 rounded-xl text-white placeholder-nova-gray/50 focus:outline-none focus:border-nova-red transition-colors">
-          </div>
-          <div>
-            <label class="block text-sm text-nova-gray mb-1">WhatsApp Number</label>
-            <input id="regWhatsApp" type="tel" placeholder="+94 77 123 4567"
-              class="w-full px-4 py-3 bg-nova-dark-3 border border-nova-dark-3 rounded-xl text-white placeholder-nova-gray/50 focus:outline-none focus:border-nova-red transition-colors">
-          </div>
-          <button id="registerBtn" class="w-full py-3 bg-nova-red hover:bg-nova-red-dark text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
-            <i class="fas fa-user-plus"></i> Create Account
-          </button>
-        </div>
-        <p class="text-center text-nova-gray text-sm mt-6">Already have an account? <button id="showLogin" class="text-nova-red hover:text-nova-red-light font-semibold transition-colors">Sign In</button></p>
-      </div>
-
-      <div id="authError" class="hidden mt-4 p-3 bg-red-900/30 border border-red-800 rounded-xl text-red-400 text-sm text-center"></div>
-    </div>
-  </div>
-
-  <!-- ==================== MAIN APP ==================== -->
-  <div id="mainApp" class="hidden min-h-screen">
+<body class="bg-gray-50 dark:bg-nova-darkBg text-nova-black dark:text-white font-sans transition-colors duration-300">
 
     <!-- Announcement Marquee -->
-    <div id="announcementBar" class="bg-nova-red text-white py-1.5 overflow-hidden relative">
-      <div class="marquee-content whitespace-nowrap text-sm font-medium">
-        <span id="announcementText">Welcome to NovaX Edu! Master Korean with our comprehensive learning resources. New content added daily!</span>
-      </div>
+    <div class="w-full py-2 bg-nova-red text-white">
+        <div class="animate-marquee whitespace-nowrap font-semibold">
+            📢 අද රෑ 8ට Live Korean Class එක ඇත! | 🇰🇷 Daily New Words Dashboard එකේ බලන්න! | Promo: KOREAN20
+        </div>
     </div>
 
-    <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-50 bg-white/80 dark:bg-nova-dark/80 backdrop-blur-xl border-b border-nova-gray-light/30 dark:border-nova-dark-3">
-      <div class="flex items-center justify-between px-4 lg:px-6 h-16">
-        <div class="flex items-center gap-3">
-          <button id="sidebarToggle" class="lg:hidden p-2 rounded-xl hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors">
-            <i class="fas fa-bars text-lg"></i>
-          </button>
-          <div class="flex items-center gap-2">
-            <div class="w-9 h-9 bg-nova-red rounded-lg flex items-center justify-center">
-              <span class="text-white font-space font-bold text-sm">N</span>
-            </div>
-            <span class="text-xl font-space font-bold hidden sm:block">NovaX <span class="text-nova-red">Edu</span></span>
-          </div>
-        </div>
-
-        <!-- Global Search & Filters -->
-        <div class="flex-1 max-w-2xl mx-4">
-          <div class="flex items-center gap-2">
-            <div class="flex-1 relative">
-              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-nova-gray text-sm"></i>
-              <input id="globalSearch" type="text" placeholder="Search lessons, papers, videos..."
-                class="w-full pl-10 pr-4 py-2 bg-nova-gray-light/20 dark:bg-nova-dark-3 border border-transparent focus:border-nova-red rounded-xl text-sm focus:outline-none transition-colors">
-            </div>
-            <select id="filterLessonId" class="hidden sm:block px-3 py-2 bg-nova-gray-light/20 dark:bg-nova-dark-3 border border-transparent rounded-xl text-sm focus:outline-none focus:border-nova-red cursor-pointer">
-              <option value="">All Lessons</option>
-              <option value="1">Lesson 1</option>
-              <option value="2">Lesson 2</option>
-              <option value="3">Lesson 3</option>
-              <option value="4">Lesson 4</option>
-              <option value="5">Lesson 5</option>
-              <option value="6">Lesson 6</option>
-              <option value="7">Lesson 7</option>
-              <option value="8">Lesson 8</option>
-              <option value="9">Lesson 9</option>
-              <option value="10">Lesson 10</option>
-              <option value="11">Lesson 11</option>
-              <option value="12">Lesson 12</option>
-            </select>
-            <select id="filterPaperType" class="hidden sm:block px-3 py-2 bg-nova-gray-light/20 dark:bg-nova-dark-3 border border-transparent rounded-xl text-sm focus:outline-none focus:border-nova-red cursor-pointer">
-              <option value="">All Paper Types</option>
-              <option value="past">Past Paper</option>
-              <option value="school">School Paper</option>
-              <option value="student">Student Paper</option>
-              <option value="model">Model Paper</option>
-            </select>
-            <select id="filterDocType" class="hidden md:block px-3 py-2 bg-nova-gray-light/20 dark:bg-nova-dark-3 border border-transparent rounded-xl text-sm focus:outline-none focus:border-nova-red cursor-pointer">
-              <option value="">All Doc Types</option>
-              <option value="pdf">PDF</option>
-              <option value="video">Video</option>
-              <option value="audio">Audio</option>
-              <option value="article">Article</option>
-              <option value="note">Note</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <button id="darkModeToggle" class="p-2 rounded-xl hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors" title="Toggle Dark Mode">
-            <i class="fas fa-moon text-lg dark:hidden"></i>
-            <i class="fas fa-sun text-lg hidden dark:inline text-yellow-400"></i>
-          </button>
-          <button id="uploadBtn" class="hidden sm:flex items-center gap-2 px-4 py-2 bg-nova-red hover:bg-nova-red-dark text-white text-sm font-semibold rounded-xl transition-colors">
-            <i class="fas fa-cloud-upload-alt"></i> Upload
-          </button>
-          <div class="relative">
-            <button id="userMenuBtn" class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors">
-              <div class="w-8 h-8 bg-nova-blue rounded-lg flex items-center justify-center">
-                <span id="userAvatar" class="text-white text-sm font-bold">U</span>
-              </div>
-              <span id="userName" class="hidden md:block text-sm font-medium max-w-[100px] truncate">User</span>
-              <i class="fas fa-chevron-down text-xs hidden md:block"></i>
+    <!-- Navbar -->
+    <nav class="flex justify-between items-center p-4 shadow-md bg-white dark:bg-nova-darkCard">
+        <h1 class="text-2xl font-bold tracking-wider">
+            <span class="text-nova-red">Nova</span><span class="text-nova-blue">X</span> <span class="text-nova-green">Edu</span>
+        </h1>
+        <div class="flex items-center gap-4">
+            <div id="user-info" class="hidden text-sm font-semibold bg-nova-blue/20 text-nova-blue px-3 py-1 rounded-full"></div>
+            <button id="theme-toggle" class="p-2 rounded-full bg-gray-800 text-white dark:bg-yellow-400 dark:text-black transition">
+                <i class="fas fa-moon dark:hidden"></i> <i class="fas fa-sun hidden dark:inline"></i>
             </button>
-            <div id="userMenuDropdown" class="hidden absolute right-0 top-full mt-2 w-56 bg-white dark:bg-nova-dark-2 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl shadow-2xl overflow-hidden z-50">
-              <div class="p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3">
-                <p id="menuUserName" class="font-semibold text-sm">User</p>
-                <p id="menuUserEmail" class="text-xs text-nova-gray">user@email.com</p>
-                <span id="menuUserRole" class="inline-block mt-1 px-2 py-0.5 bg-nova-red/20 text-nova-red text-xs font-semibold rounded-full">Student</span>
-              </div>
-              <div class="py-2">
-                <button data-tab="profile" class="menu-tab-btn w-full text-left px-4 py-2.5 text-sm hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex items-center gap-3">
-                  <i class="fas fa-user w-4"></i> My Profile
-                </button>
-                <button id="pendingQueueBtn" class="hidden w-full text-left px-4 py-2.5 text-sm hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex items-center gap-3">
-                  <i class="fas fa-clock w-4"></i> Pending Queue
-                </button>
-                <button id="logoutBtn" class="w-full text-left px-4 py-2.5 text-sm text-nova-red hover:bg-nova-red/10 transition-colors flex items-center gap-3">
-                  <i class="fas fa-sign-out-alt w-4"></i> Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-    </header>
+    </nav>
 
-    <div class="flex">
-      <!-- Sidebar Overlay (Mobile) -->
-      <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 lg:hidden" onclick="closeSidebar()"></div>
+    <!-- ==================== AUTH SECTION ==================== -->
+    <div id="auth-container" class="flex items-center justify-center min-h-[80vh] px-4">
+        <div class="w-full max-w-md p-8 rounded-2xl shadow-2xl bg-white dark:bg-nova-darkCard border dark:border-gray-700">
+            <div id="login-form">
+                <h2 class="text-3xl font-bold mb-2 text-center">Welcome Back!</h2>
+                <p class="text-center text-gray-400 mb-8">Login to continue learning Korean</p>
+                <div class="space-y-4">
+                    <input id="login-email" type="email" class="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-600 outline-none" placeholder="Email">
+                    <input id="login-password" type="password" class="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-600 outline-none" placeholder="Password">
+                    <button onclick="login()" class="w-full bg-nova-blue hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition"><i class="fas fa-sign-in-alt mr-2"></i> Login</button>
+                </div>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-400">Don't have an account? <button onclick="toggleAuth('register')" class="text-nova-green font-bold hover:underline">Register</button></p>
+                </div>
+                <div class="mt-6 p-4 rounded-lg bg-red-50 dark:bg-gray-900 border border-red-200 dark:border-gray-700">
+                    <p class="text-sm font-semibold text-nova-red"><i class="fas fa-phone mr-2"></i>Trouble logging in?</p>
+                    <a href="https://wa.me/94775048455" target="_blank" class="text-sm text-nova-green hover:underline">Contact Admin: 077 504 8455</a>
+                </div>
+            </div>
 
-      <!-- Sidebar -->
-      <aside id="sidebar" class="fixed lg:sticky top-0 lg:top-16 left-0 z-40 h-screen lg:h-[calc(100vh-4rem)] w-64 bg-white dark:bg-nova-dark border-r border-nova-gray-light/30 dark:border-nova-dark-3 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
-        <div class="p-4 lg:hidden flex items-center justify-between border-b border-nova-gray-light/20 dark:border-nova-dark-3">
-          <span class="font-space font-bold text-lg">NovaX <span class="text-nova-red">Edu</span></span>
-          <button onclick="closeSidebar()" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3"><i class="fas fa-times"></i></button>
+            <div id="register-form" class="hidden">
+                <h2 class="text-3xl font-bold mb-2 text-center">Join NovaX Edu</h2>
+                <div class="space-y-4 mt-6">
+                    <input id="reg-name" type="text" class="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-600 outline-none" placeholder="Full Name">
+                    <input id="reg-email" type="email" class="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-600 outline-none" placeholder="Email">
+                    <input id="reg-whatsapp" type="tel" class="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-600 outline-none" placeholder="WhatsApp Number">
+                    <input id="reg-password" type="password" class="w-full p-3 rounded-lg border dark:bg-gray-800 dark:border-gray-600 outline-none" placeholder="Password">
+                    <button onclick="register()" class="w-full bg-nova-green hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"><i class="fas fa-user-plus mr-2"></i> Register</button>
+                </div>
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-400">Already have an account? <button onclick="toggleAuth('login')" class="text-nova-blue font-bold hover:underline">Login</button></p>
+                </div>
+            </div>
         </div>
-        <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-          <button data-tab="dashboard" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-chart-line w-5 text-center text-nova-red"></i> Dashboard
-          </button>
-          <button data-tab="articles" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-newspaper w-5 text-center text-nova-blue"></i> Articles
-          </button>
-          <button data-tab="liveclasses" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-broadcast-tower w-5 text-center text-nova-green"></i> Live Classes
-          </button>
-          <button data-tab="videos" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-play-circle w-5 text-center text-nova-red"></i> Videos
-          </button>
-          <button data-tab="audio" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-headphones w-5 text-center text-nova-blue"></i> Audio Tracks
-          </button>
-          <button data-tab="notes" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-file-pdf w-5 text-center text-nova-green"></i> Notes & PDFs
-          </button>
-          <button data-tab="quizzes" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-question-circle w-5 text-center text-nova-red"></i> Quizzes
-          </button>
-          <button data-tab="profile" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-            <i class="fas fa-user-circle w-5 text-center text-nova-blue"></i> Profile
-          </button>
-          <div class="pt-3 mt-3 border-t border-nova-gray-light/20 dark:border-nova-dark-3">
-            <p class="px-4 text-xs text-nova-gray font-semibold uppercase tracking-wider mb-2">Extensions</p>
-            <button data-tab="flashcards" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-              <i class="fas fa-clone w-5 text-center text-nova-green"></i> Flashcards
-            </button>
-            <button data-tab="forum" class="nav-tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3">
-              <i class="fas fa-comments w-5 text-center text-nova-blue"></i> Discussion
-            </button>
-          </div>
-        </nav>
-        <div class="p-4 border-t border-nova-gray-light/20 dark:border-nova-dark-3">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-nova-blue rounded-lg flex items-center justify-center">
-              <span id="sidebarAvatar" class="text-white text-sm font-bold">U</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p id="sidebarName" class="text-sm font-medium truncate">User</p>
-              <p id="sidebarRole" class="text-xs text-nova-gray">Student</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Content Area -->
-      <main class="flex-1 min-h-[calc(100vh-4rem)] p-4 lg:p-6">
-
-        <!-- ===== DASHBOARD TAB ===== -->
-        <section id="tab-dashboard" class="tab-content tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Dashboard</h1>
-            <p class="text-nova-gray text-sm mt-1">Track your progress and stay motivated</p>
-          </div>
-
-          <!-- Countdown Timer -->
-          <div class="bg-gradient-to-br from-nova-red to-nova-red-dark rounded-2xl p-6 mb-6 text-white relative overflow-hidden">
-            <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full"></div>
-            <div class="absolute -right-5 -bottom-10 w-32 h-32 bg-white/5 rounded-full"></div>
-            <div class="relative z-10">
-              <h3 class="text-sm font-medium opacity-90 mb-1">2026 A/L Korean Examination</h3>
-              <p class="text-xs opacity-70 mb-4">August 8, 2026</p>
-              <div class="flex gap-3 sm:gap-4">
-                <div class="text-center countdown-tick">
-                  <div id="countDays" class="text-3xl sm:text-4xl font-space font-bold">000</div>
-                  <div class="text-xs opacity-70">Days</div>
-                </div>
-                <div class="text-3xl sm:text-4xl font-space font-bold opacity-50">:</div>
-                <div class="text-center countdown-tick">
-                  <div id="countHours" class="text-3xl sm:text-4xl font-space font-bold">00</div>
-                  <div class="text-xs opacity-70">Hours</div>
-                </div>
-                <div class="text-3xl sm:text-4xl font-space font-bold opacity-50">:</div>
-                <div class="text-center countdown-tick">
-                  <div id="countMinutes" class="text-3xl sm:text-4xl font-space font-bold">00</div>
-                  <div class="text-xs opacity-70">Minutes</div>
-                </div>
-                <div class="text-3xl sm:text-4xl font-space font-bold opacity-50">:</div>
-                <div class="text-center countdown-tick">
-                  <div id="countSeconds" class="text-3xl sm:text-4xl font-space font-bold">00</div>
-                  <div class="text-xs opacity-70">Seconds</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <!-- Daily Korean Word -->
-            <div class="bg-white dark:bg-nova-dark-2 rounded-2xl p-6 border border-nova-gray-light/30 dark:border-nova-dark-3">
-              <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-nova-blue/20 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-language text-nova-blue text-sm"></i>
-                </div>
-                <h3 class="font-semibold">Daily Korean Word</h3>
-              </div>
-              <div class="text-center py-4">
-                <p id="dailyWord" class="text-4xl font-space font-bold text-nova-red mb-2">안녕하세요</p>
-                <p id="dailyPronunciation" class="text-sm text-nova-blue font-medium mb-2">[an-nyeong-ha-se-yo]</p>
-                <p id="dailyTranslation" class="text-nova-gray">Hello / Good morning</p>
-              </div>
-              <div class="flex justify-center mt-3">
-                <button id="dailyWordSpeaker" class="p-2 rounded-lg bg-nova-blue/10 hover:bg-nova-blue/20 text-nova-blue transition-colors">
-                  <i class="fas fa-volume-up"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div class="bg-white dark:bg-nova-dark-2 rounded-2xl p-6 border border-nova-gray-light/30 dark:border-nova-dark-3">
-              <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-nova-green/20 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-chart-bar text-nova-green text-sm"></i>
-                </div>
-                <h3 class="font-semibold">Quick Stats</h3>
-              </div>
-              <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-nova-gray">Videos Watched</span>
-                  <span id="statVideos" class="font-bold text-nova-blue">0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-nova-gray">Quizzes Taken</span>
-                  <span id="statQuizzes" class="font-bold text-nova-green">0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-nova-gray">Avg Score</span>
-                  <span id="statAvgScore" class="font-bold text-nova-red">0%</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-nova-gray">Articles Read</span>
-                  <span id="statArticles" class="font-bold text-nova-blue">0</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Quiz Performance Analytics -->
-            <div class="bg-white dark:bg-nova-dark-2 rounded-2xl p-6 border border-nova-gray-light/30 dark:border-nova-dark-3">
-              <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 bg-nova-red/20 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-chart-line text-nova-red text-sm"></i>
-                </div>
-                <h3 class="font-semibold">Quiz Performance</h3>
-              </div>
-              <div id="quizChart" class="h-40 flex items-end gap-1.5">
-                <!-- Bars rendered by JS -->
-              </div>
-              <div class="flex justify-between mt-2 text-xs text-nova-gray">
-                <span>Oldest</span>
-                <span>Latest</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Activity Log -->
-          <div class="mt-6 bg-white dark:bg-nova-dark-2 rounded-2xl p-6 border border-nova-gray-light/30 dark:border-nova-dark-3">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-nova-green/20 rounded-lg flex items-center justify-center">
-                  <i class="fas fa-history text-nova-green text-sm"></i>
-                </div>
-                <h3 class="font-semibold">Recent Activity</h3>
-              </div>
-            </div>
-            <div id="activityLog" class="space-y-3 max-h-64 overflow-y-auto">
-              <!-- Activities rendered by JS -->
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== ARTICLES TAB ===== -->
-        <section id="tab-articles" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Articles</h1>
-            <p class="text-nova-gray text-sm mt-1">Read in-depth Korean language articles and guides</p>
-          </div>
-          <div id="articlesGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            <!-- Articles rendered by JS -->
-          </div>
-        </section>
-
-        <!-- ===== LIVE CLASSES TAB ===== -->
-        <section id="tab-liveclasses" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Live Classes</h1>
-            <p class="text-nova-gray text-sm mt-1">Join live sessions and interactive lectures</p>
-          </div>
-          <div id="liveClassesGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            <!-- Live classes rendered by JS -->
-          </div>
-        </section>
-
-        <!-- ===== VIDEOS TAB ===== -->
-        <section id="tab-videos" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <div id="videosBreadcrumb" class="flex items-center gap-2 text-sm text-nova-gray mb-2">
-              <span class="text-nova-red font-medium cursor-pointer" onclick="navigateVideoFolder(null)">All Lessons</span>
-            </div>
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Videos</h1>
-            <p class="text-nova-gray text-sm mt-1">Browse lesson-wise video content</p>
-          </div>
-          <!-- Level 1: Folders -->
-          <div id="videoFoldersGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            <!-- Video folders rendered by JS -->
-          </div>
-          <!-- Level 2: Videos inside folder -->
-          <div id="videoItemsGrid" class="hidden grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            <!-- Video items rendered by JS -->
-          </div>
-        </section>
-
-        <!-- ===== AUDIO TAB ===== -->
-        <section id="tab-audio" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Audio Tracks</h1>
-            <p class="text-nova-gray text-sm mt-1">Practice listening with Korean audio lessons</p>
-          </div>
-          <div id="audioTracksList" class="space-y-3">
-            <!-- Audio tracks rendered by JS -->
-          </div>
-        </section>
-
-        <!-- ===== NOTES & PDFs TAB ===== -->
-        <section id="tab-notes" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Notes & PDFs</h1>
-            <p class="text-nova-gray text-sm mt-1">Download study materials and reference notes</p>
-          </div>
-          <div id="notesGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            <!-- Notes rendered by JS -->
-          </div>
-        </section>
-
-        <!-- ===== QUIZZES TAB ===== -->
-        <section id="tab-quizzes" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Quizzes</h1>
-            <p class="text-nova-gray text-sm mt-1">Test your knowledge with interactive quizzes</p>
-          </div>
-          <!-- Quiz Sub-tabs -->
-          <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-            <button data-quiz-tab="lesson" class="quiz-sub-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-nova-red text-white">Lesson Wise</button>
-            <button data-quiz-tab="past" class="quiz-sub-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-nova-gray-light/20 dark:bg-nova-dark-3 hover:bg-nova-gray-light/30 dark:hover:bg-nova-dark-3/80">Past Papers</button>
-            <button data-quiz-tab="school" class="quiz-sub-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-nova-gray-light/20 dark:bg-nova-dark-3 hover:bg-nova-gray-light/30 dark:hover:bg-nova-dark-3/80">School Papers</button>
-            <button data-quiz-tab="student" class="quiz-sub-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-nova-gray-light/20 dark:bg-nova-dark-3 hover:bg-nova-gray-light/30 dark:hover:bg-nova-dark-3/80">Student Papers</button>
-            <button data-quiz-tab="all" class="quiz-sub-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-nova-gray-light/20 dark:bg-nova-dark-3 hover:bg-nova-gray-light/30 dark:hover:bg-nova-dark-3/80">All Papers</button>
-          </div>
-          <div id="quizzesGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            <!-- Quizzes rendered by JS -->
-          </div>
-        </section>
-
-        <!-- ===== PROFILE TAB ===== -->
-        <section id="tab-profile" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">My Profile</h1>
-            <p class="text-nova-gray text-sm mt-1">Manage your account settings and view activity</p>
-          </div>
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Profile Info -->
-            <div class="bg-white dark:bg-nova-dark-2 rounded-2xl p-6 border border-nova-gray-light/30 dark:border-nova-dark-3">
-              <div class="text-center mb-6">
-                <div class="w-20 h-20 bg-nova-blue rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <span id="profileAvatar" class="text-white text-3xl font-bold">U</span>
-                </div>
-                <h3 id="profileName" class="font-bold text-lg">User</h3>
-                <p id="profileEmail" class="text-sm text-nova-gray">user@email.com</p>
-                <span id="profileRole" class="inline-block mt-2 px-3 py-1 bg-nova-red/20 text-nova-red text-xs font-semibold rounded-full">Student</span>
-              </div>
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-sm text-nova-gray mb-1">Full Name</label>
-                  <input id="editName" type="text" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red transition-colors">
-                </div>
-                <div>
-                  <label class="block text-sm text-nova-gray mb-1">WhatsApp Number</label>
-                  <input id="editWhatsApp" type="tel" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red transition-colors">
-                </div>
-                <button id="saveProfileBtn" class="w-full py-2.5 bg-nova-blue hover:bg-nova-blue-dark text-white font-semibold rounded-xl transition-colors text-sm">
-                  <i class="fas fa-save mr-2"></i>Save Changes
-                </button>
-              </div>
-            </div>
-            <!-- Login & Activity Log -->
-            <div class="lg:col-span-2 space-y-6">
-              <div class="bg-white dark:bg-nova-dark-2 rounded-2xl p-6 border border-nova-gray-light/30 dark:border-nova-dark-3">
-                <h3 class="font-semibold mb-4 flex items-center gap-2"><i class="fas fa-history text-nova-blue"></i> Login & Activity Log</h3>
-                <div id="profileActivityLog" class="space-y-2 max-h-80 overflow-y-auto">
-                  <!-- Activity items rendered by JS -->
-                </div>
-              </div>
-              <div class="bg-white dark:bg-nova-dark-2 rounded-2xl p-6 border border-nova-red/30">
-                <h3 class="font-semibold mb-2 text-nova-red flex items-center gap-2"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
-                <p class="text-sm text-nova-gray mb-4">Permanently delete your account and all associated data. This action cannot be undone.</p>
-                <button id="deleteProfileBtn" class="px-6 py-2.5 bg-nova-red/10 hover:bg-nova-red text-nova-red hover:text-white font-semibold rounded-xl transition-colors text-sm border border-nova-red/30">
-                  <i class="fas fa-trash-alt mr-2"></i>Delete My Account
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== FLASHCARDS TAB ===== -->
-        <section id="tab-flashcards" class="tab-content hidden tab-fade-in">
-          <div class="mb-6">
-            <h1 class="text-2xl lg:text-3xl font-space font-bold">Korean Flashcards</h1>
-            <p class="text-nova-gray text-sm mt-1">Tap to flip and memorize vocabulary</p>
-          </div>
-          <div class="flex flex-col items-center">
-            <div id="flashcardContainer" class="perspective-1000 w-full max-w-md h-72 cursor-pointer mb-6" onclick="flipCurrentCard()">
-              <div id="flashcardInner" class="relative w-full h-full preserve-3d transition-transform duration-500">
-                <div class="absolute inset-0 backface-hidden bg-white dark:bg-nova-dark-2 rounded-2xl border-2 border-nova-red/30 flex flex-col items-center justify-center p-8 shadow-lg">
-                  <p class="text-xs text-nova-gray mb-2 uppercase tracking-wider">Korean</p>
-                  <p id="flashcardFront" class="text-5xl font-space font-bold text-nova-red">안녕</p>
-                  <p id="flashcardFrontPron" class="text-sm text-nova-blue mt-3">[an-nyeong]</p>
-                  <p class="text-xs text-nova-gray mt-4">Tap to flip</p>
-                </div>
-                <div class="absolute inset-0 backface-hidden rotate-y-180 bg-nova-red rounded-2xl flex flex-col items-center justify-center p-8 shadow-lg">
-                  <p class="text-xs text-white/70 mb-2 uppercase tracking-wider">Sinhala</p>
-                  <p id="flashcardBack" class="text-3xl font-bold text-white">හෙලෝ</p>
-                  <p class="text-xs text-white/70 mt-4">Tap to flip back</p>
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-4">
-              <button id="prevCardBtn" class="p-3 rounded-xl bg-nova-gray-light/20 dark:bg-nova-dark-3 hover:bg-nova-gray-light/30 dark:hover:bg-nova-dark-3/80 transition-colors">
-                <i class="fas fa-chevron-left"></i>
-              </button>
-              <span id="cardCounter" class="text-sm text-nova-gray font-medium">1 / 10</span>
-              <button id="nextCardBtn" class="p-3 rounded-xl bg-nova-gray-light/20 dark:bg-nova-dark-3 hover:bg-nova-gray-light/30 dark:hover:bg-nova-dark-3/80 transition-colors">
-                <i class="fas fa-chevron-right"></i>
-              </button>
-              <button id="speakCardBtn" class="p-3 rounded-xl bg-nova-blue/10 hover:bg-nova-blue/20 text-nova-blue transition-colors">
-                <i class="fas fa-volume-up"></i>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- ===== DISCUSSION FORUM TAB ===== -->
-        <section id="tab-forum" class="tab-content hidden tab-fade-in">
-          <div class="mb-6 flex items-center justify-between">
-            <div>
-              <h1 class="text-2xl lg:text-3xl font-space font-bold">Discussion Forum</h1>
-              <p class="text-nova-gray text-sm mt-1">Ask questions and help fellow learners</p>
-            </div>
-            <button id="newPostBtn" class="px-4 py-2 bg-nova-red hover:bg-nova-red-dark text-white text-sm font-semibold rounded-xl transition-colors">
-              <i class="fas fa-plus mr-2"></i>New Post
-            </button>
-          </div>
-          <div id="forumPostsList" class="space-y-4">
-            <!-- Forum posts rendered by JS -->
-          </div>
-        </section>
-
-      </main>
     </div>
-  </div>
 
-  <!-- ==================== MODALS ==================== -->
+    <!-- ==================== DASHBOARD SECTION ==================== -->
+    <div id="dashboard-container" class="hidden flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 bg-white dark:bg-nova-darkCard p-4 md:min-h-screen shadow-md flex md:flex-col overflow-x-auto md:overflow-visible">
+            <div class="flex md:flex-col gap-2 w-full">
+                <button onclick="switchTab('dashboard')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-home"></i> Dashboard</button>
+                <button onclick="switchTab('live')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-broadcast-tower"></i> Live Classes</button>
+                <button onclick="switchTab('videos')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-video"></i> Videos</button>
+                <button onclick="switchTab('notes')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-sticky-note"></i> Notes</button>
+                <button onclick="switchTab('pdfs')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-file-pdf"></i> PDFs</button>
+                <button onclick="switchTab('quizzes')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-question-circle"></i> Quizzes</button>
+                <button onclick="switchTab('audio')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-headphones"></i> Audio</button>
+                <button onclick="switchTab('flashcards')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-clone"></i> Flashcards</button>
+                <button onclick="switchTab('forum')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-comments"></i> Forum</button>
+                <button onclick="switchTab('planner')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-calendar-alt"></i> Planner</button>
+                <button onclick="switchTab('profile')" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap"><i class="fas fa-user"></i> Profile</button>
+                <button id="admin-tab-btn" onclick="switchTab('admin')" class="hidden tab-btn flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 w-full text-left font-semibold whitespace-nowrap text-nova-red"><i class="fas fa-shield-alt"></i> Admin Panel</button>
+                <button onclick="logout()" class="flex items-center gap-3 px-4 py-3 rounded-lg bg-nova-red text-white hover:bg-red-700 w-full text-left font-semibold mt-auto whitespace-nowrap"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
 
-  <!-- Article Reader Modal -->
-  <div id="articleModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="sticky top-0 bg-white dark:bg-nova-dark-2 p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between z-10">
-        <h2 id="articleModalTitle" class="text-lg font-bold truncate pr-4">Article Title</h2>
-        <button onclick="closeModal('articleModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex-shrink-0">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="p-6">
-        <div class="flex items-center gap-3 mb-4 text-sm text-nova-gray">
-          <span><i class="fas fa-user mr-1"></i> <span id="articleModalAuthor">Author</span></span>
-          <span><i class="fas fa-calendar mr-1"></i> <span id="articleModalDate">Date</span></span>
-        </div>
-        <img id="articleModalImage" src="" alt="" class="w-full h-48 object-cover rounded-xl mb-4 hidden">
-        <div id="articleModalBody" class="prose dark:prose-invert max-w-none leading-relaxed text-sm"></div>
-      </div>
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 overflow-y-auto">
+            
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content active">
+                <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-nova-blue to-nova-green text-white shadow-xl">
+                    <h3 class="text-sm font-semibold opacity-80 mb-1">📖 Daily Korean Word</h3>
+                    <h1 class="text-4xl font-bold mb-2">사랑해 (Saranghae)</h1>
+                    <p class="text-xl font-light">I love you (Sa-rang-hae)</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-nova-darkCard p-6 rounded-2xl shadow-lg">
+                        <h3 class="font-bold text-lg mb-4 text-nova-blue">Quiz Performance</h3>
+                        <canvas id="performanceChart" height="150"></canvas>
+                    </div>
+                    <div class="bg-white dark:bg-nova-darkCard p-6 rounded-2xl shadow-lg">
+                        <h3 class="font-bold text-lg mb-4 text-nova-green">Top 10 Leaderboard 🏆</h3>
+                        <div class="space-y-3" id="leaderboard-list">
+                            <!-- JS eken fill wenawa -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Tabs (Videos, Notes, PDFs, Audio, Live) -->
+            <div id="tab-videos" class="tab-content"></div>
+            <div id="tab-notes" class="tab-content"></div>
+            <div id="tab-pdfs" class="tab-content"></div>
+            <div id="tab-audio" class="tab-content"></div>
+            <div id="tab-live" class="tab-content"></div>
+
+            <!-- Quiz Tab -->
+            <div id="tab-quizzes" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Quizzes</h2>
+                    <input type="text" placeholder="Search quizzes..." class="p-2 border dark:border-gray-600 rounded bg-transparent">
+                </div>
+                <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+                    <button class="px-4 py-2 rounded-full bg-nova-blue text-white text-sm font-semibold">Lesson by Lesson</button>
+                    <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-sm font-semibold">Past Papers</button>
+                    <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-sm font-semibold">School Papers</button>
+                    <button class="px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-sm font-semibold">All</button>
+                </div>
+                <div class="bg-white dark:bg-nova-darkCard p-6 rounded-xl shadow">
+                    <h3 class="font-bold text-lg mb-4">Sample Quiz - Lesson 01</h3>
+                    <div id="quiz-container">
+                        <p class="font-semibold mb-4">1. What is "Hello" in Korean?</p>
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 p-2 border rounded dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"><input type="radio" name="q1" value="0"> Annyeonghaseyo</label>
+                            <label class="flex items-center gap-2 p-2 border rounded dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"><input type="radio" name="q1" value="1"> Gamsahamnida</label>
+                        </div>
+                        <button onclick="submitQuiz()" class="mt-6 bg-nova-green text-white px-6 py-2 rounded-lg hover:bg-green-700">Submit Answers</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flashcards Tab -->
+            <div id="tab-flashcards" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6">🇰🇷 Korean Flashcards</h2>
+                <p class="text-gray-500 mb-6">Click on a card to see the meaning!</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div onclick="this.classList.toggle('rotate-y-180')" class="cursor-pointer h-40 perspective-1000">
+                        <div class="relative w-full h-full transition-transform duration-500 transform-style-preserve-3d">
+                            <div class="absolute w-full h-full backface-hidden bg-nova-blue text-white flex flex-col items-center justify-center rounded-xl shadow-lg p-4">
+                                <h3 class="text-3xl font-bold">학교</h3>
+                                <button class="mt-2 text-xs bg-white/20 px-2 py-1 rounded"><i class="fas fa-volume-up mr-1"></i> Listen</button>
+                            </div>
+                            <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-nova-green text-white flex flex-col items-center justify-center rounded-xl shadow-lg p-4">
+                                <h3 class="text-2xl font-bold">School</h3>
+                                <p class="text-sm">(Hak-gyo)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forum Tab -->
+            <div id="tab-forum" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6">Discussion Forum</h2>
+                <div class="bg-white dark:bg-nova-darkCard p-4 rounded-xl shadow mb-6">
+                    <input type="text" placeholder="Question Title" class="w-full p-2 mb-2 border dark:border-gray-600 rounded bg-transparent">
+                    <textarea placeholder="Explain your question..." class="w-full p-2 mb-2 border dark:border-gray-600 rounded bg-transparent h-20"></textarea>
+                    <button class="bg-nova-blue text-white px-4 py-2 rounded hover:bg-blue-700"><i class="fas fa-paper-plane mr-2"></i>Post Question</button>
+                </div>
+            </div>
+
+            <!-- Planner Tab -->
+            <div id="tab-planner" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6">Study Planner</h2>
+                <div class="bg-white dark:bg-nova-darkCard p-4 rounded-xl shadow mb-6 flex flex-col md:flex-row gap-4">
+                    <input type="text" placeholder="What do you want to study?" class="flex-1 p-2 border dark:border-gray-600 rounded bg-transparent">
+                    <input type="date" class="p-2 border dark:border-gray-600 rounded bg-transparent">
+                    <button class="bg-nova-blue text-white px-6 py-2 rounded hover:bg-blue-700">Add Plan</button>
+                </div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="tab-profile" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6">My Profile & Settings</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white dark:bg-nova-darkCard p-6 rounded-xl shadow">
+                        <h3 class="font-bold text-lg mb-4"><i class="fas fa-edit mr-2 text-nova-blue"></i>Edit Profile</h3>
+                        <div class="space-y-4">
+                            <input type="text" placeholder="Full Name" class="w-full p-2 border dark:border-gray-600 rounded bg-transparent">
+                            <input type="text" placeholder="WhatsApp" class="w-full p-2 border dark:border-gray-600 rounded bg-transparent">
+                            <button class="w-full bg-nova-blue text-white py-2 rounded hover:bg-blue-700">Save Changes</button>
+                            <button class="w-full bg-red-100 text-red-600 py-2 rounded hover:bg-red-200"><i class="fas fa-trash mr-2"></i>Delete Account</button>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-nova-darkCard p-6 rounded-xl shadow">
+                        <h3 class="font-bold text-lg mb-4"><i class="fas fa-award mr-2 text-nova-green"></i>My Badges</h3>
+                        <div class="flex gap-4">
+                            <div class="text-center p-4 bg-gray-100 dark:bg-gray-800 rounded-xl border-2 border-nova-green">
+                                <i class="fas fa-star text-yellow-400 text-3xl mb-2"></i>
+                                <p class="font-bold text-sm">Quiz Master</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel Tab -->
+            <div id="tab-admin" class="tab-content">
+                <h2 class="text-2xl font-bold mb-6 text-nova-red">Admin & Owner Panel</h2>
+                
+                <!-- Add New Content -->
+                <div class="bg-white dark:bg-nova-darkCard p-6 rounded-xl shadow mb-8">
+                    <h3 class="font-bold text-lg mb-4">Add New Content</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select id="content-type" class="p-2 border dark:border-gray-600 rounded bg-transparent">
+                            <option value="video">Video</option>
+                            <option value="note">Note</option>
+                            <option value="pdf">PDF</option>
+                            <option value="live">Live Class</option>
+                            <option value="audio">Audio</option>
+                        </select>
+                        <input type="text" id="content-title" placeholder="Title" class="p-2 border dark:border-gray-600 rounded bg-transparent">
+                        <input type="number" id="content-price" placeholder="Price (LKR) - Leave 0 if Free" class="p-2 border dark:border-gray-600 rounded bg-transparent">
+                        <input type="file" id="content-file" class="p-2 border dark:border-gray-600 rounded bg-transparent">
+                    </div>
+                    <button onclick="uploadContent()" class="mt-4 bg-nova-green text-white px-6 py-2 rounded hover:bg-green-700"><i class="fas fa-upload mr-2"></i>Upload & Save</button>
+                </div>
+
+                <!-- Pending Approvals -->
+                <div class="bg-white dark:bg-nova-darkCard p-6 rounded-xl shadow mb-8">
+                    <h3 class="font-bold text-lg mb-4">📝 Pending Content Approval</h3>
+                    <div id="pending-list" class="space-y-4">
+                        <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="font-bold">Lesson 02 Video <span class="text-xs bg-yellow-500 text-black px-2 py-1 rounded ml-2">Pending</span></p>
+                                <p class="text-sm text-gray-500">Added by: Student</p>
+                            </div>
+                            <button class="bg-nova-green text-white px-4 py-2 rounded"><i class="fas fa-check mr-1"></i> Approve</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unlock Requests -->
+                <div class="bg-white dark:bg-nova-darkCard p-6 rounded-xl shadow">
+                    <h3 class="font-bold text-lg mb-4">💰 Paid Content Unlock Requests</h3>
+                    <div id="unlock-requests-list" class="space-y-4">
+                        <div class="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p class="font-bold">Advanced PDF Notes</p>
+                                <p class="text-sm text-gray-500">Student: Kavindu (LKR 1500)</p>
+                            </div>
+                            <button class="bg-nova-blue text-white px-4 py-2 rounded"><i class="fas fa-lock-open mr-1"></i> Unlock</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
     </div>
-  </div>
 
-  <!-- Video Player Modal -->
-  <div id="videoModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-4xl overflow-hidden border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between">
-        <h2 id="videoModalTitle" class="text-lg font-bold truncate pr-4">Video Title</h2>
-        <button onclick="closeModal('videoModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex-shrink-0">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="aspect-video bg-black">
-        <iframe id="videoModalIframe" class="w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
-      </div>
-      <div class="p-4">
-        <p id="videoModalDesc" class="text-sm text-nova-gray"></p>
-        <div class="flex items-center gap-2 mt-2 text-xs text-nova-gray">
-          <span><i class="fas fa-user mr-1"></i> <span id="videoModalUploader">Uploader</span></span>
-          <span><i class="fas fa-clock mr-1"></i> <span id="videoModalDuration">Duration</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        // --- CONFIGURATION ---
+        const SUPABASE_URL = 'https://vegemuqhinyxeojfbdxd.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const TELEGRAM_BOT_TOKEN = '8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA';
+        const TELEGRAM_CHAT_ID = '1003922558998';
+        const ADMIN_WHATSAPP = '94775048455';
+        
+        let currentUser = null;
+        let currentProfile = null;
 
-  <!-- Content Preview Modal -->
-  <div id="previewModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl relative">
-      <div class="sticky top-0 bg-white dark:bg-nova-dark-2 p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between z-10">
-        <h2 id="previewModalTitle" class="text-lg font-bold truncate pr-4">Document Preview</h2>
-        <button onclick="closeModal('previewModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex-shrink-0">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="p-4 h-[70vh] overflow-auto relative">
-        <div id="previewWatermark" class="watermark-overlay hidden"></div>
-        <iframe id="previewModalIframe" class="w-full h-full rounded-lg" src="" frameborder="0"></iframe>
-      </div>
-    </div>
-  </div>
+        // --- UI LOGIC ---
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => document.documentElement.classList.toggle('dark'));
 
-  <!-- Quiz Modal -->
-  <div id="quizModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="sticky top-0 bg-white dark:bg-nova-dark-2 p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between z-10">
-        <h2 id="quizModalTitle" class="text-lg font-bold truncate pr-4">Quiz</h2>
-        <button onclick="closeModal('quizModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex-shrink-0">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div id="quizContent" class="p-6">
-        <!-- Quiz questions rendered by JS -->
-      </div>
-      <div class="sticky bottom-0 bg-white dark:bg-nova-dark-2 p-4 border-t border-nova-gray-light/20 dark:border-nova-dark-3">
-        <div class="flex items-center justify-between">
-          <span id="quizProgress" class="text-sm text-nova-gray">Question 1/10</span>
-          <button id="quizSubmitBtn" class="px-6 py-2.5 bg-nova-red hover:bg-nova-red-dark text-white font-semibold rounded-xl transition-colors text-sm">
-            Submit Quiz
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+        function toggleAuth(form) {
+            document.getElementById('login-form').classList.toggle('hidden', form === 'register');
+            document.getElementById('register-form').classList.toggle('hidden', form === 'login');
+        }
 
-  <!-- Quiz Results Modal -->
-  <div id="quizResultsModal" class="hidden fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="sticky top-0 bg-white dark:bg-nova-dark-2 p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between z-10">
-        <h2 class="text-lg font-bold">Quiz Results</h2>
-        <button onclick="closeModal('quizResultsModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex-shrink-0">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div id="quizResultsContent" class="p-6">
-        <!-- Results rendered by JS -->
-      </div>
-    </div>
-  </div>
+        function showDashboard(show) {
+            document.getElementById('auth-container').classList.toggle('hidden', show);
+            const dash = document.getElementById('dashboard-container');
+            if(show) { dash.classList.remove('hidden'); dash.classList.add('flex'); }
+            else { dash.classList.add('hidden'); dash.classList.remove('flex'); }
+        }
 
-  <!-- Upload Modal -->
-  <div id="uploadModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="sticky top-0 bg-white dark:bg-nova-dark-2 p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between z-10">
-        <h2 class="text-lg font-bold">Upload Content</h2>
-        <button onclick="closeModal('uploadModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex-shrink-0">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Content Type</label>
-          <select id="uploadType" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red">
-            <option value="article">Article</option>
-            <option value="video">Video (External Link Only)</option>
-            <option value="audio">Audio</option>
-            <option value="note">Note / PDF</option>
-            <option value="liveclass">Live Class</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Title</label>
-          <input id="uploadTitle" type="text" placeholder="Content title" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Description</label>
-          <textarea id="uploadDesc" rows="3" placeholder="Brief description..." class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red resize-none"></textarea>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Lesson ID</label>
-          <select id="uploadLessonId" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red">
-            <option value="1">Lesson 1</option><option value="2">Lesson 2</option><option value="3">Lesson 3</option>
-            <option value="4">Lesson 4</option><option value="5">Lesson 5</option><option value="6">Lesson 6</option>
-            <option value="7">Lesson 7</option><option value="8">Lesson 8</option><option value="9">Lesson 9</option>
-            <option value="10">Lesson 10</option><option value="11">Lesson 11</option><option value="12">Lesson 12</option>
-          </select>
-        </div>
-        <div id="uploadFileGroup">
-          <label class="block text-sm font-medium mb-1">File</label>
-          <div id="uploadDropZone" class="border-2 border-dashed border-nova-gray-light/50 dark:border-nova-dark-3 rounded-xl p-8 text-center cursor-pointer hover:border-nova-red transition-colors">
-            <i class="fas fa-cloud-upload-alt text-3xl text-nova-gray mb-2"></i>
-            <p class="text-sm text-nova-gray">Click or drag file here</p>
-            <p class="text-xs text-nova-gray/50 mt-1">Max 600MB. No video files allowed.</p>
-            <input id="uploadFileInput" type="file" class="hidden">
-          </div>
-          <p id="uploadFileName" class="text-sm text-nova-green mt-2 hidden"><i class="fas fa-check-circle mr-1"></i> <span></span></p>
-        </div>
-        <div id="uploadVideoLinkGroup" class="hidden">
-          <label class="block text-sm font-medium mb-1">Video URL (YouTube / Google Drive)</label>
-          <input id="uploadVideoUrl" type="url" placeholder="https://youtube.com/watch?v=..." class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red">
-        </div>
-        <div id="uploadArticleBodyGroup" class="hidden">
-          <label class="block text-sm font-medium mb-1">Article Body</label>
-          <textarea id="uploadArticleBody" rows="6" placeholder="Write your article content here..." class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red resize-none"></textarea>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">Price (LKR)</label>
-            <input id="uploadPrice" type="number" value="0" min="0" placeholder="0 = Free" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red">
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Paper Type</label>
-            <select id="uploadPaperType" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red">
-              <option value="none">None</option>
-              <option value="past">Past Paper</option>
-              <option value="school">School Paper</option>
-              <option value="student">Student Paper</option>
-              <option value="model">Model Paper</option>
-            </select>
-          </div>
-        </div>
-        <div id="uploadProgress" class="hidden">
-          <div class="flex items-center justify-between text-sm mb-1">
-            <span class="text-nova-gray">Uploading...</span>
-            <span id="uploadPercent" class="font-medium">0%</span>
-          </div>
-          <div class="w-full h-2 bg-nova-gray-light/20 dark:bg-nova-dark-3 rounded-full overflow-hidden">
-            <div id="uploadProgressBar" class="h-full bg-nova-red rounded-full transition-all duration-300" style="width: 0%"></div>
-          </div>
-        </div>
-        <button id="uploadSubmitBtn" class="w-full py-3 bg-nova-red hover:bg-nova-red-dark text-white font-semibold rounded-xl transition-colors text-sm">
-          <i class="fas fa-upload mr-2"></i> Submit for Review
-        </button>
-      </div>
-    </div>
-  </div>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-nova-blue', 'text-white'));
+            event.currentTarget.classList.add('bg-nova-blue', 'text-white');
+        }
 
-  <!-- Pending Queue Modal (Owner/Admin) -->
-  <div id="pendingModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="sticky top-0 bg-white dark:bg-nova-dark-2 p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between z-10">
-        <h2 class="text-lg font-bold"><i class="fas fa-clock text-nova-red mr-2"></i>Pending Queue</h2>
-        <button onclick="closeModal('pendingModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors flex-shrink-0">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div id="pendingList" class="p-4 space-y-3">
-        <!-- Pending items rendered by JS -->
-      </div>
-    </div>
-  </div>
+        // --- AUTHENTICATION ---
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) return alert("Login Failed: " + error.message);
+            checkUser(data.user);
+        }
 
-  <!-- New Forum Post Modal -->
-  <div id="newPostModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-lg border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between">
-        <h2 class="text-lg font-bold">New Discussion Post</h2>
-        <button onclick="closeModal('newPostModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Title</label>
-          <input id="forumPostTitle" type="text" placeholder="Your question title" class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red">
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Content</label>
-          <textarea id="forumPostContent" rows="5" placeholder="Describe your question in detail..." class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red resize-none"></textarea>
-        </div>
-        <button id="submitForumPost" class="w-full py-2.5 bg-nova-red hover:bg-nova-red-dark text-white font-semibold rounded-xl transition-colors text-sm">
-          <i class="fas fa-paper-plane mr-2"></i> Post Question
-        </button>
-      </div>
-    </div>
-  </div>
+        async function register() {
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const name = document.getElementById('reg-name').value;
+            const whatsapp = document.getElementById('reg-whatsapp').value;
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) return alert("Registration Failed: " + error.message);
+            await supabase.from('profiles').insert([{ id: data.user.id, full_name: name, email, whatsapp, role: 'student' }]);
+            alert("Registration Successful! Please login.");
+            toggleAuth('login');
+        }
 
-  <!-- Forum Reply Modal -->
-  <div id="replyModal" class="hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-lg border border-nova-gray-light/30 dark:border-nova-dark-3 shadow-2xl">
-      <div class="p-4 border-b border-nova-gray-light/20 dark:border-nova-dark-3 flex items-center justify-between">
-        <h2 class="text-lg font-bold">Post Reply</h2>
-        <button onclick="closeModal('replyModal')" class="p-2 rounded-lg hover:bg-nova-gray-light/20 dark:hover:bg-nova-dark-3 transition-colors">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="p-6 space-y-4">
-        <input id="replyPostId" type="hidden" value="">
-        <div>
-          <label class="block text-sm font-medium mb-1">Your Reply</label>
-          <textarea id="replyContent" rows="4" placeholder="Write your answer..." class="w-full px-4 py-2.5 bg-nova-gray-light/10 dark:bg-nova-dark-3 border border-nova-gray-light/30 dark:border-nova-dark-3 rounded-xl text-sm focus:outline-none focus:border-nova-red resize-none"></textarea>
-        </div>
-        <button id="submitReply" class="w-full py-2.5 bg-nova-blue hover:bg-nova-blue-dark text-white font-semibold rounded-xl transition-colors text-sm">
-          <i class="fas fa-reply mr-2"></i> Submit Reply
-        </button>
-      </div>
-    </div>
-  </div>
+        async function logout() {
+            await supabase.auth.signOut();
+            currentUser = null; currentProfile = null;
+            showDashboard(false);
+        }
 
-  <!-- Delete Account Confirmation Modal -->
-  <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-    <div class="bg-white dark:bg-nova-dark-2 rounded-2xl w-full max-w-sm border border-nova-red/30 shadow-2xl">
-      <div class="p-6 text-center">
-        <div class="w-16 h-16 bg-nova-red/10 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="fas fa-exclamation-triangle text-nova-red text-2xl"></i>
-        </div>
-        <h3 class="text-lg font-bold mb-2">Delete Account?</h3>
-        <p class="text-sm text-nova-gray mb-6">This action is permanent and cannot be undone. All your data will be erased.</p>
-        <div class="flex gap-3">
-          <button onclick="closeModal('deleteConfirmModal')" class="flex-1 py-2.5 bg-nova-gray-light/20 dark:bg-nova-dark-3 rounded-xl font-semibold text-sm transition-colors">Cancel</button>
-          <button id="confirmDeleteBtn" class="flex-1 py-2.5 bg-nova-red hover:bg-nova-red-dark text-white rounded-xl font-semibold text-sm transition-colors">Delete</button>
-        </div>
-      </div>
-    </div>
-  </div>
+        async function checkUser(user) {
+            if (!user) return showDashboard(false);
+            currentUser = user;
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            currentProfile = profile;
+            
+            document.getElementById('user-info').innerHTML = `${profile.role.toUpperCase()} - ${profile.full_name}`;
+            document.getElementById('user-info').classList.remove('hidden');
+            
+            // Role based UI
+            if(profile.role === 'admin' || profile.role === 'owner') {
+                document.getElementById('admin-tab-btn').classList.remove('hidden');
+                document.getElementById('admin-tab-btn').classList.add('flex');
+            }
+            
+            showDashboard(true);
+            initDashboard();
+        }
 
-  <!-- Toast Notification -->
-  <div id="toast" class="fixed bottom-6 right-6 z-[100] transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-    <div class="bg-nova-dark-2 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-nova-dark-3">
-      <i id="toastIcon" class="fas fa-check-circle text-nova-green"></i>
-      <span id="toastMessage" class="text-sm font-medium">Success</span>
-    </div>
-  </div>
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) checkUser(session.user);
+        });
 
-  <script src="app.js"></script>
+        // --- DASHBOARD INIT ---
+        function initDashboard() {
+            // Load Chart
+            const ctx = document.getElementById('performanceChart');
+            if(ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: ['Lesson 01', 'Lesson 02', 'Past Paper'], datasets: [{ label: 'Score %', data: [80, 60, 90], borderColor: '#3182CE', tension: 0.4 }] },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+            }
+            // Load Content Tabs
+            renderContentTab('videos', 'video');
+            renderContentTab('notes', 'note');
+            renderContentTab('pdfs', 'pdf');
+        }
+
+        // --- CONTENT RENDERING & WHATSAPP PAY ---
+        async function renderContentTab(tabId, type) {
+            const container = document.getElementById(`tab-${tabId}`);
+            if(!container) return;
+            
+            // Fetch content from Supabase
+            const { data: contents } = await supabase.from('content').select('*, profiles(full_name)').eq('type', type).eq('status', 'approved');
+            
+            let html = `<h2 class="text-2xl font-bold mb-6 capitalize">${type} Library</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-6">`;
+            
+            if(contents && contents.length > 0) {
+                contents.forEach(item => {
+                    const isFree = item.price === 0 || item.is_free;
+                    html += `
+                    <div class="border dark:border-gray-700 rounded-xl overflow-hidden hover:shadow-2xl transition flex flex-col bg-white dark:bg-nova-darkCard">
+                        <div class="h-40 bg-gray-200 dark:bg-gray-800 flex items-center justify-center relative">
+                            <i class="fas fa-${type === 'video' ? 'play-circle' : 'file-alt'} text-5xl text-nova-blue"></i>
+                            ${!isFree ? '<div class="absolute top-2 right-2 bg-nova-red text-white px-2 py-1 rounded-md text-xs font-bold"><i class="fas fa-lock mr-1"></i>PAID</div>' : ''}
+                        </div>
+                        <div class="p-4 flex-1 flex flex-col">
+                            <h3 class="font-bold text-lg mb-2">${item.title}</h3>
+                            <p class="text-xs text-gray-500 mb-4 bg-gray-100 dark:bg-gray-800 p-2 rounded self-start"><i class="fas fa-user mr-1"></i> ${item.profiles?.full_name || 'Admin'}</p>
+                            
+                            ${isFree ? `
+                                <div class="mt-auto flex gap-2">
+                                    <a href="${item.file_url}" target="_blank" class="flex-1 bg-nova-blue text-white py-2 rounded-lg text-center hover:bg-blue-700"><i class="fas fa-eye mr-1"></i> View</a>
+                                    <a href="${item.file_url}" download class="flex-1 bg-nova-green text-white py-2 rounded-lg text-center hover:bg-green-700"><i class="fas fa-download mr-1"></i> Download</a>
+                                </div>
+                            ` : `
+                                <div class="mt-auto">
+                                    <p class="text-nova-red font-bold text-xl mb-2"><i class="fas fa-dollar-sign mr-1"></i> LKR ${item.price}</p>
+                                    <input type="text" placeholder="Promo Code" class="w-full p-2 text-sm border dark:border-gray-600 rounded bg-transparent mb-2">
+                                    <button onclick="handlePayNow('${item.title}', ${item.price})" class="w-full bg-nova-red text-white py-2 rounded-lg hover:bg-red-700 font-bold"><i class="fas fa-lock mr-1"></i> Pay & Unlock via WhatsApp</button>
+                                </div>
+                            `}
+                        </div>
+                    </div>`;
+                });
+            } else {
+                html += `<p class="text-gray-500 col-span-3">No ${type} available right now.</p>`;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function handlePayNow(title, price) {
+            const email = currentUser?.email || "Not logged in";
+            const message = `Hi NovaX Edu, I want to unlock [${title}]. Price: LKR ${price}. My Registered Email: ${email}.`;
+            window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`, '_blank');
+        }
+
+        // --- TELEGRAM BACKGROUND UPLOAD ---
+        async function uploadContent() {
+            const type = document.getElementById('content-type').value;
+            const title = document.getElementById('content-title').value;
+            const price = parseFloat(document.getElementById('content-price').value) || 0;
+            const fileInput = document.getElementById('content-file');
+            
+            if(!title || !fileInput.files[0]) return alert("Please fill all fields.");
+
+            const file = fileInput.files[0];
+            let fileUrl = null;
+
+            if(file.size <= 20971520) { // 20MB
+                const formData = new FormData();
+                formData.append('document', file);
+                formData.append('chat_id', TELEGRAM_CHAT_ID);
+
+                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.ok) {
+                    const fileId = data.result.document.file_id;
+                    const fileRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`);
+                    const fileData = await fileRes.json();
+                    fileUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${fileData.result.file_path}`;
+                }
+            } else {
+                alert("File is over 20MB. Google Drive integration required.");
+                return;
+            }
+
+            // Save to Supabase
+            const status = (currentProfile.role === 'owner' || currentProfile.role === 'admin') ? 'approved' : 'pending';
+            await supabase.from('content').insert([
+                { user_id: currentUser.id, type, title, price, is_free: price === 0, file_url: fileUrl, status }
+            ]);
+
+            alert(`Content Added! Status: ${status}`);
+            document.getElementById('content-title').value = '';
+            document.getElementById('content-price').value = '';
+            document.getElementById('content-file').value = '';
+        }
+
+        // --- SECURITY CHECK ---
+        function checkNewDevice() {
+            const deviceId = navigator.userAgent + screen.width;
+            const knownDevices = JSON.parse(localStorage.getItem('knownDevices') || '[]');
+            if (!knownDevices.includes(deviceId)) {
+                alert("New device login detected! A security alert has been sent to your email.");
+                knownDevices.push(deviceId);
+                localStorage.setItem('knownDevices', JSON.stringify(knownDevices));
+            }
+        }
+
+    </script>
 </body>
 </html>
