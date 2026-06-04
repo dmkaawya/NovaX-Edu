@@ -1116,14 +1116,20 @@ const App = {
     }
      
 // Upload main file
+    // Upload main file
     const fileInput = document.getElementById('cFile');
     if (fileInput && fileInput.files.length > 0 && !fileUrl) {
-      if (type === 'note' && fileInput.files.length > 0) {
-        // For notes with multiple images, upload first one as thumbnail
-        status.textContent = 'Uploading images...';
-        thumbUrl = await this.uploadFile(fileInput.files[0]);
-        if (fileInput.files.length > 1) {
-          // Could zip them, for now use first image
+      if (type === 'note') {
+        // Notes සඳහා රූප (images) කිහිපයක් එකවර upload කිරීම
+        let uploadedUrls = [];
+        for (let i = 0; i < fileInput.files.length; i++) {
+          status.textContent = `Uploading image ${i + 1} of ${fileInput.files.length}...`;
+          const url = await this.uploadFile(fileInput.files[i]);
+          if (url) uploadedUrls.push(url);
+        }
+        if (uploadedUrls.length > 0) {
+          thumbUrl = uploadedUrls[0]; // පළමු පින්තූරය thumbnail එක විදියට ගන්නවා
+          fileUrl = uploadedUrls.join(','); // සියලුම පින්තූර වල ලින්ක් කොමාවකින් වෙන් කරලා සේව් කරනවා
         }
       } else {
         status.textContent = 'Uploading file...';
@@ -1149,81 +1155,76 @@ const App = {
   },
 
      async uploadFile(file) {
-    if (!file) return '';
-    try {
-      var prog = document.getElementById('uploadProgress');
-      var status = document.getElementById('uploadStatus');
-      if (prog) prog.classList.remove('hidden');
-      if (status) status.textContent = 'Compressing...';
-      
-      // Compress to reduce size
-      var base64 = await new Promise(function(resolve, reject) {
-        var reader = new FileReader();
-        reader.onloadend = function() {
-          var arr = new Uint8Array(reader.result);
-          new Blob([arr], { type: 'application/gzip' }).arrayBuffer().then(function(compressed) {
-            var c = new Uint8Array(compressed);
-            var binary = '';
-            for (var i = 0; i < c.length; i++) binary += String.fromCharCode(c[i]);
-            resolve(btoa(binary));
-          });
-        };
-        reader.onerror = function() { reject(new Error('read error')); };
-        reader.readAsArrayBuffer(file);
+  if (!file) return '';
+  try {
+    const prog = document.getElementById('uploadProgress');
+    const status = document.getElementById('uploadStatus');
+    if (prog) prog.classList.remove('hidden');
+    if (status) status.textContent = 'Preparing file...';
+    
+    // ෆයිල් එක නියම ආකාරයෙන්ම (no fake zip) Base64 බවට හැරවීම
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const b64 = reader.result.split(',')[1];
+        resolve(b64);
+      };
+      reader.onerror = () => reject(new Error('read error'));
+      reader.readAsDataURL(file); 
+    });
+    
+    const maxSize = 20 * 1024 * 1024;
+    let url = '';
+    let resp, data, text;
+
+    if (file.size < maxSize) {
+      if (status) status.textContent = 'Sending to Telegram...';
+      resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ action: 'send_document', chat_id: '-1003922558998', file_base64: base64, file_name: file.name })
       });
       
-      var maxSize = 20 * 1024 * 1024;
-      var url, resp, data, text;
-
-      if (file.size < maxSize) {
-        if (status) status.textContent = 'Sending to Telegram...';
-        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
-          body: JSON.stringify({ action: 'send_document', chat_id: '-1003922558998', file_base64: base64, file_name: file.name })
-        });
-        text = await resp.text();
-        data = JSON.parse(text);
-        console.log('TG response:', data);
-        if (!data.ok || !data.result) throw new Error('Telegram failed: ' + text.substring(0, 200));
-        var fileData = data.result.document || data.result.audio || data.result.video || data.result.photo;
-        if (!fileData || !fileData.file_id) throw new Error('No file_id');
-        if (status) status.textContent = 'Getting URL...';
-        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
-          body: JSON.stringify({ action: 'get_file', file_id: fileData.file_id })
-        });
-        text = await resp.text();
-        fd = JSON.parse(text);
-        console.log('TG file:', fd);
-        if (fd.ok && fd.result && fd.result.file_path) {
-          if (status) status.textContent = 'Done!';
-          url = 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
-        }
-        if (!url) throw new Error('No file path');
-      } else {
-        if (status) status.textContent = 'Uploading to Drive...';
-        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
-          body: JSON.stringify({ action: 'upload_drive', file_base64: base64, file_name: file.name, mime_type: file.type })
-        });
-        text = await resp.text();
-        data = JSON.parse(text);
-        console.log('Drive response:', data);
-        if (data.ok) url = data.url;
-        if (!url) throw new Error(data.error || 'Drive failed');
+      text = await resp.text();
+      data = JSON.parse(text);
+      if (!data.ok || !data.result) throw new Error('Telegram failed');
+      
+      // Audio සහ වෙනත් ෆයිල් නිවැරදිව හඳුනාගැනීම
+      const fileData = data.result.document || data.result.audio || data.result.video || data.result.voice || data.result.photo;
+      if (!fileData || !fileData.file_id) throw new Error('No file_id found');
+      
+      if (status) status.textContent = 'Getting URL...';
+      resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ action: 'get_file', file_id: fileData.file_id })
+      });
+      
+      text = await resp.text();
+      const fd = JSON.parse(text); 
+      
+      if (fd.ok && fd.result && fd.result.file_path) {
         if (status) status.textContent = 'Done!';
+        url = 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
       }
-      console.log('URL:', url);
-      return url;
-    } catch (e) {
-      console.error('UPLOAD ERR:', e);
-      this.toast('Upload: ' + e.message, 'error');
-      return '';
+    } else {
+      if (status) status.textContent = 'Uploading to Drive...';
+      resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+        body: JSON.stringify({ action: 'upload_drive', file_base64: base64, file_name: file.name, mime_type: file.type })
+      });
+      text = await resp.text();
+      data = JSON.parse(text);
+      if (data.ok) url = data.url;
     }
-  },
+    return url;
+  } catch (e) {
+    console.error('UPLOAD ERR:', e);
+    this.toast('Upload Error: ' + e.message, 'error');
+    return '';
+  }
+}
 
   async editContent(id, type) {
     const { data: item } = await sb.from('content').select('*').eq('id', id).single();
@@ -1299,17 +1300,28 @@ const App = {
     `, '', 'max-width:700px');
   },
 
-  async previewContent(id) {
-    const { data: item } = await sb.from('content').select('*').eq('id', id).single();
-    if (!item || !item.thumbnail_url) return this.toast('No preview available', 'error');
-    this.openModal(item.title, `
-      <div style="text-align:center">
-        <img src="${this.escAttr(item.thumbnail_url)}" alt="${this.escAttr(item.title)}" style="max-width:100%;border-radius:8px;margin-bottom:12px">
-        <p style="font-size:14px;color:var(--text2)">${this.escHtml(item.description || '')}</p>
-      </div>
-    `, `<button class="btn btn-outline" onclick="App.closeModal()">Close</button><a href="${this.escAttr(item.thumbnail_url)}" download class="btn btn-primary"><i class="fas fa-download"></i> Download</a>`);
-  },
+ async previewContent(id) {
+  const { data: item } = await sb.from('content').select('*').eq('id', id).single();
+  if (!item || (!item.thumbnail_url && !item.file_url)) return this.toast('No preview available', 'error');
+  
+  // Database එකේ කොමාවෙන් වෙන් කරලා තියෙන පින්තූර ලින්ක් ටික වෙන් කරගැනීම
+  let urls = [];
+  if (item.type === 'note' && item.file_url) {
+    urls = item.file_url.split(',');
+  } else {
+    urls = [item.thumbnail_url || item.file_url];
+  }
 
+  // පින්තූර සියල්ලම පේළියට දිස්වීමට HTML සැකසීම
+  const imagesHtml = urls.map(url => `<img src="${this.escAttr(url)}" alt="${this.escAttr(item.title)}" style="max-width:100%;border-radius:8px;margin-bottom:12px">`).join('');
+
+  this.openModal(item.title, `
+    <div style="text-align:center; max-height: 70vh; overflow-y: auto; padding-right: 8px;">
+      ${imagesHtml}
+      <p style="font-size:14px;color:var(--text2);margin-top:12px">${this.escHtml(item.description || '')}</p>
+    </div>
+  `, `<button class="btn btn-outline" onclick="App.closeModal()">Close</button><a href="${this.escAttr(urls[0])}" download class="btn btn-primary"><i class="fas fa-download"></i> Download</a>`);
+}
   async downloadContent(id, type) {
     const { data: item } = await sb.from('content').select('*').eq('id', id).single();
     if (!item) return;
