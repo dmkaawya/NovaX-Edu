@@ -495,8 +495,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Telegram Bot Config
-const TG_TOKEN = '8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA';
-const TG_CHAT_ID = '-1003922558998';
+
 const OWNER_WHATSAPP = '94775048455';
 
 // ========== App State ==========
@@ -1203,9 +1202,13 @@ const App = {
       text = await resp.text();
       const fd = JSON.parse(text); 
       
-      if (fd.ok && fd.result && fd.result.file_path) {
+      text = await resp.text();
+      const fd = JSON.parse(text); 
+      
+      // දැන් Edge function එකෙන්ම කෙලින්ම අපිට url එක එවනවා
+      if (fd.ok && fd.url) {
         if (status) status.textContent = 'Done!';
-        url = 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
+        url = fd.url; 
       }
     } else {
       if (status) status.textContent = 'Uploading to Drive...';
