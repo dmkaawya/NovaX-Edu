@@ -1114,76 +1114,69 @@ const App = {
       status.textContent = 'Uploading thumbnail...';
       thumbUrl = await this.uploadFile(thumbInput.files[0]);
     }
+// Upload main file
+    const fileInput = document.getElementById('cFile');
+    if (fileInput && fileInput.files.length > 0 && !fileUrl) {
+      if (type === 'note' && fileInput.files.length > 0) {
+        // For notes with multiple images, upload first one as thumbnail
+        status.textContent = 'Uploading images...';
+        thumbUrl = await this.uploadFile(fileInput.files[0]);
+        if (fileInput.files.length > 1) {
+          // Could zip them, for now use first image
+        }
+      } else {
+        status.textContent = 'Uploading file...';
+        fileUrl = await this.uploadFile(fileInput.files[0]);
+      }
+    }
 
-     async uploadToTelegram(file) {
+    const articleBody = document.getElementById('cArticleBody')?.value || '';
+
+    const { error } = await sb.from('content').insert({
+      type, title, description: desc, category: lesson, lesson, duration,
+      is_free: isFree, price: isFree ? 0 : price,
+      file_url: fileUrl, thumbnail_url: thumbUrl,
+      uploader_id: this.user.id, status: 'pending', article_body: articleBody
+    });
+
+    this.hideLoading();
+    if (error) { this.closeModal(); return this.toast(error.message, 'error'); }
+    this.closeModal();
+    this.toast('Content added! Pending admin approval.', 'success');
+    this.logActivity(`add_${type}`, `Added: ${title}`);
+    this.renderContent(type);
+  },
+
+  async uploadFile(file) {
     if (!file) return '';
+    const maxSize = 20 * 1024 * 1024; // 20MB
+    if (file.size < maxSize) {
+      return await this.uploadToTelegram(file);
+    } else {
+      // For files >= 20MB, would use Google Drive via Apps Script
+      // Placeholder: show message
+      this.toast('Large file detected. Please use a URL instead for now.', 'error');
+      return '';
+    }
+  },
+
+  async uploadToTelegram(file) {
     try {
-      var prog = document.getElementById('uploadProgress');
-      var status = document.getElementById('uploadStatus');
-      if (prog) prog.classList.remove('hidden');
-      if (status) status.textContent = 'Reading file...';
-
-      var base64 = await new Promise(function(resolve, reject) {
-        var reader = new FileReader();
-        reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
-        reader.onerror = function() { reject(new Error('Cannot read file')); };
-        reader.readAsDataURL(file);
-      });
-
-      if (status) status.textContent = 'Uploading...';
-      console.log('Uploading:', file.name, 'Size:', file.size);
-
-      var resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk'
-        },
-        body: JSON.stringify({
-          action: 'send_document',
-          chat_id: '-1003922558998',
-          file_base64: base64,
-          file_name: file.name
-        })
-      });
-
-      console.log('Status:', resp.status);
-      var data = await resp.json();
-      console.log('Response:', data);
-
-      if (!resp.ok) throw new Error(data.error || 'HTTP ' + resp.status);
-      if (!data.ok || !data.result || !data.result.document || !data.result.document.file_id) {
-        throw new Error('Send failed');
+      const formData = new FormData();
+      formData.append('chat_id', TG_CHAT_ID);
+      formData.append('document', file);
+      const resp = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`, { method: 'POST', body: formData });
+      const data = await resp.json();
+      if (data.ok && data.result?.document?.file_id) {
+        const fileResp = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/getFile?file_id=${data.result.document.file_id}`);
+        const fileData = await fileResp.json();
+        if (fileData.ok) {
+          return `https://api.telegram.org/file/bot${TG_TOKEN}/${fileData.result.file_path}`;
+        }
       }
-
-      if (status) status.textContent = 'Getting URL...';
-
-      var resp2 = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk'
-        },
-        body: JSON.stringify({
-          action: 'get_file',
-          file_id: data.result.document.file_id
-        })
-      });
-
-      var fileData = await resp2.json();
-      console.log('File data:', fileData);
-
-      if (fileData.ok && fileData.result && fileData.result.file_path) {
-        var url = 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fileData.result.file_path;
-        console.log('Final URL:', url);
-        if (status) status.textContent = 'Done!';
-        return url;
-      }
-
-      throw new Error('Cannot get file path');
+      return '';
     } catch (e) {
-      console.error('UPLOAD ERROR:', e);
-      this.toast('Upload failed: ' + e.message, 'error');
+      console.error('Telegram upload error:', e);
       return '';
     }
   },
