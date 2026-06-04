@@ -1148,20 +1148,18 @@ const App = {
     this.renderContent(type);
   },
 
-    async uploadToTelegram(file) {
+      async uploadToTelegram(file) {
     if (!file) return '';
     try {
-      // Read file as base64
       const base64 = await new Promise((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const result = reader.result;
-          resolve(result.split(',')[1]); // remove data:xxx;base64, prefix
+          resolve(result.split(',')[1]);
         };
         reader.readAsDataURL(file);
       });
 
-      // Call our Edge Function (not Telegram directly)
       const { data, error } = await sb.functions.invoke('tg-proxy', {
         body: {
           action: 'send_document',
@@ -1173,11 +1171,10 @@ const App = {
 
       if (error) throw new Error(error.message);
       if (!data || !data.ok || !data.result?.document?.file_id) {
-        throw new Error('Upload failed');
+        throw new Error('Upload failed: ' + JSON.stringify(data));
       }
 
-      // Get file path
-      const { data: fileData } = await sb.functions.invoke('tg-proxy', {
+      const { data: fileData, error: fError } = await sb.functions.invoke('tg-proxy', {
         body: {
           action: 'get_file',
           file_id: data.result.document.file_id
@@ -1190,7 +1187,7 @@ const App = {
       return '';
     } catch (e) {
       console.error('Upload error:', e);
-      this.toast('File upload failed: ' + e.message, 'error');
+      this.toast('Upload failed: ' + e.message, 'error');
       return '';
     }
   },
