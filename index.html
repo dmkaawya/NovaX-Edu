@@ -1114,6 +1114,7 @@ const App = {
       status.textContent = 'Uploading thumbnail...';
       thumbUrl = await this.uploadFile(thumbInput.files[0]);
     }
+     
 // Upload main file
     const fileInput = document.getElementById('cFile');
     if (fileInput && fileInput.files.length > 0 && !fileUrl) {
