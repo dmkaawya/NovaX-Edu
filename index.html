@@ -1148,62 +1148,62 @@ const App = {
     this.renderContent(type);
   },
 
-    async uploadFile(file) {
+     async uploadFile(file) {
     if (!file) return '';
     try {
       var prog = document.getElementById('uploadProgress');
       var status = document.getElementById('uploadStatus');
       if (prog) prog.classList.remove('hidden');
+      if (status) status.textContent = 'Reading...';
+      var base64 = await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
+        reader.onerror = function() { reject(new Error('read error')); };
+        reader.readAsDataURL(file);
+      });
+      console.log('File:', file.name, 'Size:', file.size, 'Base64 len:', base64.length);
+
       var maxSize = 20 * 1024 * 1024;
+      var url, resp, data;
 
       if (file.size < maxSize) {
-        // Small file -> Telegram
         if (status) status.textContent = 'Sending to Telegram...';
-        var base64 = await new Promise(function(resolve, reject) {
-          var reader = new FileReader();
-          reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
-          reader.onerror = function() { reject(new Error('read error')); };
-          reader.readAsDataURL(file);
-        });
-        var resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
           body: JSON.stringify({ action: 'send_document', chat_id: '-1003922558998', file_base64: base64, file_name: file.name })
         });
-        var data = await resp.json();
-        if (!data.ok || !data.result || !data.result.document) throw new Error('Telegram send failed');
+        data = await resp.json();
+        console.log('TG send response:', data);
+        if (!data.ok || !data.result || !data.result.document) throw new Error('Telegram failed: ' + JSON.stringify(data));
         if (status) status.textContent = 'Getting URL...';
-        var resp2 = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
           body: JSON.stringify({ action: 'get_file', file_id: data.result.document.file_id })
         });
-        var fd = await resp2.json();
+        var fd = await resp.json();
+        console.log('TG file response:', fd);
         if (fd.ok && fd.result && fd.result.file_path) {
           if (status) status.textContent = 'Done!';
-          return 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
+          url = 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
         }
-        throw new Error('No file path');
+        if (!url) throw new Error('No file path');
       } else {
-        // Large file -> Google Drive
-        if (status) status.textContent = 'Reading large file...';
-        var base64 = await new Promise(function(resolve, reject) {
-          var reader = new FileReader();
-          reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
-          reader.onerror = function() { reject(new Error('read error')); };
-          reader.readAsDataURL(file);
-        });
-        if (status) status.textContent = 'Uploading to Google Drive...';
-        var resp = await fetch('https://script.google.com/macros/s/AKfycbxEg38HwnpVqBXgufh_d13Z6laJDpOSbZQ3SwMl2Fe8q5QrG6kBBywatwycYkMpyBDj/exec', {
+        if (status) status.textContent = 'Uploading to Drive...';
+        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'upload', file_base64: base64, file_name: file.name, mime_type: file.type })
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
+          body: JSON.stringify({ action: 'upload_drive', file_base64: base64, file_name: file.name, mime_type: file.type })
         });
-        var result = await resp.json();
+        data = await resp.json();
+        console.log('Drive response:', data);
+        if (data.ok) url = data.url;
+        if (!url) throw new Error(data.error || 'Drive failed');
         if (status) status.textContent = 'Done!';
-        if (result.ok) return result.url;
-        throw new Error(result.error || 'Upload failed');
       }
+      console.log('Final URL:', url);
+      return url;
     } catch (e) {
       console.error('UPLOAD ERR:', e);
       this.toast('Upload: ' + e.message, 'error');
