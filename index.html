@@ -1148,36 +1148,49 @@ const App = {
     this.renderContent(type);
   },
 
-  async uploadFile(file) {
+    async uploadToTelegram(file) {
     if (!file) return '';
-    const maxSize = 20 * 1024 * 1024; // 20MB
-    if (file.size < maxSize) {
-      return await this.uploadToTelegram(file);
-    } else {
-      // For files >= 20MB, would use Google Drive via Apps Script
-      // Placeholder: show message
-      this.toast('Large file detected. Please use a URL instead for now.', 'error');
-      return '';
-    }
-  },
-
-  async uploadToTelegram(file) {
     try {
-      const formData = new FormData();
-      formData.append('chat_id', TG_CHAT_ID);
-      formData.append('document', file);
-      const resp = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendDocument`, { method: 'POST', body: formData });
-      const data = await resp.json();
-      if (data.ok && data.result?.document?.file_id) {
-        const fileResp = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/getFile?file_id=${data.result.document.file_id}`);
-        const fileData = await fileResp.json();
-        if (fileData.ok) {
-          return `https://api.telegram.org/file/bot${TG_TOKEN}/${fileData.result.file_path}`;
+      // Read file as base64
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result;
+          resolve(result.split(',')[1]); // remove data:xxx;base64, prefix
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Call our Edge Function (not Telegram directly)
+      const { data, error } = await sb.functions.invoke('tg-proxy', {
+        body: {
+          action: 'send_document',
+          chat_id: TG_CHAT_ID,
+          file_base64: base64,
+          file_name: file.name
         }
+      });
+
+      if (error) throw new Error(error.message);
+      if (!data || !data.ok || !data.result?.document?.file_id) {
+        throw new Error('Upload failed');
+      }
+
+      // Get file path
+      const { data: fileData } = await sb.functions.invoke('tg-proxy', {
+        body: {
+          action: 'get_file',
+          file_id: data.result.document.file_id
+        }
+      });
+
+      if (fileData?.ok && fileData.result?.file_path) {
+        return `https://api.telegram.org/file/bot${TG_TOKEN}/${fileData.result.file_path}`;
       }
       return '';
     } catch (e) {
-      console.error('Telegram upload error:', e);
+      console.error('Upload error:', e);
+      this.toast('File upload failed: ' + e.message, 'error');
       return '';
     }
   },
