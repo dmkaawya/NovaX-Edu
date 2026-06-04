@@ -1224,7 +1224,7 @@ const App = {
     this.toast('Upload Error: ' + e.message, 'error');
     return '';
   }
-}
+},
 
   async editContent(id, type) {
     const { data: item } = await sb.from('content').select('*').eq('id', id).single();
@@ -1321,7 +1321,7 @@ const App = {
       <p style="font-size:14px;color:var(--text2);margin-top:12px">${this.escHtml(item.description || '')}</p>
     </div>
   `, `<button class="btn btn-outline" onclick="App.closeModal()">Close</button><a href="${this.escAttr(urls[0])}" download class="btn btn-primary"><i class="fas fa-download"></i> Download</a>`);
-}
+},
   async downloadContent(id, type) {
     const { data: item } = await sb.from('content').select('*').eq('id', id).single();
     if (!item) return;
