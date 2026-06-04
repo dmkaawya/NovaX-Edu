@@ -1148,54 +1148,62 @@ const App = {
     this.renderContent(type);
   },
 
-  async uploadFile(file) {
-    if (!file) return '';
-    const maxSize = 20 * 1024 * 1024; // 20MB
-    if (file.size < maxSize) {
-      return await this.uploadToTelegram(file);
-    } else {
-      // For files >= 20MB, would use Google Drive via Apps Script
-      // Placeholder: show message
-      this.toast('Large file detected. Please use a URL instead for now.', 'error');
-      return '';
-    }
-  },
-
-   async uploadToTelegram(file) {
+    async uploadFile(file) {
     if (!file) return '';
     try {
       var prog = document.getElementById('uploadProgress');
       var status = document.getElementById('uploadStatus');
       if (prog) prog.classList.remove('hidden');
-      if (status) status.textContent = 'Reading...';
-      var base64 = await new Promise(function(resolve, reject) {
-        var reader = new FileReader();
-        reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
-        reader.onerror = function() { reject(new Error('read error')); };
-        reader.readAsDataURL(file);
-      });
-      if (status) status.textContent = 'Sending...';
-      var resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
-        body: JSON.stringify({ action: 'send_document', chat_id: '-1003922558998', file_base64: base64, file_name: file.name })
-      });
-      var data = await resp.json();
-      console.log('TG send:', data);
-      if (!data.ok || !data.result || !data.result.document) throw new Error('Send failed');
-      if (status) status.textContent = 'Getting URL...';
-      var resp2 = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
-        body: JSON.stringify({ action: 'get_file', file_id: data.result.document.file_id })
-      });
-      var fd = await resp2.json();
-      console.log('TG file:', fd);
-      if (fd.ok && fd.result && fd.result.file_path) {
+      var maxSize = 20 * 1024 * 1024;
+
+      if (file.size < maxSize) {
+        // Small file -> Telegram
+        if (status) status.textContent = 'Sending to Telegram...';
+        var base64 = await new Promise(function(resolve, reject) {
+          var reader = new FileReader();
+          reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
+          reader.onerror = function() { reject(new Error('read error')); };
+          reader.readAsDataURL(file);
+        });
+        var resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
+          body: JSON.stringify({ action: 'send_document', chat_id: '-1003922558998', file_base64: base64, file_name: file.name })
+        });
+        var data = await resp.json();
+        if (!data.ok || !data.result || !data.result.document) throw new Error('Telegram send failed');
+        if (status) status.textContent = 'Getting URL...';
+        var resp2 = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
+          body: JSON.stringify({ action: 'get_file', file_id: data.result.document.file_id })
+        });
+        var fd = await resp2.json();
+        if (fd.ok && fd.result && fd.result.file_path) {
+          if (status) status.textContent = 'Done!';
+          return 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
+        }
+        throw new Error('No file path');
+      } else {
+        // Large file -> Google Drive
+        if (status) status.textContent = 'Reading large file...';
+        var base64 = await new Promise(function(resolve, reject) {
+          var reader = new FileReader();
+          reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
+          reader.onerror = function() { reject(new Error('read error')); };
+          reader.readAsDataURL(file);
+        });
+        if (status) status.textContent = 'Uploading to Google Drive...';
+        var resp = await fetch('https://script.google.com/macros/s/AKfycbxEg38HwnpVqBXgufh_d13Z6laJDpOSbZQ3SwMl2Fe8q5QrG6kBBywatwycYkMpyBDj/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'upload', file_base64: base64, file_name: file.name, mime_type: file.type })
+        });
+        var result = await resp.json();
         if (status) status.textContent = 'Done!';
-        return 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
+        if (result.ok) return result.url;
+        throw new Error(result.error || 'Upload failed');
       }
-      throw new Error('No file path');
     } catch (e) {
       console.error('UPLOAD ERR:', e);
       this.toast('Upload: ' + e.message, 'error');
