@@ -1175,7 +1175,9 @@ const App = {
         });
         data = await resp.json();
         console.log('TG send response:', data);
-        if (!data.ok || !data.result || !data.result.document) throw new Error('Telegram failed: ' + JSON.stringify(data));
+        if (!data.ok || !data.result) throw new Error('Telegram failed: ' + JSON.stringify(data));
+        var fileData = data.result.document || data.result.audio || data.result.video || data.result.photo;
+        if (!fileData || !fileData.file_id) throw new Error('Telegram failed: no file_id');
         if (status) status.textContent = 'Getting URL...';
         resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
           method: 'POST',
