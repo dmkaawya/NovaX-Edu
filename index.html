@@ -1154,17 +1154,26 @@ const App = {
       var prog = document.getElementById('uploadProgress');
       var status = document.getElementById('uploadStatus');
       if (prog) prog.classList.remove('hidden');
-      if (status) status.textContent = 'Reading...';
+      if (status) status.textContent = 'Compressing...';
+      
+      // Compress to reduce size
       var base64 = await new Promise(function(resolve, reject) {
         var reader = new FileReader();
-        reader.onloadend = function() { resolve(reader.result.split(',')[1]); };
+        reader.onloadend = function() {
+          var arr = new Uint8Array(reader.result);
+          new Blob([arr], { type: 'application/gzip' }).arrayBuffer().then(function(compressed) {
+            var c = new Uint8Array(compressed);
+            var binary = '';
+            for (var i = 0; i < c.length; i++) binary += String.fromCharCode(c[i]);
+            resolve(btoa(binary));
+          });
+        };
         reader.onerror = function() { reject(new Error('read error')); };
-        reader.readAsDataURL(file);
+        reader.readAsArrayBuffer(file);
       });
-      console.log('File:', file.name, 'Size:', file.size, 'Base64 len:', base64.length);
-
+      
       var maxSize = 20 * 1024 * 1024;
-      var url, resp, data;
+      var url, resp, data, text;
 
       if (file.size < maxSize) {
         if (status) status.textContent = 'Sending to Telegram...';
@@ -1173,19 +1182,21 @@ const App = {
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
           body: JSON.stringify({ action: 'send_document', chat_id: '-1003922558998', file_base64: base64, file_name: file.name })
         });
-        data = await resp.json();
-               console.log('TG send response:', data);
-        if (!data.ok || !data.result) throw new Error('Telegram failed: ' + JSON.stringify(data));
+        text = await resp.text();
+        data = JSON.parse(text);
+        console.log('TG response:', data);
+        if (!data.ok || !data.result) throw new Error('Telegram failed: ' + text.substring(0, 200));
         var fileData = data.result.document || data.result.audio || data.result.video || data.result.photo;
-        if (!fileData || !fileData.file_id) throw new Error('No file_id found');
+        if (!fileData || !fileData.file_id) throw new Error('No file_id');
         if (status) status.textContent = 'Getting URL...';
-        var resp2 = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
           body: JSON.stringify({ action: 'get_file', file_id: fileData.file_id })
         });
-        var fd = await resp.json();
-        console.log('TG file response:', fd);
+        text = await resp.text();
+        fd = JSON.parse(text);
+        console.log('TG file:', fd);
         if (fd.ok && fd.result && fd.result.file_path) {
           if (status) status.textContent = 'Done!';
           url = 'https://api.telegram.org/file/bot8839880058:AAEaIXZvs4bhghf9c8RoCotGQp7MK8-BqOA/' + fd.result.file_path;
@@ -1198,13 +1209,14 @@ const App = {
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlZ2VtdXFoaW55eGVvamZiZHhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMDkyNjIsImV4cCI6MjA4Njc4NTI2Mn0.xj1o2HaGqBBL-YpBLmHHBeUNOtNl20swXQBRp1RgdDk' },
           body: JSON.stringify({ action: 'upload_drive', file_base64: base64, file_name: file.name, mime_type: file.type })
         });
-        data = await resp.json();
+        text = await resp.text();
+        data = JSON.parse(text);
         console.log('Drive response:', data);
         if (data.ok) url = data.url;
         if (!url) throw new Error(data.error || 'Drive failed');
         if (status) status.textContent = 'Done!';
       }
-      console.log('Final URL:', url);
+      console.log('URL:', url);
       return url;
     } catch (e) {
       console.error('UPLOAD ERR:', e);
