@@ -1153,81 +1153,78 @@ const App = {
     this.renderContent(type);
   },
 
-     async uploadFile(file) {
-  if (!file) return '';
-  try {
-    const prog = document.getElementById('uploadProgress');
-    const status = document.getElementById('uploadStatus');
-    if (prog) prog.classList.remove('hidden');
-    if (status) status.textContent = 'Preparing file...';
-    
-    // ෆයිල් එක නියම ආකාරයෙන්ම (no fake zip) Base64 බවට හැරවීම
-    const base64 = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const b64 = reader.result.split(',')[1];
-        resolve(b64);
-      };
-      reader.onerror = () => reject(new Error('read error'));
-      reader.readAsDataURL(file); 
-    });
-    
-    const maxSize = 20 * 1024 * 1024;
-    let url = '';
-    let resp, data, text;
+    async uploadFile(file) {
+    if (!file) return '';
+    try {
+      const prog = document.getElementById('uploadProgress');
+      const status = document.getElementById('uploadStatus');
+      if (prog) prog.classList.remove('hidden');
+      if (status) status.textContent = 'Preparing file...';
+      
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const b64 = reader.result.split(',')[1];
+          resolve(b64);
+        };
+        reader.onerror = () => reject(new Error('read error'));
+        reader.readAsDataURL(file); 
+      });
+      
+      const maxSize = 20 * 1024 * 1024;
+      let url = '';
+      let resp, data, text;
 
-    if (file.size < maxSize) {
-      if (status) status.textContent = 'Sending to Telegram...';
-      resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-        body: JSON.stringify({ action: 'send_document', chat_id: '-1003922558998', file_base64: base64, file_name: file.name })
-      });
-      
-      text = await resp.text();
-      data = JSON.parse(text);
-      if (!data.ok || !data.result) throw new Error('Telegram failed');
-      
-      // Audio සහ වෙනත් ෆයිල් නිවැරදිව හඳුනාගැනීම
-      const fileData = data.result.document || data.result.audio || data.result.video || data.result.voice || data.result.photo;
-      if (!fileData || !fileData.file_id) throw new Error('No file_id found');
-      
-      if (status) status.textContent = 'Getting URL...';
-      resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-        body: JSON.stringify({ action: 'get_file', file_id: fileData.file_id })
-      });
-      
-      text = await resp.text();
-      const fd = JSON.parse(text); 
-      
-      text = await resp.text();
-      const fd = JSON.parse(text); 
-      
-      // දැන් Edge function එකෙන්ම කෙලින්ම අපිට url එක එවනවා
-      if (fd.ok && fd.url) {
-        if (status) status.textContent = 'Done!';
-        url = fd.url; 
+      if (file.size < maxSize) {
+        if (status) status.textContent = 'Sending to Telegram...';
+        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+          // මෙතනින් chat_id එක අයින් කරලා තියෙන්නේ, ඒක දැන් Backend එකෙන් ගන්නේ
+          body: JSON.stringify({ action: 'send_document', file_base64: base64, file_name: file.name })
+        });
+        
+        text = await resp.text();
+        data = JSON.parse(text);
+        if (!data.ok || !data.result) throw new Error('Telegram failed');
+        
+        const fileData = data.result.document || data.result.audio || data.result.video || data.result.voice || data.result.photo;
+        if (!fileData || !fileData.file_id) throw new Error('No file_id found');
+        
+        if (status) status.textContent = 'Getting URL...';
+        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+          body: JSON.stringify({ action: 'get_file', file_id: fileData.file_id })
+        });
+        
+        text = await resp.text();
+        // fd වෙනුවට tgData කියලා පාවිච්චි කළා පැටලෙන්නේ නැති වෙන්න
+        const tgData = JSON.parse(text); 
+        
+        // Backend එකෙන් එන ආරක්ෂිත URL එක කෙලින්ම ගැනීම
+        if (tgData.ok && tgData.url) {
+          if (status) status.textContent = 'Done!';
+          url = tgData.url;
+        }
+      } else {
+        if (status) status.textContent = 'Uploading to Drive...';
+        resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
+          body: JSON.stringify({ action: 'upload_drive', file_base64: base64, file_name: file.name, mime_type: file.type })
+        });
+        text = await resp.text();
+        data = JSON.parse(text);
+        if (data.ok) url = data.url;
       }
-    } else {
-      if (status) status.textContent = 'Uploading to Drive...';
-      resp = await fetch('https://vegemuqhinyxeojfbdxd.supabase.co/functions/v1/tg-proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-        body: JSON.stringify({ action: 'upload_drive', file_base64: base64, file_name: file.name, mime_type: file.type })
-      });
-      text = await resp.text();
-      data = JSON.parse(text);
-      if (data.ok) url = data.url;
+      return url;
+    } catch (e) {
+      console.error('UPLOAD ERR:', e);
+      this.toast('Upload Error: ' + e.message, 'error');
+      return '';
     }
-    return url;
-  } catch (e) {
-    console.error('UPLOAD ERR:', e);
-    this.toast('Upload Error: ' + e.message, 'error');
-    return '';
-  }
-},
+  },
 
   async editContent(id, type) {
     const { data: item } = await sb.from('content').select('*').eq('id', id).single();
