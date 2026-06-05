@@ -1285,6 +1285,7 @@ const App = {
   },
 
  async viewVideos(contentId) {
+    // Get all videos in the same lesson
     const { data: parent } = await sb.from('content').select('*,profiles(name)').eq('id', contentId).single();
     if (!parent) return;
     const { data: videos } = await sb.from('content').select('*,profiles(name)').eq('type', 'video').eq('lesson', parent.lesson).eq('status', 'approved').order('created_at');
@@ -1292,7 +1293,6 @@ const App = {
     this.openModal(`${parent.lesson || 'Videos'}`, `
       <div style="margin-bottom:16px"><span class="tag tag-video">${parent.lesson || 'Videos'}</span></div>
       ${videos.map(v => `
-        <!-- මෙතන තමයි වෙනස: window.open වෙනුවට playVideo දැම්මා -->
         <div class="content-card mb-4" style="cursor:pointer" onclick="App.playVideo('${this.escAttr(v.title)}', '${this.escAttr(v.file_url || '')}')">
           <div class="card-thumb" style="height:160px">
             ${v.thumbnail_url ? `<img src="${this.escAttr(v.thumbnail_url)}" alt="${this.escAttr(v.title)}">` : '<div class="card-thumb-placeholder"><i class="fas fa-play-circle"></i></div>'}
@@ -1303,16 +1303,18 @@ const App = {
             <div class="card-desc">${this.escHtml(v.description || '')}</div>
             <div class="card-meta">${v.duration ? `<span><i class="fas fa-clock"></i>${this.escHtml(v.duration)}</span>` : ''} <span class="card-price ${v.is_free ? '' : 'paid-price'}">${v.is_free ? 'FREE' : 'LKR ' + v.price}</span></div>
           </div>
+          <div class="card-credit">
+            <div class="credit-avatar">${(v.profiles?.name || '?').charAt(0)}</div>
+            <span>${this.escHtml(v.profiles?.name || 'Unknown')}</span>
+          </div>
         </div>
       `).join('')}
     `, '', 'max-width:700px');
   },
 
-// වීඩියෝ එක ප්ලේ කරන මොඩල් එක
+  // වීඩියෝ එක ප්ලේ කරන මොඩල් එක
   playVideo(title, url) {
-    this.closeModal(); // පරණ මොඩල් එක මුලින්ම වහනවා
-    
-    // තත්පර බාගෙකින් අලුත් මොඩල් එක අරිනවා (එතකොට Modal හිර වෙන්නේ නෑ)
+    this.closeModal(); // පරණ මොඩල් එක වහනවා
     setTimeout(() => { 
       this.openModal(`Now Playing: ${title}`, `
         <div style="text-align:center;padding:10px 0;background:#000;border-radius:8px">
@@ -1328,25 +1330,30 @@ const App = {
       `, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:800px');
     }, 300);
   },
-  
-  // Database එකේ කොමාවෙන් වෙන් කරලා තියෙන පින්තූර ලින්ක් ටික වෙන් කරගැනීම
-  let urls = [];
-  if (item.type === 'note' && item.file_url) {
-    urls = item.file_url.split(',');
-  } else {
-    urls = [item.thumbnail_url || item.file_url];
-  }
 
-  // පින්තූර සියල්ලම පේළියට දිස්වීමට HTML සැකසීම
-  const imagesHtml = urls.map(url => `<img src="${this.escAttr(url)}" alt="${this.escAttr(item.title)}" style="max-width:100%;border-radius:8px;margin-bottom:12px">`).join('');
+  async previewContent(id) {
+    const { data: item } = await sb.from('content').select('*').eq('id', id).single();
+    if (!item || (!item.thumbnail_url && !item.file_url)) return this.toast('No preview available', 'error');
+    
+    // Database එකේ කොමාවෙන් වෙන් කරලා තියෙන පින්තූර ලින්ක් ටික වෙන් කරගැනීම
+    let urls = [];
+    if (item.type === 'note' && item.file_url) {
+      urls = item.file_url.split(',');
+    } else {
+      urls = [item.thumbnail_url || item.file_url];
+    }
 
-  this.openModal(item.title, `
-    <div style="text-align:center; max-height: 70vh; overflow-y: auto; padding-right: 8px;">
-      ${imagesHtml}
-      <p style="font-size:14px;color:var(--text2);margin-top:12px">${this.escHtml(item.description || '')}</p>
-    </div>
-  `, `<button class="btn btn-outline" onclick="App.closeModal()">Close</button><a href="${this.escAttr(urls[0])}" download class="btn btn-primary"><i class="fas fa-download"></i> Download</a>`);
-},
+    // පින්තූර සියල්ලම පේළියට දිස්වීමට HTML සැකසීම
+    const imagesHtml = urls.map(url => `<img src="${this.escAttr(url)}" alt="${this.escAttr(item.title)}" style="max-width:100%;border-radius:8px;margin-bottom:12px">`).join('');
+
+    this.openModal(item.title, `
+      <div style="text-align:center; max-height: 70vh; overflow-y: auto; padding-right: 8px;">
+        ${imagesHtml}
+        <p style="font-size:14px;color:var(--text2);margin-top:12px">${this.escHtml(item.description || '')}</p>
+      </div>
+    `, `<button class="btn btn-outline" onclick="App.closeModal()">Close</button><a href="${this.escAttr(urls[0])}" download class="btn btn-primary"><i class="fas fa-download"></i> Download</a>`);
+  },
+
   async downloadContent(id, type) {
     const { data: item } = await sb.from('content').select('*').eq('id', id).single();
     if (!item) return;
@@ -1386,7 +1393,7 @@ const App = {
       <div style="font-size:15px;line-height:1.8;color:var(--text2);white-space:pre-wrap">${this.escHtml(item.article_body || item.description || 'No content available.')}</div>
     `, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:700px');
   },
-
+   
   // ========== Quizzes ==========
   async renderQuizzes() {
     const area = document.getElementById('contentArea');
