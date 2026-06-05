@@ -317,25 +317,25 @@ img{max-width:100%;display:block}
 </div>
 <div class="timeline-item reveal">
 <div class="timeline-dot green"></div>
-<div class="timeline-year">December 2023</div>
+<div class="timeline-year">December 2025</div>
 <div class="timeline-title">Flashcards & Study Planner</div>
 <div class="timeline-desc">We introduced spaced repetition flashcards and a study planner feature. User engagement increased by 340%.</div>
 </div>
 <div class="timeline-item reveal">
 <div class="timeline-dot red"></div>
-<div class="timeline-year">April 2024</div>
+<div class="timeline-year">April 2025</div>
 <div class="timeline-title">Community Hits 1,000</div>
 <div class="timeline-desc">Our discussion forum became the heart of the platform. Learners were helping each other 24/7 across different time zones.</div>
 </div>
 <div class="timeline-item reveal">
 <div class="timeline-dot blue"></div>
-<div class="timeline-year">October 2024</div>
+<div class="timeline-year">October 2025</div>
 <div class="timeline-title">TOPIK Prep Courses</div>
 <div class="timeline-desc">Launched comprehensive TOPIK I & II preparation tracks with mock exams. Several students reported passing TOPIK Level 4+.</div>
 </div>
 <div class="timeline-item reveal">
 <div class="timeline-dot green"></div>
-<div class="timeline-year">2025 — Now</div>
+<div class="timeline-year">2026 — Now</div>
 <div class="timeline-title">2,400+ Learners Strong</div>
 <div class="timeline-desc">30+ countries, 500+ lessons, and a mission that's bigger than ever. We're building the future of Korean language education.</div>
 </div>
@@ -358,15 +358,15 @@ img{max-width:100%;display:block}
 <div class="contact-item-icon" style="background:rgba(229,57,53,.12);color:var(--primary)"><i class="fas fa-envelope"></i></div>
 <div>
 <div class="contact-item-label">Email</div>
-<div class="contact-item-value"><a href="mailto:hello@novaxedu.com">hello@novaxedu.com</a></div>
+<div class="contact-item-value"><a href="mailto:hello@novaxedu.com">chat.dmkaawya@gmail.com</a></div>
 </div>
 </div>
 
 <div class="contact-item">
 <div class="contact-item-icon" style="background:rgba(21,101,192,.12);color:var(--secondary)"><i class="fab fa-discord"></i></div>
 <div>
-<div class="contact-item-label">Discord</div>
-<div class="contact-item-value"><a href="#">discord.gg/novaxedu</a></div>
+<div class="contact-item-label">Whatsapp</div>
+<div class="contact-item-value"><a href="#">0775048455</a></div>
 </div>
 </div>
 
@@ -456,7 +456,7 @@ img{max-width:100%;display:block}
 <a href="privacy.html">Privacy</a>
 <a href="terms.html">Terms</a>
 </div>
-<div class="footer-copy">&copy; 2025 NovaX Edu. All rights reserved.</div>
+<div class="footer-copy">&copy; 2026 NovaX Edu. All rights reserved.</div>
 </div>
 </footer>
 
@@ -547,14 +547,15 @@ msg.className='form-msg error';msg.textContent='Please enter a valid email addre
 btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Sending...';
 
 setTimeout(()=>{
-msg.className='form-msg success';
-msg.innerHTML='<i class="fas fa-check-circle" style="margin-right:6px"></i> Message sent successfully! We\'ll get back to you within 24 hours.';
-btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i> Send Message';
+// success වෙනුවට error දැම්මා රතු පාටින් පේන්න
+msg.className='form-msg error'; 
+msg.innerHTML='<i class="fas fa-exclamation-circle" style="margin-right:6px"></i> Sorry, mema form eka danata wada nh. Msg 077 504 8455 number ekata ewanna.';
+btn.disabled=false;
+btn.innerHTML='<i class="fas fa-paper-plane"></i> Send Message';
 document.getElementById('contactForm').reset();
-setTimeout(()=>{msg.className='form-msg';msg.textContent=''},5000);
+// ළමයට මැසේජ් එක කියවන්න වෙලා ඕනේ නිසා තත්පර 5 වෙනුවට තත්පර 8ක් දැම්මා
+setTimeout(()=>{msg.className='form-msg';msg.textContent=''},8000); 
 },1500);
-return false;
-}
 
 // === SMOOTH ANCHOR ===
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
