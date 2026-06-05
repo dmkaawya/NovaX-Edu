@@ -406,6 +406,20 @@ img{max-width:100%;display:block}
 </div>
 </div>
 
+<!-- ========== BLOCKED SCREEN ========== -->
+<div id="blockedScreen" class="auth-wrapper" style="display:none; text-align:center; flex-direction:column; padding:20px;">
+  <i class="fas fa-user-slash text-danger" style="font-size:64px; margin-bottom:20px;"></i>
+  <h2 style="font-family:'Outfit'; font-size:28px; margin-bottom:12px; color:var(--text)">Account Suspended</h2>
+  <p style="color:var(--text2); margin-bottom:24px; max-width:400px; line-height:1.6;">
+    Your account has been restricted due to a violation of our terms or suspicious activity.
+  </p>
+  <div style="background:var(--card); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:24px; width: 100%; max-width: 400px;">
+    <p style="font-size:14px; color:var(--text); margin-bottom:8px;">To appeal or unblock, contact our hotline:</p>
+    <a href="https://wa.me/94775048455" target="_blank" class="btn btn-success" style="width:100%; justify-content:center"><i class="fab fa-whatsapp"></i> +94 77 504 8455</a>
+  </div>
+  <button class="btn btn-outline" onclick="App.logoutAndGoHome()"><i class="fas fa-arrow-left"></i> Back to Login</button>
+</div>
+   
 <!-- ========== MAIN APP ========== -->
 <div id="appScreen" class="app">
 <!-- Sidebar Overlay (mobile) -->
@@ -517,7 +531,7 @@ const OWNER_WHATSAPP = '94775048455';
 
 // ========== App State ==========
 const App = {
-  user: null,
+ user: null,
   profile: null,
   currentTab: 'dashboard',
   theme: localStorage.getItem('nx-theme') || 'dark',
@@ -532,8 +546,8 @@ const App = {
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       this.user = session.user;
-      await this.loadProfile();
-      this.showApp();
+      const isOk = await this.loadProfile();
+      if (isOk) this.showApp(); // Block වෙලා නැත්නම් විතරක් ඇතුලට යනවා!
     } else {
       this.showAuth();
     }
@@ -542,8 +556,8 @@ const App = {
     sb.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
         this.user = session.user;
-        await this.loadProfile();
-        this.showApp();
+        const isOk = await this.loadProfile();
+        if (isOk) this.showApp();
       } else if (event === 'SIGNED_OUT') {
         this.user = null;
         this.profile = null;
@@ -556,7 +570,6 @@ const App = {
       item.addEventListener('click', () => {
         const tab = item.dataset.tab;
         if (tab) this.navigate(tab);
-        // Close mobile sidebar
         if (window.innerWidth <= 1024) this.toggleSidebar();
       });
     });
@@ -566,13 +579,15 @@ const App = {
     document.getElementById('regConfirm').addEventListener('keypress', e => { if (e.key === 'Enter') this.register(); });
   },
 
-  // ========== Auth ==========
+  // ========== Auth & Screens ==========
   showAuth() {
     document.getElementById('authScreen').style.display = 'flex';
     document.getElementById('appScreen').classList.remove('active');
+    const blk = document.getElementById('blockedScreen'); if(blk) blk.style.display = 'none';
   },
   showApp() {
     document.getElementById('authScreen').style.display = 'none';
+    const blk = document.getElementById('blockedScreen'); if(blk) blk.style.display = 'none';
     document.getElementById('appScreen').classList.add('active');
     this.updateTopbar();
     this.checkAdminVisibility();
@@ -580,6 +595,17 @@ const App = {
     this.navigate('dashboard');
     this.logActivity('login', 'User signed in');
   },
+  // 🔥 අලුත් Block Screen එක පෙන්නන Function එක
+  showBlocked() {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appScreen').classList.remove('active');
+    const blk = document.getElementById('blockedScreen'); if(blk) blk.style.display = 'flex';
+  },
+  async logoutAndGoHome() {
+    await sb.auth.signOut();
+    window.location.reload();
+  },
+
   showLogin() {
     document.getElementById('loginForm').classList.remove('hidden');
     document.getElementById('registerForm').classList.add('hidden');
@@ -625,11 +651,8 @@ const App = {
     try {
       const { data, error } = await sb.auth.signUp({ email, password: pass });
       if (error) throw error;
-      // Create profile
       if (data.user) {
-        const { error: pe } = await sb.from('profiles').insert({
-          id: data.user.id, name, email, whatsapp, role: 'student'
-        });
+        const { error: pe } = await sb.from('profiles').insert({ id: data.user.id, name, email, whatsapp, role: 'student' });
         if (pe) console.error('Profile error:', pe);
       }
       this.hideLoading();
@@ -646,20 +669,17 @@ const App = {
     this.toast('Signed out', 'info');
   },
 
-async loadProfile() {
-    if (!this.user) return;
+  async loadProfile() {
+    if (!this.user) return false;
     const { data } = await sb.from('profiles').select('*').eq('id', this.user.id).single();
     
-    // ළමයා Block කරලා නම් එලියට විසි කරනවා
+    // 🔥 ළමයා Block කරලා නම් වෙනම Block Screen එකට යවනවා
     if (data && data.is_blocked) {
-      await sb.auth.signOut();
-      this.user = null;
-      this.profile = null;
-      this.showAuth();
-      alert("🚫 Your account has been blocked!\nPlease contact the hotline to unblock.");
-      return;
+      this.showBlocked();
+      return false; // False දුන්නම Dashboard එක ඇතුලට ලෝඩ් වෙන්නේ නෑ!
     }
     this.profile = data;
+    return true;
   },
 
   updateTopbar() {
