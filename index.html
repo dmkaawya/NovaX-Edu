@@ -2232,22 +2232,21 @@ const App = {
     `;
   },
 
-  // ========== Admin Panel ==========
- // ========== Admin Panel ==========
+// ========== Admin Panel ==========
   async renderAdmin() {
     if (!this.isAdmin()) return;
     const area = document.getElementById('contentArea');
     const isOwner = this.profile.role === 'owner';
 
-    // Load pending content + pending payments
-    const [contentRes, lcRes, quizRes, usersRes, promoRes, payRes] = await Promise.all([
+    // 🔥 මෙන්න මෙතන තමයි වෙනස: reportsRes කියන එක අලුතින් වරහන ඇතුලට දැම්මා
+    const [contentRes, lcRes, quizRes, usersRes, promoRes, payRes, reportsRes] = await Promise.all([
       sb.from('content').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       sb.from('live_classes').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       sb.from('quizzes').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       isOwner ? sb.from('profiles').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
       sb.from('promo_codes').select('*').order('created_at', { ascending: false }),
       sb.from('pending_payments').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
-      sb.from('log_activities').select('*').eq('action', 'report_issue').order('created_at', { ascending: false }) // මේ පේළිය අලුත්!
+      sb.from('log_activities').select('*').eq('action', 'report_issue').order('created_at', { ascending: false })
     ]);
 
     const pendingContent = contentRes.data || [];
@@ -2256,7 +2255,7 @@ const App = {
     const users = usersRes.data || [];
     const promos = promoRes.data || [];
     const pendingPayments = payRes.data || [];
-    const reports = reportsRes.data || [];
+    const reports = reportsRes.data || []; // මේක දැන් වැඩ කරනවා!
 
     const totalPending = pendingContent.length + pendingLC.length + pendingQuiz.length + pendingPayments.length + reports.length;
 
@@ -2269,7 +2268,6 @@ const App = {
         </div>
       </div>
 
-      <!-- Stats -->
       <div class="dash-grid mb-6">
         <div class="dash-card">
           <div class="dash-card-header"><span class="dash-card-title">Pending Approval</span><div class="dash-card-icon" style="background:rgba(249,168,37,.1);color:var(--warning)"><i class="fas fa-clock"></i></div></div>
@@ -2288,7 +2286,6 @@ const App = {
         </div>
       </div>
 
-      <!-- Payment Slips -->
       <div class="dash-card mb-6" style="border-left: 4px solid var(--success)">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-money-bill-wave text-success"></i> Payment Slips to Approve</h3>
         ${pendingPayments.length === 0 ? '<p class="text-muted" style="font-size:13px">No pending payments</p>' : pendingPayments.map(p => `
@@ -2306,7 +2303,21 @@ const App = {
         `).join('')}
       </div>
 
-      <!-- Pending Content -->
+      <div class="dash-card mb-6" style="border-left: 4px solid var(--danger)">
+        <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-flag text-danger"></i> User Video Reports</h3>
+        ${reports.length === 0 ? '<p class="text-muted" style="font-size:13px">No reports found</p>' : reports.map(r => `
+          <div class="pending-item" style="border-left:none; background:var(--bg); padding:12px; margin-bottom:8px;">
+            <div class="pending-info">
+              <div style="font-size:13px; color:var(--text); line-height:1.5; font-weight:600">${this.escHtml(r.details)}</div>
+              <div style="font-size:11px; color:var(--text3); margin-top:6px;"><i class="fas fa-clock"></i> ${this.timeAgo(r.created_at)}</div>
+            </div>
+            <div class="pending-actions">
+              <button class="btn btn-ghost btn-sm text-success" onclick="App.resolveReport('${r.id}')"><i class="fas fa-check"></i> Mark Resolved</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
       <div class="dash-card mb-6">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-clock text-warning"></i> Pending Content</h3>
         ${pendingContent.length === 0 ? '<p class="text-muted" style="font-size:13px">No pending content</p>' : pendingContent.map(c => `
@@ -2323,7 +2334,6 @@ const App = {
         `).join('')}
       </div>
 
-      <!-- Pending Live Classes -->
       <div class="dash-card mb-6">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-broadcast-tower text-primary"></i> Pending Live Classes</h3>
         ${pendingLC.length === 0 ? '<p class="text-muted" style="font-size:13px">No pending live classes</p>' : pendingLC.map(c => `
@@ -2340,23 +2350,6 @@ const App = {
         `).join('')}
       </div>
 
-      <!-- 🔴 අලුත් කෑල්ල: User Video Reports -->
-      <div class="dash-card mb-6" style="border-left: 4px solid var(--danger)">
-        <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-flag text-danger"></i> User Video Reports</h3>
-        ${reports.length === 0 ? '<p class="text-muted" style="font-size:13px">No reports found</p>' : reports.map(r => `
-          <div class="pending-item" style="border-left:none; background:var(--bg); padding:12px; margin-bottom:8px;">
-            <div class="pending-info">
-              <div style="font-size:13px; color:var(--text); line-height:1.5; font-weight:600">${this.escHtml(r.details)}</div>
-              <div style="font-size:11px; color:var(--text3); margin-top:6px;"><i class="fas fa-clock"></i> ${this.timeAgo(r.created_at)}</div>
-            </div>
-            <div class="pending-actions">
-              <button class="btn btn-ghost btn-sm text-success" onclick="App.resolveReport('${r.id}')"><i class="fas fa-check"></i> Mark Resolved</button>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-
-      <!-- Pending Quizzes -->
       <div class="dash-card mb-6">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-clipboard-list text-secondary"></i> Pending Quizzes</h3>
         ${pendingQuiz.length === 0 ? '<p class="text-muted" style="font-size:13px">No pending quizzes</p>' : pendingQuiz.map(q => `
@@ -2373,7 +2366,6 @@ const App = {
         `).join('')}
       </div>
 
-      <!-- Unlock Content (Manual Payment) -->
       <div class="dash-card mb-6">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-lock-open text-success"></i> Unlock Paid Content (Manual Payment)</h3>
         <div class="search-filter" style="margin-bottom:12px">
@@ -2383,7 +2375,6 @@ const App = {
         <div id="unlockResults"></div>
       </div>
 
-      <!-- Promo Codes -->
       <div class="dash-card mb-6">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-tag text-success"></i> Promo Codes</h3>
         ${promos.length === 0 ? '<p class="text-muted" style="font-size:13px">No promo codes</p>' : `
@@ -2407,7 +2398,6 @@ const App = {
         `}
       </div>
 
-      <!-- User Management (Owner only) -->
       ${isOwner ? `
       <div class="dash-card mb-6">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-users-cog text-secondary"></i> User Management</h3>
@@ -2441,7 +2431,6 @@ const App = {
       </div>
       ` : ''}
 
-      <!-- All Content Management -->
       <div class="dash-card">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-database text-primary"></i> All Content Overview</h3>
         <div class="tabs" id="adminContentTabs">
