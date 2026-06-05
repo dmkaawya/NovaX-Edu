@@ -356,6 +356,14 @@ img{max-width:100%;display:block}
 .status-dot.approved{background:var(--success)}
 .status-dot.rejected{background:var(--danger)}
 .text-primary{color:var(--primary)}.text-success{color:var(--success)}.text-warning{color:var(--warning)}.text-danger{color:var(--danger)}.text-muted{color:var(--text3)}
+
+/* ========== Notifications & Topbar Icons ========== */
+.topbar-icon{position:relative;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text);cursor:pointer;transition:var(--transition);background:var(--bg);border:1px solid var(--border)}
+.topbar-icon:hover{color:var(--primary);border-color:var(--primary)}
+.notify-badge{position:absolute;top:-4px;right:-4px;background:var(--primary);color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--card)}
+.notif-item{padding:12px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.notif-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#fff}
+.notif-text{font-size:13px;color:var(--text2);flex:1}
 </style>
 </head>
 <body>
@@ -448,6 +456,22 @@ img{max-width:100%;display:block}
 <button class="collapse-toggle" onclick="App.collapseSidebar()" title="Toggle sidebar"><i class="fas fa-columns"></i></button>
 </div>
 <div class="topbar-right">
+   <div class="topbar-right">
+  <!-- අලුතින් ආපු Bell අයිකන් එක -->
+  <div class="topbar-icon" onclick="App.showNotifications()">
+    <i class="fas fa-bell"></i>
+    <span class="notify-badge" id="notifBadge" style="display:none">0</span>
+  </div>
+  
+  <button class="theme-toggle" onclick="App.toggleTheme()" title="Toggle theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+  <div class="topbar-user" onclick="App.navigate('profile')">
+    <div class="topbar-avatar" id="topAvatar">?</div>
+    <div class="topbar-user-info">
+      <div class="topbar-user-name" id="topName">Loading...</div>
+      <div class="topbar-user-role" id="topRole">student</div>
+    </div>
+  </div>
+</div>
 <button class="theme-toggle" onclick="App.toggleTheme()" title="Toggle theme"><i class="fas fa-moon" id="themeIcon"></i></button>
 <div class="topbar-user" onclick="App.navigate('profile')">
 <div class="topbar-avatar" id="topAvatar">?</div>
@@ -559,6 +583,7 @@ const App = {
     document.getElementById('appScreen').classList.add('active');
     this.updateTopbar();
     this.checkAdminVisibility();
+    this.checkNotifications(); 
     this.navigate('dashboard');
     this.logActivity('login', 'User signed in');
   },
@@ -2542,12 +2567,60 @@ const App = {
   },
 
   // ========== Payment System ==========
+ // ========== Payment System (Slip Upload) ==========
   payForContent(contentId, contentType, title, price) {
-    const email = this.profile.email;
-    const msg = `Hi NovaX Edu, I want to unlock [${title}]. Price: LKR ${price}. My Registered Email: [${email}].`;
-    const url = `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
-    this.toast('WhatsApp opened! After payment, admin will unlock your content.', 'info');
+    this.openModal(`Unlock Content`, `
+      <div style="text-align:center;margin-bottom:20px">
+        <h3 style="font-size:18px;margin-bottom:8px">${this.escHtml(title)}</h3>
+        <div style="font-size:24px;font-weight:800;color:var(--primary);font-family:'Outfit'">LKR ${price}</div>
+        <p class="text-muted" style="font-size:13px;margin-top:8px">Please transfer the amount to <strong>Bank Name: BOC, Acc: 12345678, Name: NovaX Edu</strong> and upload the slip below.</p>
+      </div>
+      <div class="form-group">
+        <label>Upload Payment Slip / Screenshot</label>
+        <input type="file" class="form-input" id="paymentSlip" accept="image/*,application/pdf">
+      </div>
+      <div class="form-group">
+        <label>Promo Code (Optional)</label>
+        <input type="text" class="form-input" id="payPromo" placeholder="Enter if you have one" style="text-transform:uppercase">
+      </div>
+      <div id="uploadProgress" class="hidden mt-4">
+        <div class="flex items-center gap-2"><div class="spinner"></div><span style="font-size:13px;color:var(--text2)" id="uploadStatus">Uploading slip...</span></div>
+      </div>
+    `, `<button class="btn btn-outline" onclick="App.closeModal()">Cancel</button><button class="btn btn-primary" onclick="App.submitPayment('${contentId}', '${contentType}', ${price})"><i class="fas fa-upload"></i> Submit Payment</button>`);
+  },
+
+  async submitPayment(contentId, contentType, price) {
+    const fileInput = document.getElementById('paymentSlip');
+    const promoCode = document.getElementById('payPromo').value.trim().toUpperCase();
+    
+    if (!fileInput || fileInput.files.length === 0) return this.toast('Please select a slip to upload', 'error');
+
+    this.showLoading();
+    
+    // Slip එක Edge Function එක හරහා Upload කිරීම
+    const slipUrl = await this.uploadFile(fileInput.files[0]);
+    
+    if (!slipUrl) {
+      this.hideLoading();
+      return this.toast('Failed to upload slip', 'error');
+    }
+
+    // Database එකේ pending_payments ටේබල් එකට සේව් කිරීම
+    const { error } = await sb.from('pending_payments').insert({
+      user_id: this.user.id,
+      content_id: contentId,
+      type: contentType,
+      slip_url: slipUrl,
+      promo_code: promoCode,
+      status: 'pending'
+    });
+
+    this.hideLoading();
+    if (error) return this.toast(error.message, 'error');
+
+    this.closeModal();
+    this.toast('Payment submitted! Admin will verify and unlock soon.', 'success');
+    this.logActivity('payment_submitted', `Submitted payment for content ID: ${contentId}`);
   },
 
   // ========== WhatsApp Help ==========
@@ -2584,6 +2657,62 @@ const App = {
     document.getElementById('modalOverlay').classList.remove('active');
   },
 
+// ========== Notifications ==========
+  async checkNotifications() {
+    if (!this.user) return;
+    // අපි ළමයාගේ ඇපෲව්/රිජෙක්ට් වෙච්ච ලොග් ටික විතරක් අරගන්නවා
+    const { data: logs } = await sb.from('log_activities')
+      .select('*')
+      .eq('user_id', this.user.id)
+      .in('action', ['content_approved', 'content_rejected', 'unlock_content'])
+      .order('created_at', { ascending: false })
+      .limit(10);
+      
+    this._notifications = logs || [];
+    const unreadCount = this._notifications.length; // සරලව අලුත්ම 10 පෙන්නනවා
+
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+      if (unreadCount > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = unreadCount;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  },
+
+  showNotifications() {
+    const notifs = this._notifications || [];
+    
+    let html = '';
+    if (notifs.length === 0) {
+      html = '<div class="empty-state" style="padding:40px 20px"><i class="fas fa-bell-slash"></i><h3 style="font-size:16px">No new notifications</h3></div>';
+    } else {
+      html = notifs.map(n => {
+        let icon = 'fa-info';
+        let bg = 'var(--secondary)';
+        if (n.action === 'content_approved' || n.action === 'unlock_content') { icon = 'fa-check'; bg = 'var(--success)'; }
+        if (n.action === 'content_rejected') { icon = 'fa-times'; bg = 'var(--danger)'; }
+        
+        return `
+          <div class="notif-item">
+            <div class="notif-icon" style="background:${bg}"><i class="fas ${icon}"></i></div>
+            <div class="notif-text">
+              <div style="font-weight:600;margin-bottom:4px">${this.escHtml(n.details)}</div>
+              <div style="font-size:11px;color:var(--text3)">${this.timeAgo(n.created_at)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    this.openModal('Notifications', `<div style="max-height:60vh;overflow-y:auto;margin:-24px;padding:0">${html}</div>`, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:400px');
+    
+    // බැලුවට පස්සේ Badge එක අයින් කරනවා
+    document.getElementById('notifBadge').style.display = 'none';
+  },
+   
   // ========== Theme ==========
   toggleTheme() {
     this.theme = this.theme === 'dark' ? 'light' : 'dark';
