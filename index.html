@@ -2273,12 +2273,12 @@ const App = {
     const area = document.getElementById('contentArea');
     const isOwner = this.profile.role === 'owner';
 
-    // 🔥 මෙන්න මෙතන තමයි වෙනස: reportsRes කියන එක අලුතින් වරහන ඇතුලට දැම්මා
+    // 🔥 වෙනස: දැන් Admin ටත් Profiles (Users) ලගේ ඩේටා ටික ලෝඩ් වෙනවා
     const [contentRes, lcRes, quizRes, usersRes, promoRes, payRes, reportsRes] = await Promise.all([
       sb.from('content').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       sb.from('live_classes').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       sb.from('quizzes').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
-      isOwner ? sb.from('profiles').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+      sb.from('profiles').select('*').order('created_at', { ascending: false }), // <--- මෙතනින් හැමෝටම Users ලව ගන්නවා
       sb.from('promo_codes').select('*').order('created_at', { ascending: false }),
       sb.from('pending_payments').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       sb.from('log_activities').select('*').eq('action', 'report_issue').order('created_at', { ascending: false })
@@ -2290,7 +2290,7 @@ const App = {
     const users = usersRes.data || [];
     const promos = promoRes.data || [];
     const pendingPayments = payRes.data || [];
-    const reports = reportsRes.data || []; // මේක දැන් වැඩ කරනවා!
+    const reports = reportsRes.data || [];
 
     const totalPending = pendingContent.length + pendingLC.length + pendingQuiz.length + pendingPayments.length + reports.length;
 
@@ -2433,7 +2433,6 @@ const App = {
         `}
       </div>
 
-      ${isOwner ? `
       <div class="dash-card mb-6">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-users-cog text-secondary"></i> User Management</h3>
         ${users.length === 0 ? '<p class="text-muted" style="font-size:13px">No users</p>' : `
@@ -2456,18 +2455,25 @@ const App = {
                     <td style="padding:8px">
                       ${u.id !== this.user.id ? `
                         <div class="flex gap-2">
-                          <select class="form-input" style="padding:4px 8px;font-size:12px;min-width:90px" onchange="App.changeUserRole('${u.id}',this.value)">
-                            <option value="student" ${u.role==='student'?'selected':''}>Student</option>
-                            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-                            <option value="owner" ${u.role==='owner'?'selected':''}>Owner</option>
-                          </select>
                           
-                          <button class="btn btn-sm ${u.is_blocked ? 'btn-success' : 'btn-outline'}" style="padding:4px 8px" onclick="App.toggleUserBlock('${u.id}', ${u.is_blocked})" title="${u.is_blocked ? 'Unblock' : 'Block'}">
-                            <i class="fas ${u.is_blocked ? 'fa-unlock' : 'fa-ban text-danger'}"></i>
-                          </button>
+                          ${isOwner ? `
+                            <select class="form-input" style="padding:4px 8px;font-size:12px;min-width:90px" onchange="App.changeUserRole('${u.id}',this.value)">
+                              <option value="student" ${u.role==='student'?'selected':''}>Student</option>
+                              <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                              <option value="owner" ${u.role==='owner'?'selected':''}>Owner</option>
+                            </select>
+                          ` : ''}
+                          
+                          ${(isOwner || u.role === 'student') ? `
+                            <button class="btn btn-sm ${u.is_blocked ? 'btn-success' : 'btn-outline'}" style="padding:4px 8px" onclick="App.toggleUserBlock('${u.id}', ${u.is_blocked})" title="${u.is_blocked ? 'Unblock' : 'Block'}">
+                              <i class="fas ${u.is_blocked ? 'fa-unlock' : 'fa-ban text-danger'}"></i>
+                            </button>
+                          ` : ''}
+                          
                           <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="App.viewUserSessions('${u.id}', '${this.escAttr(u.name)}')" title="View Sessions">
                             <i class="fas fa-history text-secondary"></i>
                           </button>
+                          
                         </div>
                       ` : '<span class="text-muted" style="font-size:11px">You</span>'}
                     </td>
@@ -2478,7 +2484,6 @@ const App = {
           </div>
         `}
       </div>
-      ` : ''}
 
       <div class="dash-card">
         <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-database text-primary"></i> All Content Overview</h3>
@@ -2496,7 +2501,6 @@ const App = {
 
     this.loadAdminContent('all', document.querySelector('#adminContentTabs .tab'));
   },
-
   async loadAdminContent(type, tabEl) {
     if (tabEl) {
       document.querySelectorAll('#adminContentTabs .tab').forEach(t => t.classList.remove('active'));
