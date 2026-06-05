@@ -406,18 +406,19 @@ img{max-width:100%;display:block}
 </div>
 </div>
 
-<!-- ========== BLOCKED SCREEN ========== -->
-<div id="blockedScreen" class="auth-wrapper" style="display:none; text-align:center; flex-direction:column; padding:20px;">
-  <i class="fas fa-user-slash text-danger" style="font-size:64px; margin-bottom:20px;"></i>
-  <h2 style="font-family:'Outfit'; font-size:28px; margin-bottom:12px; color:var(--text)">Account Suspended</h2>
-  <p style="color:var(--text2); margin-bottom:24px; max-width:400px; line-height:1.6;">
-    Your account has been restricted due to a violation of our terms or suspicious activity.
-  </p>
-  <div style="background:var(--card); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:24px; width: 100%; max-width: 400px;">
-    <p style="font-size:14px; color:var(--text); margin-bottom:8px;">To appeal or unblock, contact our hotline:</p>
-    <a href="https://wa.me/94775048455" target="_blank" class="btn btn-success" style="width:100%; justify-content:center"><i class="fab fa-whatsapp"></i> +94 77 504 8455</a>
+<div id="blockedScreen" class="auth-wrapper" style="display:none;">
+  <div class="auth-card" style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+    <i class="fas fa-user-slash text-danger" style="font-size:64px; margin-bottom:20px;"></i>
+    <h2 style="font-family:'Outfit'; font-size:28px; margin-bottom:12px; color:var(--text)">Account Suspended</h2>
+    <p style="color:var(--text2); margin-bottom:24px; line-height:1.6;">
+      Your account has been restricted due to a violation of our terms or suspicious activity.
+    </p>
+    <div style="background:var(--bg); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:24px; width: 100%;">
+      <p style="font-size:14px; color:var(--text); margin-bottom:12px; font-weight:600;">To appeal or unblock, contact our hotline:</p>
+      <a href="https://wa.me/94775048455" target="_blank" class="btn btn-success" style="width:100%; justify-content:center; text-decoration:none;"><i class="fab fa-whatsapp"></i> +94 77 504 8455</a>
+    </div>
+    <button class="btn btn-outline" style="width:100%; justify-content:center" onclick="App.logoutAndGoHome()"><i class="fas fa-arrow-left"></i> Back to Login</button>
   </div>
-  <button class="btn btn-outline" onclick="App.logoutAndGoHome()"><i class="fas fa-arrow-left"></i> Back to Login</button>
 </div>
    
 <!-- ========== MAIN APP ========== -->
@@ -602,8 +603,12 @@ const App = {
     const blk = document.getElementById('blockedScreen'); if(blk) blk.style.display = 'flex';
   },
   async logoutAndGoHome() {
-    await sb.auth.signOut();
-    window.location.reload();
+    try { 
+      await sb.auth.signOut(); 
+    } catch(e) { 
+      console.error(e); 
+    }
+    window.location.reload(); // සයිට් එක මුල ඉඳන් ලෝඩ් කරනවා
   },
 
   showLogin() {
