@@ -444,6 +444,7 @@ img{max-width:100%;display:block}
 <div class="nav-item" data-tab="pdfs"><i class="fas fa-file-pdf"></i><span>PDFs</span></div>
 <div class="nav-item" data-tab="audio"><i class="fas fa-headphones"></i><span>Audio</span></div>
 <div class="nav-item" data-tab="articles"><i class="fas fa-newspaper"></i><span>Articles</span></div>
+<div class="nav-item" data-tab="store"><i class="fas fa-shopping-cart"></i><span>NovaX Store</span></div>
 </div>
 <div class="nav-section">
 <div class="nav-section-title">Practice</div>
@@ -729,6 +730,7 @@ const App = {
         case 'pdfs': await this.renderContent('pdf'); break;
         case 'audio': await this.renderContent('audio'); break;
         case 'articles': await this.renderContent('article'); break;
+        case 'store': await this.renderStore(); break;  
         case 'quizzes': await this.renderQuizzes(); break;
         case 'flashcards': await this.renderFlashcards(); break;
         case 'discussion': await this.renderDiscussion(); break;
@@ -2146,6 +2148,53 @@ const App = {
     this.toast('Deleted', 'info');
     this.closeModal();
     this.renderPlanner();
+  },
+
+  // ========== NovaX Store (Coming Soon) ==========
+  async renderStore() {
+    const area = document.getElementById('contentArea');
+    
+    area.innerHTML = `
+      <div class="section-header">
+        <h1 class="section-title">NovaX Store</h1>
+      </div>
+      
+      <div class="dash-card mb-6" style="background: var(--gradient); color: #fff; text-align: center; padding: 40px 20px; border-radius: 16px; position: relative; overflow: hidden;">
+        <i class="fas fa-shopping-bag" style="font-size: 60px; margin-bottom: 16px; opacity: 0.9;"></i>
+        <h2 style="font-family:'Outfit'; font-size: 28px; font-weight: 800; margin-bottom: 8px;">Our Store is Opening Soon!</h2>
+        <p style="opacity: 0.8; font-size: 15px; max-width: 500px; margin: 0 auto;">We are working hard to bring you the best Korean learning materials, books, and NovaX merchandise right to your doorstep. Stay tuned!</p>
+      </div>
+
+      <h3 style="margin-bottom:16px; font-size:18px"><i class="fas fa-box-open text-primary"></i> Upcoming Products</h3>
+      
+      <div class="cards-grid">
+        ${this.renderComingSoonCard('Korean Textbooks', 'Official grammar and vocabulary books for TOPIK preparation.', 'fa-book')}
+        ${this.renderComingSoonCard('Past Paper Books', 'Printed past papers with detailed explanations and answers.', 'fa-file-alt')}
+        ${this.renderComingSoonCard('NovaX Merch', 'Premium branded T-shirts, mugs, and caps for students.', 'fa-tshirt')}
+        ${this.renderComingSoonCard('Stationery Kits', 'Special Korean learning notebooks, flashcard sets, and pens.', 'fa-pen-fancy')}
+        ${this.renderComingSoonCard('VIP Access Cards', 'Physical gift cards to unlock premium online content.', 'fa-id-card')}
+        ${this.renderComingSoonCard('Study Posters', 'A3 size printed charts for Korean alphabets and grammar.', 'fa-image')}
+      </div>
+    `;
+  },
+
+  // Coming Soon Card එක හදන පොඩි Function එක
+  renderComingSoonCard(title, desc, icon) {
+    return `
+      <div class="content-card" style="position: relative; overflow: hidden; border: 1px dashed var(--border);">
+        <div class="card-thumb" style="background: var(--bg3); display: flex; align-items: center; justify-content: center; height: 160px; position: relative;">
+          <i class="fas ${icon}" style="font-size: 48px; color: var(--text3); opacity: 0.5;"></i>
+          
+          <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+            <span style="background: var(--primary); color: #fff; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 12px; letter-spacing: 1.5px; box-shadow: 0 4px 12px rgba(229,57,53,0.4); border: 1px solid rgba(255,255,255,0.2);">COMING SOON</span>
+          </div>
+        </div>
+        <div class="card-body text-center" style="opacity: 0.7; padding: 20px;">
+          <h3 style="font-size: 16px; margin-bottom: 8px; color: var(--text); font-weight: 700;">${title}</h3>
+          <p style="font-size: 13px; color: var(--text2); line-height: 1.5;">${desc}</p>
+        </div>
+      </div>
+    `;
   },
 
   // ========== Profile ==========
