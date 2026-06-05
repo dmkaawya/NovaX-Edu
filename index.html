@@ -1285,15 +1285,21 @@ const App = {
   },
 
  async viewVideos(contentId) {
-    // Get all videos in the same lesson
     const { data: parent } = await sb.from('content').select('*,profiles(name)').eq('id', contentId).single();
     if (!parent) return;
-    const { data: videos } = await sb.from('content').select('*,profiles(name)').eq('type', 'video').eq('lesson', parent.lesson).eq('status', 'approved').order('created_at');
     
-    this.openModal(`${parent.lesson || 'Videos'}`, `
-      <div style="margin-bottom:16px"><span class="tag tag-video">${parent.lesson || 'Videos'}</span></div>
+    let videos = [];
+    if (parent.lesson) {
+      const { data } = await sb.from('content').select('*,profiles(name)').eq('type', 'video').eq('lesson', parent.lesson).eq('status', 'approved').order('created_at');
+      videos = data || [];
+    } else {
+      videos = [parent];
+    }
+    
+    this.openModal(`${parent.lesson || 'Video'}`, `
+      <div style="margin-bottom:16px"><span class="tag tag-video">${parent.lesson || 'Video'}</span></div>
       ${videos.map(v => `
-        <div class="content-card mb-4" style="cursor:pointer" onclick="App.playVideo('${this.escAttr(v.title)}', '${this.escAttr(v.file_url || '')}')">
+        <div class="content-card mb-4" style="cursor:pointer" onclick="App.playVideo('${v.id}', '${this.escAttr(v.title)}', '${this.escAttr(v.file_url || '')}')">
           <div class="card-thumb" style="height:160px">
             ${v.thumbnail_url ? `<img src="${this.escAttr(v.thumbnail_url)}" alt="${this.escAttr(v.title)}">` : '<div class="card-thumb-placeholder"><i class="fas fa-play-circle"></i></div>'}
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:50px;height:50px;border-radius:50%;background:rgba(229,57,53,.9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px"><i class="fas fa-play" style="margin-left:3px"></i></div></div>
@@ -1303,34 +1309,85 @@ const App = {
             <div class="card-desc">${this.escHtml(v.description || '')}</div>
             <div class="card-meta">${v.duration ? `<span><i class="fas fa-clock"></i>${this.escHtml(v.duration)}</span>` : ''} <span class="card-price ${v.is_free ? '' : 'paid-price'}">${v.is_free ? 'FREE' : 'LKR ' + v.price}</span></div>
           </div>
-          <div class="card-credit">
-            <div class="credit-avatar">${(v.profiles?.name || '?').charAt(0)}</div>
-            <span>${this.escHtml(v.profiles?.name || 'Unknown')}</span>
-          </div>
         </div>
       `).join('')}
     `, '', 'max-width:700px');
   },
 
-  // වීඩියෝ එක ප්ලේ කරන මොඩල් එක
-  playVideo(title, url) {
-    this.closeModal(); // පරණ මොඩල් එක වහනවා
+  // වීඩියෝ එක ප්ලේ කරන සුපිරි මොඩල් එක
+  playVideo(contentId, title, url) {
+    this.closeModal(); 
     setTimeout(() => { 
-      this.openModal(`Now Playing: ${title}`, `
-        <div style="text-align:center;padding:10px 0;background:#000;border-radius:8px">
-          ${url ? `<video controls controlsList="nodownload" style="width:100%;max-height:60vh;border-radius:8px;" autoplay>
+      let playerHtml = '';
+      
+      if (!url) {
+         playerHtml = '<p class="text-muted" style="padding:20px">No video file available</p>';
+      } else if (url.includes('drive.google.com')) {
+         // 1. Google Drive ලින්ක් ආවොත් Iframe එකෙන් ප්ලේ කරනවා
+         let driveId = '';
+         const match1 = url.match(/id=([a-zA-Z0-9_-]+)/);
+         const match2 = url.match(/d\/([a-zA-Z0-9_-]+)/);
+         if (match1) driveId = match1[1]; else if (match2) driveId = match2[1];
+         
+         if (driveId) {
+           playerHtml = `<iframe id="nxVideoPlayer" src="https://drive.google.com/file/d/${driveId}/preview" width="100%" height="400" frameborder="0" allow="autoplay; fullscreen" style="border-radius:8px"></iframe>`;
+         } else {
+           playerHtml = `<p class="text-danger" style="padding:20px">Invalid Drive Link Format</p>`;
+         }
+      } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+         // 2. YouTube ලින්ක් ආවොත් Iframe එකෙන් ප්ලේ කරනවා
+         let ytId = url.split('v=')[1] || url.split('youtu.be/')[1];
+         if(ytId) {
+             let ampPos = ytId.indexOf('&'); if(ampPos != -1) ytId = ytId.substring(0, ampPos);
+             playerHtml = `<iframe id="nxVideoPlayer" src="https://www.youtube.com/embed/${ytId}" width="100%" height="400" frameborder="0" allow="autoplay; fullscreen" style="border-radius:8px"></iframe>`;
+         }
+      } else {
+         // 3. Telegram ලින්ක් (හෝ වෙනත් Direct ලින්ක්) සාමාන්‍ය විදියට ප්ලේ කරනවා
+         playerHtml = `<video id="nxVideoPlayer" controls controlsList="nodownload" style="width:100%;max-height:60vh;border-radius:8px;" autoplay>
             <source src="${this.escAttr(url)}">
             Your browser does not support video.
-          </video>
-          <div style="margin-top:12px;">
-            <a href="${this.escAttr(url)}" target="_blank" class="btn btn-outline btn-sm" style="color:#aaa;border-color:#444"><i class="fas fa-external-link-alt"></i> If video buffering is slow, click here to open</a>
+          </video>`;
+      }
+
+      this.openModal(`Now Playing: ${title}`, `
+        <div style="text-align:center;padding:10px 0;background:#000;border-radius:8px;position:relative;">
+          ${playerHtml}
+          
+          <div id="fallbackLink" style="display:none; margin-top:12px; background:var(--card); padding:16px; border-radius:8px; border:1px solid var(--danger);">
+            <p style="color:var(--danger);font-size:14px;margin-bottom:12px;font-weight:600;"><i class="fas fa-exclamation-triangle"></i> Video playback failed or format not supported.</p>
+            <a href="${this.escAttr(url)}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--text);border-color:var(--border)"><i class="fas fa-external-link-alt"></i> Try opening externally</a>
           </div>
-          ` : '<p class="text-muted">No video file available</p>'}
         </div>
-      `, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:800px');
+      `, `
+        <button class="btn btn-ghost text-warning" onclick="App.reportIssue('${contentId}', '${this.escAttr(title)}')"><i class="fas fa-flag"></i> Report Issue</button>
+        <button class="btn btn-outline" style="margin-left:auto" onclick="App.closeModal()">Close</button>
+      `, 'max-width:800px');
+
+      // Video එක ප්ලේ වෙන්නේ නැතුව Error එකක් ආවොත් ලින්ක් එක පෙන්නනවා!
+      setTimeout(() => {
+        const vid = document.getElementById('nxVideoPlayer');
+        if(vid && vid.tagName === 'VIDEO') {
+          vid.onerror = function() {
+            document.getElementById('fallbackLink').style.display = 'block';
+          };
+        }
+      }, 500);
+
     }, 300);
   },
 
+  async reportIssue(contentId, title) {
+    if (!confirm('Report an issue with this video to the Admin?')) return;
+    
+    const details = `Reported by ${this.profile.name} (${this.profile.email}) | Issue with Video: "${title}"`;
+    await sb.from('log_activities').insert({ 
+      user_id: this.user.id, 
+      action: 'report_issue', 
+      details: details 
+    });
+    
+    this.toast('Issue reported to Admin successfully!', 'success');
+  },
   async previewContent(id) {
     const { data: item } = await sb.from('content').select('*').eq('id', id).single();
     if (!item || (!item.thumbnail_url && !item.file_url)) return this.toast('No preview available', 'error');
@@ -2189,7 +2246,8 @@ const App = {
       sb.from('quizzes').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       isOwner ? sb.from('profiles').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
       sb.from('promo_codes').select('*').order('created_at', { ascending: false }),
-      sb.from('pending_payments').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false })
+      sb.from('pending_payments').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
+      sb.from('log_activities').select('*').eq('action', 'report_issue').order('created_at', { ascending: false }) // මේ පේළිය අලුත්!
     ]);
 
     const pendingContent = contentRes.data || [];
@@ -2198,8 +2256,9 @@ const App = {
     const users = usersRes.data || [];
     const promos = promoRes.data || [];
     const pendingPayments = payRes.data || [];
+    const reports = reportsRes.data || [];
 
-    const totalPending = pendingContent.length + pendingLC.length + pendingQuiz.length + pendingPayments.length;
+    const totalPending = pendingContent.length + pendingLC.length + pendingQuiz.length + pendingPayments.length + reports.length;
 
     area.innerHTML = `
       <div class="section-header">
@@ -2276,6 +2335,22 @@ const App = {
             <div class="pending-actions">
               <button class="btn btn-success btn-sm" onclick="App.approveLiveClass('${c.id}')"><i class="fas fa-check"></i> Approve</button>
               <button class="btn btn-sm" style="background:var(--danger);color:#fff" onclick="App.rejectLiveClass('${c.id}')"><i class="fas fa-times"></i> Reject</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- 🔴 අලුත් කෑල්ල: User Video Reports -->
+      <div class="dash-card mb-6" style="border-left: 4px solid var(--danger)">
+        <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-flag text-danger"></i> User Video Reports</h3>
+        ${reports.length === 0 ? '<p class="text-muted" style="font-size:13px">No reports found</p>' : reports.map(r => `
+          <div class="pending-item" style="border-left:none; background:var(--bg); padding:12px; margin-bottom:8px;">
+            <div class="pending-info">
+              <div style="font-size:13px; color:var(--text); line-height:1.5; font-weight:600">${this.escHtml(r.details)}</div>
+              <div style="font-size:11px; color:var(--text3); margin-top:6px;"><i class="fas fa-clock"></i> ${this.timeAgo(r.created_at)}</div>
+            </div>
+            <div class="pending-actions">
+              <button class="btn btn-ghost btn-sm text-success" onclick="App.resolveReport('${r.id}')"><i class="fas fa-check"></i> Mark Resolved</button>
             </div>
           </div>
         `).join('')}
@@ -2567,6 +2642,13 @@ const App = {
     if (!confirm('Delete this promo code?')) return;
     await sb.from('promo_codes').delete().eq('id', id);
     this.toast('Deleted', 'info');
+    this.renderAdmin();
+  },
+
+   async resolveReport(id) {
+    if (!confirm('Mark this report as resolved?')) return;
+    await sb.from('log_activities').delete().eq('id', id);
+    this.toast('Report resolved!', 'success');
     this.renderAdmin();
   },
 
