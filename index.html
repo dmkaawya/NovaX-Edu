@@ -714,13 +714,7 @@ const App = {
     const word = dw && dw.length > 0 ? dw[0] : { korean: '안녕하세요', sinhala: 'ආයුබෝවන්', phonetics: 'annyeonghaseyo' };
 
     // Load announcements
-    const { data: anns } = await sb.from('announcements').select('*').order('created_at', { ascending: false }).limit(5);
-    if (anns && anns.length > 0) {
-      const bar = document.getElementById('marqueeBar');
-      bar.style.display = 'block';
-      document.getElementById('marqueeContent').innerHTML = anns.map(a => `<span>${this.escHtml(a.message)}</span>`).join('') + anns.map(a => `<span>${this.escHtml(a.message)}</span>`).join('');
-    }
-
+    
     // Load quiz attempts for chart
     const { data: attempts } = await sb.from('quiz_attempts').select('*,quizzes(title)').eq('user_id', this.user.id).order('created_at', { ascending: true }).limit(20);
 
@@ -1290,8 +1284,7 @@ const App = {
     this.renderContent(type);
   },
 
-  async viewVideos(contentId) {
-    // Get all videos in the same lesson
+ async viewVideos(contentId) {
     const { data: parent } = await sb.from('content').select('*,profiles(name)').eq('id', contentId).single();
     if (!parent) return;
     const { data: videos } = await sb.from('content').select('*,profiles(name)').eq('type', 'video').eq('lesson', parent.lesson).eq('status', 'approved').order('created_at');
@@ -1299,7 +1292,8 @@ const App = {
     this.openModal(`${parent.lesson || 'Videos'}`, `
       <div style="margin-bottom:16px"><span class="tag tag-video">${parent.lesson || 'Videos'}</span></div>
       ${videos.map(v => `
-        <div class="content-card mb-4" style="cursor:pointer" onclick="window.open('${this.escAttr(v.file_url || '#')}','_blank')">
+        <!-- මෙතන තමයි වෙනස: window.open වෙනුවට playVideo දැම්මා -->
+        <div class="content-card mb-4" style="cursor:pointer" onclick="App.playVideo('${this.escAttr(v.title)}', '${this.escAttr(v.file_url || '')}')">
           <div class="card-thumb" style="height:160px">
             ${v.thumbnail_url ? `<img src="${this.escAttr(v.thumbnail_url)}" alt="${this.escAttr(v.title)}">` : '<div class="card-thumb-placeholder"><i class="fas fa-play-circle"></i></div>'}
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:50px;height:50px;border-radius:50%;background:rgba(229,57,53,.9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px"><i class="fas fa-play" style="margin-left:3px"></i></div></div>
@@ -1309,15 +1303,20 @@ const App = {
             <div class="card-desc">${this.escHtml(v.description || '')}</div>
             <div class="card-meta">${v.duration ? `<span><i class="fas fa-clock"></i>${this.escHtml(v.duration)}</span>` : ''} <span class="card-price ${v.is_free ? '' : 'paid-price'}">${v.is_free ? 'FREE' : 'LKR ' + v.price}</span></div>
           </div>
-          <div class="card-credit">
-            <div class="credit-avatar">${(v.profiles?.name || '?').charAt(0)}</div>
-            <span>${this.escHtml(v.profiles?.name || 'Unknown')}</span>
-          </div>
         </div>
       `).join('')}
     `, '', 'max-width:700px');
   },
 
+  // වීඩියෝ එක ප්ලේ කරන අලුත් මොඩල් එක
+  playVideo(title, url) {
+    this.closeModal();
+    this.openModal(`Now Playing: ${title}`, `
+      <div style="text-align:center;padding:10px 0;background:#000;border-radius:8px">
+        ${url ? `<video controls controlsList="nodownload" style="width:100%;max-height:60vh;border-radius:8px;" autoplay><source src="${this.escAttr(url)}">Your browser does not support video.</video>` : '<p class="text-muted">No video file available</p>'}
+      </div>
+    `, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:800px');
+  },
  async previewContent(id) {
   const { data: item } = await sb.from('content').select('*').eq('id', id).single();
   if (!item || (!item.thumbnail_url && !item.file_url)) return this.toast('No preview available', 'error');
@@ -2162,18 +2161,20 @@ const App = {
   },
 
   // ========== Admin Panel ==========
+ // ========== Admin Panel ==========
   async renderAdmin() {
     if (!this.isAdmin()) return;
     const area = document.getElementById('contentArea');
     const isOwner = this.profile.role === 'owner';
 
-    // Load pending content
-    const [contentRes, lcRes, quizRes, usersRes, promoRes] = await Promise.all([
+    // Load pending content + pending payments
+    const [contentRes, lcRes, quizRes, usersRes, promoRes, payRes] = await Promise.all([
       sb.from('content').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       sb.from('live_classes').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       sb.from('quizzes').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false }),
       isOwner ? sb.from('profiles').select('*').order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
-      sb.from('promo_codes').select('*').order('created_at', { ascending: false })
+      sb.from('promo_codes').select('*').order('created_at', { ascending: false }),
+      sb.from('pending_payments').select('*,profiles(name)').eq('status', 'pending').order('created_at', { ascending: false })
     ]);
 
     const pendingContent = contentRes.data || [];
@@ -2181,7 +2182,9 @@ const App = {
     const pendingQuiz = quizRes.data || [];
     const users = usersRes.data || [];
     const promos = promoRes.data || [];
-    const totalPending = pendingContent.length + pendingLC.length + pendingQuiz.length;
+    const pendingPayments = payRes.data || [];
+
+    const totalPending = pendingContent.length + pendingLC.length + pendingQuiz.length + pendingPayments.length;
 
     area.innerHTML = `
       <div class="section-header">
@@ -2209,6 +2212,24 @@ const App = {
           <div class="dash-card-value">${promos.length}</div>
           <div class="dash-card-sub">Active codes</div>
         </div>
+      </div>
+
+      <!-- Payment Slips -->
+      <div class="dash-card mb-6" style="border-left: 4px solid var(--success)">
+        <h3 style="margin-bottom:16px;font-size:16px"><i class="fas fa-money-bill-wave text-success"></i> Payment Slips to Approve</h3>
+        ${pendingPayments.length === 0 ? '<p class="text-muted" style="font-size:13px">No pending payments</p>' : pendingPayments.map(p => `
+          <div class="pending-item">
+            <div class="pending-info">
+              <div class="pending-title">Payment for ID: <span style="font-size:11px;color:var(--text3)">${p.content_id}</span></div>
+              <div class="pending-meta">By <strong>${this.escHtml(p.profiles?.name || 'Unknown')}</strong> · Promo: ${p.promo_code || 'None'}</div>
+            </div>
+            <div class="pending-actions">
+              <button class="btn btn-outline btn-sm" onclick="window.open('${this.escAttr(p.slip_url)}', '_blank')"><i class="fas fa-eye"></i> View Slip</button>
+              <button class="btn btn-success btn-sm" onclick="App.approvePayment('${p.id}', '${p.user_id}', '${p.content_id}', '${p.type}')"><i class="fas fa-check"></i> Unlock</button>
+              <button class="btn btn-sm" style="background:var(--danger);color:#fff" onclick="App.rejectPayment('${p.id}')"><i class="fas fa-times"></i> Reject</button>
+            </div>
+          </div>
+        `).join('')}
       </div>
 
       <!-- Pending Content -->
@@ -2387,7 +2408,22 @@ const App = {
     `;
   },
 
-  // Admin Approve/Reject
+  async approvePayment(paymentId, userId, contentId, contentType) {
+    if (!confirm('Approve this payment and unlock content?')) return;
+    const { error: accessErr } = await sb.from('user_content_access').insert({ user_id: userId, content_type: contentType, content_id: contentId, unlocked_by: this.user.id });
+    if (accessErr) return this.toast(accessErr.message, 'error');
+    await sb.from('pending_payments').update({ status: 'approved' }).eq('id', paymentId);
+    this.toast('Payment approved & Content unlocked!', 'success');
+    this.renderAdmin();
+  },
+
+  async rejectPayment(paymentId) {
+    if (!confirm('Reject this payment slip?')) return;
+    await sb.from('pending_payments').update({ status: 'rejected' }).eq('id', paymentId);
+    this.toast('Payment rejected', 'info');
+    this.renderAdmin();
+  },
+
   async approveContent(id) {
     const { data: item } = await sb.from('content').select('title,uploader_id').eq('id', id).single();
     await sb.from('content').update({ status: 'approved' }).eq('id', id);
@@ -2433,7 +2469,6 @@ const App = {
   async changeUserRole(userId, role) {
     if (role === 'owner' && this.profile.role !== 'owner') return this.toast('Only owner can assign owner role', 'error');
     if (role === 'owner' && userId !== this.user.id) {
-      // Transfer ownership
       if (!confirm('Transfer ownership to this user? You will become admin.')) return;
       await sb.from('profiles').update({ role: 'admin' }).eq('id', this.user.id);
     }
@@ -2451,14 +2486,12 @@ const App = {
     const results = document.getElementById('unlockResults');
     if (!user) { results.innerHTML = '<p class="text-muted" style="font-size:13px">User not found</p>'; return; }
 
-    // Get all paid content
     const [contentRes, lcRes] = await Promise.all([
       sb.from('content').select('*').eq('is_free', false).eq('status', 'approved'),
       sb.from('live_classes').select('*').eq('is_free', false).eq('status', 'approved')
     ]);
     const paidContent = [...(contentRes.data || []), ...(lcRes.data || [])];
 
-    // Get user's unlocked content
     const { data: access } = await sb.from('user_content_access').select('content_id').eq('user_id', user.id);
     const unlockedIds = (access || []).map(a => a.content_id);
 
@@ -2472,10 +2505,7 @@ const App = {
         const cTitle = c.title || c.name;
         return `
         <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
-          <div style="flex:1">
-            <div style="font-weight:600">${this.escHtml(cTitle)}</div>
-            <div style="color:var(--text3);font-size:11px">${cType} · LKR ${c.price}</div>
-          </div>
+          <div style="flex:1"><div style="font-weight:600">${this.escHtml(cTitle)}</div><div style="color:var(--text3);font-size:11px">${cType} · LKR ${c.price}</div></div>
           ${isUnlocked 
             ? '<span class="text-success" style="font-size:12px;font-weight:600"><i class="fas fa-check-circle"></i> Unlocked</span>'
             : `<button class="btn btn-success btn-sm" style="padding:4px 12px;font-size:11px" onclick="App.unlockContent('${user.id}','${c.id}','${cType}','${this.escAttr(cTitle)}')"><i class="fas fa-lock-open"></i> Unlock</button>`
@@ -2487,9 +2517,7 @@ const App = {
 
   async unlockContent(userId, contentId, contentType, title) {
     if (!confirm(`Unlock "${title}" for this user?`)) return;
-    const { error } = await sb.from('user_content_access').insert({
-      user_id: userId, content_type: contentType, content_id: contentId, unlocked_by: this.user.id
-    });
+    const { error } = await sb.from('user_content_access').insert({ user_id: userId, content_type: contentType, content_id: contentId, unlocked_by: this.user.id });
     if (error) return this.toast(error.message, 'error');
     await this.logActivityForUser(userId, 'unlock_content', `Unlocked: ${title}`);
     this.toast('Content unlocked!', 'success');
@@ -2500,7 +2528,6 @@ const App = {
     await sb.from('log_activities').insert({ user_id: userId, action, details });
   },
 
-  // Promo Codes
   showAddPromo() {
     this.openModal('Create Promo Code', `
       <div class="form-group"><label>Code (e.g. KOREAN20)</label><input class="form-input" id="promoCode" placeholder="Enter promo code" style="text-transform:uppercase"></div>
@@ -2528,7 +2555,6 @@ const App = {
     this.renderAdmin();
   },
 
-  // Announcements
   showAddAnnouncement() {
     this.openModal('New Announcement', `
       <div class="form-group"><label>Message</label><textarea class="form-input" id="annMessage" rows="3" placeholder="e.g. Live class today at 8 PM!"></textarea></div>
@@ -2560,12 +2586,12 @@ const App = {
   },
 
   // ========== Payment System ==========
- // ========== Payment System (Slip Upload) ==========
+// ========== Payment System (Slip Upload) ==========
   payForContent(contentId, contentType, title, price) {
     this.openModal(`Unlock Content`, `
       <div style="text-align:center;margin-bottom:20px">
         <h3 style="font-size:18px;margin-bottom:8px">${this.escHtml(title)}</h3>
-        <div style="font-size:24px;font-weight:800;color:var(--primary);font-family:'Outfit'">LKR ${price}</div>
+        <div style="font-size:24px;font-weight:800;color:var(--primary);font-family:'Outfit'" id="displayPrice">LKR ${price}</div>
         <p class="text-muted" style="font-size:13px;margin-top:8px">Please transfer the amount to <strong>Bank Name: BOC, Acc: 12345678, Name: NovaX Edu</strong> and upload the slip below.</p>
       </div>
       <div class="form-group">
@@ -2574,7 +2600,11 @@ const App = {
       </div>
       <div class="form-group">
         <label>Promo Code (Optional)</label>
-        <input type="text" class="form-input" id="payPromo" placeholder="Enter if you have one" style="text-transform:uppercase">
+        <div style="display:flex;gap:8px">
+          <input type="text" class="form-input" id="payPromo" placeholder="Enter code" style="text-transform:uppercase;flex:1">
+          <button class="btn btn-secondary" onclick="App.checkPromo(${price})">Apply</button>
+        </div>
+        <div id="promoResult" style="font-size:12px;margin-top:6px;font-weight:600"></div>
       </div>
       <div id="uploadProgress" class="hidden mt-4">
         <div class="flex items-center gap-2"><div class="spinner"></div><span style="font-size:13px;color:var(--text2)" id="uploadStatus">Uploading slip...</span></div>
@@ -2582,40 +2612,46 @@ const App = {
     `, `<button class="btn btn-outline" onclick="App.closeModal()">Cancel</button><button class="btn btn-primary" onclick="App.submitPayment('${contentId}', '${contentType}', ${price})"><i class="fas fa-upload"></i> Submit Payment</button>`);
   },
 
+  async checkPromo(originalPrice) {
+    const code = document.getElementById('payPromo').value.trim().toUpperCase();
+    const res = document.getElementById('promoResult');
+    const priceDisp = document.getElementById('displayPrice');
+    if (!code) return;
+    
+    res.textContent = "Checking..."; res.style.color = "var(--text2)";
+    const { data: promo } = await sb.from('promo_codes').select('*').eq('code', code).single();
+    
+    if (!promo) {
+      res.textContent = "❌ Invalid Promo Code"; res.style.color = "var(--danger)";
+      priceDisp.textContent = `LKR ${originalPrice}`;
+      return;
+    }
+    const discountAmount = (originalPrice * promo.discount_percent) / 100;
+    const newPrice = originalPrice - discountAmount;
+    res.textContent = `✅ ${promo.discount_percent}% discount applied!`; res.style.color = "var(--success)";
+    priceDisp.innerHTML = `<span style="text-decoration:line-through;font-size:16px;color:var(--text3)">LKR ${originalPrice}</span> <span style="color:var(--success)">LKR ${newPrice}</span>`;
+  },
+
   async submitPayment(contentId, contentType, price) {
     const fileInput = document.getElementById('paymentSlip');
     const promoCode = document.getElementById('payPromo').value.trim().toUpperCase();
-    
     if (!fileInput || fileInput.files.length === 0) return this.toast('Please select a slip to upload', 'error');
 
     this.showLoading();
-    
-    // Slip එක Edge Function එක හරහා Upload කිරීම
     const slipUrl = await this.uploadFile(fileInput.files[0]);
     
-    if (!slipUrl) {
-      this.hideLoading();
-      return this.toast('Failed to upload slip', 'error');
-    }
+    if (!slipUrl) { this.hideLoading(); return this.toast('Failed to upload slip', 'error'); }
 
-    // Database එකේ pending_payments ටේබල් එකට සේව් කිරීම
     const { error } = await sb.from('pending_payments').insert({
-      user_id: this.user.id,
-      content_id: contentId,
-      type: contentType,
-      slip_url: slipUrl,
-      promo_code: promoCode,
-      status: 'pending'
+      user_id: this.user.id, content_id: contentId, type: contentType, slip_url: slipUrl, promo_code: promoCode, status: 'pending'
     });
 
     this.hideLoading();
     if (error) return this.toast(error.message, 'error');
-
     this.closeModal();
-    this.toast('Payment submitted! Admin will verify and unlock soon.', 'success');
-    this.logActivity('payment_submitted', `Submitted payment for content ID: ${contentId}`);
+    this.toast('Payment submitted! Admin will verify soon.', 'success');
   },
-
+   
   // ========== WhatsApp Help ==========
   waHelp(topic) {
     const msg = `Hi NovaX Edu, I need help with ${topic}. My Email: ${this.profile.email}`;
@@ -2653,7 +2689,8 @@ const App = {
 // ========== Notifications ==========
   async checkNotifications() {
     if (!this.user) return;
-    // අපි ළමයාගේ ඇපෲව්/රිජෙක්ට් වෙච්ච ලොග් ටික විතරක් අරගන්නවා
+    
+    // 1. Content approve/reject වෙච්ච ඒවා ගන්නවා
     const { data: logs } = await sb.from('log_activities')
       .select('*')
       .eq('user_id', this.user.id)
@@ -2661,14 +2698,32 @@ const App = {
       .order('created_at', { ascending: false })
       .limit(10);
       
-    this._notifications = logs || [];
-    const unreadCount = this._notifications.length; // සරලව අලුත්ම 10 පෙන්නනවා
+    // 2. Admin දාන Announcements ටික ගන්නවා
+    const { data: anns } = await sb.from('announcements')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5);
 
+    let allNotifs = logs || [];
+    
+    if (anns) {
+      const mappedAnns = anns.map(a => ({
+        action: 'announcement',
+        details: a.message,
+        created_at: a.created_at
+      }));
+      allNotifs = [...allNotifs, ...mappedAnns];
+    }
+
+    // දිනේ අනුව පිළිවෙලට හදනවා
+    allNotifs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    this._notifications = allNotifs.slice(0, 15);
+    
     const badge = document.getElementById('notifBadge');
     if (badge) {
-      if (unreadCount > 0) {
+      if (this._notifications.length > 0) {
         badge.style.display = 'flex';
-        badge.textContent = unreadCount;
+        badge.textContent = this._notifications.length;
       } else {
         badge.style.display = 'none';
       }
@@ -2677,20 +2732,19 @@ const App = {
 
   showNotifications() {
     const notifs = this._notifications || [];
-    
     let html = '';
     if (notifs.length === 0) {
       html = '<div class="empty-state" style="padding:40px 20px"><i class="fas fa-bell-slash"></i><h3 style="font-size:16px">No new notifications</h3></div>';
     } else {
       html = notifs.map(n => {
-        let icon = 'fa-info';
-        let bg = 'var(--secondary)';
+        let icon = 'fa-info'; let bg = 'var(--secondary)';
         if (n.action === 'content_approved' || n.action === 'unlock_content') { icon = 'fa-check'; bg = 'var(--success)'; }
         if (n.action === 'content_rejected') { icon = 'fa-times'; bg = 'var(--danger)'; }
+        if (n.action === 'announcement') { icon = 'fa-bullhorn'; bg = 'var(--warning)'; } // අලුත් කෑල්ල
         
         return `
           <div class="notif-item">
-            <div class="notif-icon" style="background:${bg}"><i class="fas ${icon}"></i></div>
+            <div class="notif-icon" style="background:${bg};color:${n.action === 'announcement' ? '#333' : '#fff'}"><i class="fas ${icon}"></i></div>
             <div class="notif-text">
               <div style="font-weight:600;margin-bottom:4px">${this.escHtml(n.details)}</div>
               <div style="font-size:11px;color:var(--text3)">${this.timeAgo(n.created_at)}</div>
@@ -2700,9 +2754,7 @@ const App = {
       }).join('');
     }
 
-    this.openModal('Notifications', `<div style="max-height:60vh;overflow-y:auto;margin:-24px;padding:0">${html}</div>`, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:400px');
-    
-    // බැලුවට පස්සේ Badge එක අයින් කරනවා
+    this.openModal('Notifications & Announcements', `<div style="max-height:60vh;overflow-y:auto;margin:-24px;padding:0">${html}</div>`, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:400px');
     document.getElementById('notifBadge').style.display = 'none';
   },
    
