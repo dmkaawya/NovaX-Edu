@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<title>NovaX Edu - Coming Soon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+--primary:#E53935;--primary-glow:rgba(229,57,53,.35);--secondary:#1565C0;--secondary-glow:rgba(21,101,192,.3);
+--accent:#00E676;--accent-glow:rgba(0,230,118,.25);--gold:#FFD740;
+--bg:#06060f;--bg2:#0c0c1e;--bg3:#141430;--bg4:#1a1a3e;
+--text:#f0f0f5;--text2:#a0a0c0;--text3:#606080;
+--border:#1e1e40;--card:#0e0e24;
+--shadow:0 4px 24px rgba(0,0,0,.4);--shadow-lg:0 12px 48px rgba(0,0,0,.5);
+--gradient:linear-gradient(135deg,#E53935,#FF6D00,#FFD740);
+--radius:16px;--radius-sm:10px;--radius-xs:6px;
+--transition:all .4s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;display:flex;flex-direction:column}
+h1,h2,h3,h4{font-family:'Outfit',sans-serif}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;font-family:inherit}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:var(--transition);background:rgba(6,6,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Outfit';font-size:26px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:10px}
+.nav-logo-dot{width:10px;height:10px;border-radius:50%;background:var(--primary);box-shadow:0 0 12px var(--primary-glow);animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 12px var(--primary-glow)}50%{box-shadow:0 0 24px var(--primary-glow),0 0 48px var(--primary-glow)}}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{color:var(--text2);font-size:14px;font-weight:500;padding:8px 16px;border-radius:var(--radius-xs);transition:var(--transition)}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-home{background:var(--primary)!important;color:#fff!important;font-weight:600!important;box-shadow:0 2px 12px var(--primary-glow)}
+.nav-home:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--primary-glow)!important}
+.nav-hamburger{display:none;background:none;color:var(--text);font-size:22px;padding:8px}
+
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:120px 24px 60px;position:relative;z-index:1;min-height:100vh}
+
+.orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;pointer-events:none}
+.orb-1{width:500px;height:500px;background:var(--primary);top:-10%;left:-10%;animation:orbFloat 10s ease-in-out infinite}
+.orb-2{width:400px;height:400px;background:var(--secondary);bottom:-10%;right:-10%;animation:orbFloat 10s ease-in-out infinite -5s}
+.orb-3{width:300px;height:300px;background:var(--accent);top:40%;left:55%;animation:orbFloat 10s ease-in-out infinite -3s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-25px) scale(1.06)}66%{transform:translate(-25px,20px) scale(.94)}}
+
+.maintenance-box{max-width:680px;width:100%;text-align:center;position:relative;z-index:2}
+
+.gears-container{position:relative;width:160px;height:160px;margin:0 auto 40px}
+.gear{position:absolute;border-radius:50%;border:3px solid var(--border);display:flex;align-items:center;justify-content:center}
+.gear-lg{width:120px;height:120px;top:20px;left:20px;border-color:rgba(229,57,53,.3);animation:spinCW 6s linear infinite}
+.gear-sm{width:72px;height:72px;top:0;right:0;border-color:rgba(21,101,192,.3);animation:spinCCW 4s linear infinite}
+.gear-lg::before,.gear-sm::before{content:'';position:absolute;border-radius:50%}
+.gear-lg::before{inset:12px;border:2px dashed rgba(229,57,53,.15)}
+.gear-sm::before{inset:8px;border:2px dashed rgba(21,101,192,.15)}
+.gear-icon{font-size:32px;color:var(--primary);animation:pulse-icon 2s ease-in-out infinite}
+.gear-sm .gear-icon{font-size:18px;color:var(--secondary)}
+@keyframes spinCW{to{transform:rotate(360deg)}}
+@keyframes spinCCW{to{transform:rotate(-360deg)}}
+@keyframes pulse-icon{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+.gear-teeth{position:absolute;inset:-6px}
+.gear-teeth span{position:absolute;width:8px;height:8px;background:rgba(229,57,53,.25);border-radius:2px}
+.gear-sm .gear-teeth span{background:rgba(21,101,192,.25)}
+
+.maint-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(249,168,37,.1);border:1px solid rgba(249,168,37,.25);border-radius:50px;padding:8px 20px 8px 12px;font-size:13px;color:var(--gold);font-weight:600;margin-bottom:28px;animation:fadeUp .8s ease-out both}
+.maint-badge i{width:28px;height:28px;border-radius:50%;background:var(--gold);color:#000;display:flex;align-items:center;justify-content:center;font-size:11px;animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+.maint-title{font-size:clamp(32px,6vw,52px);font-weight:900;line-height:1.1;margin-bottom:16px;animation:fadeUp .8s ease-out .1s both}
+.maint-title .gradient{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.maint-desc{font-size:16px;color:var(--text2);line-height:1.7;max-width:500px;margin:0 auto 40px;animation:fadeUp .8s ease-out .2s both}
+
+.progress-section{margin-bottom:40px;animation:fadeUp .8s ease-out .3s both}
+.progress-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px}
+.progress-label span:first-child{color:var(--text2);font-weight:500}
+.progress-label span:last-child{color:var(--accent);font-weight:700;font-family:'Outfit'}
+.progress-bar{width:100%;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative}
+.progress-fill{height:100%;border-radius:4px;background:var(--gradient);width:0%;transition:width 2s cubic-bezier(.4,0,.2,1);position:relative}
+.progress-fill::after{content:'';position:absolute;right:0;top:0;bottom:0;width:30px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3));animation:shimmer 1.5s ease-in-out infinite}
+@keyframes shimmer{0%{opacity:0}50%{opacity:1}100%{opacity:0}}
+
+.countdown{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:40px;animation:fadeUp .8s ease-out .4s both}
+.countdown-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px 12px;position:relative;overflow:hidden;transition:var(--transition)}
+.countdown-item:hover{border-color:rgba(229,57,53,.3);transform:translateY(-3px)}
+.countdown-item::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient);opacity:0;transition:var(--transition)}
+.countdown-item:hover::before{opacity:1}
+.countdown-num{font-family:'Outfit';font-size:clamp(28px,5vw,40px);font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.countdown-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px;font-weight:600}
+
+.features-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:40px;animation:fadeUp .8s ease-out .5s both}
+.feat-mini-item{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xs);font-size:13px;color:var(--text2);transition:var(--transition)}
+.feat-mini-item:hover{border-color:rgba(229,57,53,.2);color:var(--text)}
+.feat-mini-item i{color:var(--accent);font-size:14px;flex-shrink:0}
+
+.notify-text{font-size:15px;color:var(--text3);animation:fadeUp .8s ease-out .6s both}
+.notify-text i{color:var(--gold);margin-right:4px}
+
+/* === FOOTER === */
+.footer{background:var(--bg2);border-top:1px solid var(--border);padding:28px 24px;position:relative;z-index:1}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:13px;color:var(--text3)}
+.footer-dev{font-size:13px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.footer-dev a{color:var(--primary);font-weight:600;transition:var(--transition);position:relative}
+.footer-dev a::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:1.5px;background:var(--gradient);transition:var(--transition);border-radius:1px}
+.footer-dev a:hover{color:var(--text)}
+.footer-dev a:hover::after{width:100%}
+
+@media(max-width:768px){
+.nav-links{display:none}.nav-hamburger{display:block}
+.countdown{gap:8px}
+.countdown-item{padding:14px 8px}
+.features-mini{grid-template-columns:1fr}
+.gears-container{width:130px;height:130px;margin-bottom:30px}
+.gear-lg{width:100px;height:100px;top:15px;left:15px}
+.gear-sm{width:60px;height:60px}
+.footer-inner{flex-direction:column;text-align:center;gap:8px}
+}
+@media(max-width:400px){
+.countdown-num{font-size:24px}
+.countdown-label{font-size:9px;letter-spacing:1px}
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<nav class="nav">
+<div class="nav-inner">
+<a href="index.html" class="nav-logo"><span class="nav-logo-dot"></span> NovaX Edu</a>
+<div class="nav-links">
+<a href="index.html" class="nav-home"><i class="fas fa-arrow-left" style="margin-right:4px"></i> Back to Home</a>
+</div>
+<button class="nav-hamburger" onclick="window.location.href='index.html'"><i class="fas fa-bars"></i></button>
+</div>
+</nav>
+
+<main class="main">
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="maintenance-box">
+
+<div class="gears-container">
+<div class="gear gear-lg">
+<div class="gear-teeth" id="teethLg"></div>
+<i class="fas fa-cog gear-icon"></i>
+</div>
+<div class="gear gear-sm">
+<div class="gear-teeth" id="teethSm"></div>
+<i class="fas fa-wrench gear-icon"></i>
+</div>
+</div>
+
+<div class="maint-badge"><i class="fas fa-bolt"></i> Under Maintenance</div>
+
+<h1 class="maint-title">We're building<br>something <span class="gradient">amazing</span></h1>
+<p class="maint-desc">NovaX Edu is getting a major upgrade with new features, faster performance, and a better learning experience. We'll be back soon!</p>
+
+<div class="progress-section">
+<div class="progress-label">
+<span>Update Progress</span>
+<span id="progressText">0%</span>
+</div>
+<div class="progress-bar">
+<div class="progress-fill" id="progressFill"></div>
+</div>
+</div>
+
+<div class="countdown">
+<div class="countdown-item">
+<div class="countdown-num" id="cd-days">00</div>
+<div class="countdown-label">Days</div>
+</div>
+<div class="countdown-item">
+<div class="countdown-num" id="cd-hours">00</div>
+<div class="countdown-label">Hours</div>
+</div>
+<div class="countdown-item">
+<div class="countdown-num" id="cd-mins">00</div>
+<div class="countdown-label">Minutes</div>
+</div>
+<div class="countdown-item">
+<div class="countdown-num" id="cd-secs">00</div>
+<div class="countdown-label">Seconds</div>
+</div>
+</div>
+
+<div class="features-mini">
+<div class="feat-mini-item"><i class="fas fa-check-circle"></i> Redesigned Dashboard</div>
+<div class="feat-mini-item"><i class="fas fa-check-circle"></i> Faster Load Times</div>
+<div class="feat-mini-item"><i class="fas fa-check-circle"></i> New Quiz Engine</div>
+<div class="feat-mini-item"><i class="fas fa-check-circle"></i> AI Flashcards</div>
+<div class="feat-mini-item"><i class="fas fa-check-circle"></i> Mobile App Feel</div>
+<div class="feat-mini-item"><i class="fas fa-check-circle"></i> Dark Mode Upgrade</div>
+</div>
+
+<p class="notify-text"><i class="fas fa-bell"></i> Get notified when we're back — no spam, ever.</p>
+
+</div>
+</main>
+
+<footer class="footer">
+<div class="footer-inner">
+<p class="footer-copy">&copy; 2025 NovaX Edu. All rights reserved.</p>
+<p class="footer-dev">Developed by <a href="https://vezlo-web.vercel.app" target="_blank" rel="noopener">vezlo</a></p>
+</div>
+</footer>
+
+<script>
+// === GEAR TEETH ===
+function createTeeth(containerId,count,size){
+const c=document.getElementById(containerId);
+const r=c.parentElement.offsetWidth/2+3;
+for(let i=0;i<count;i++){
+const s=document.createElement('span');
+const angle=(360/count)*i;
+const rad=angle*Math.PI/180;
+const x=Math.cos(rad)*(r-size/2);
+const y=Math.sin(rad)*(r-size/2);
+s.style.cssText=`position:absolute;left:calc(50% + ${x}px - ${size/2}px);top:calc(50% + ${y}px - ${size/2}px);width:${size}px;height:${size}px;background:inherit;border-radius:2px;transform:rotate(${angle}deg)`;
+c.appendChild(s);
+}
+}
+createTeeth('teethLg',10,8);
+createTeeth('teethSm',8,6);
+
+// === PARTICLES ===
+const canvas=document.getElementById('particles'),ctx=canvas.getContext('2d');
+let w,h,particles=[],mouse={x:null,y:null};
+function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+document.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+document.addEventListener('mouseleave',()=>{mouse.x=null;mouse.y=null});
+class Particle{
+constructor(){this.reset()}
+reset(){
+this.x=Math.random()*w;this.y=Math.random()*h;
+this.size=Math.random()*1.5+.5;
+this.speedX=(Math.random()-.5)*.2;this.speedY=(Math.random()-.5)*.2;
+this.opacity=Math.random()*.3+.08;
+const colors=['229,57,53','21,101,192','0,230,118'];
+this.color=colors[Math.floor(Math.random()*colors.length)];
+}
+update(){
+this.x+=this.speedX;this.y+=this.speedY;
+if(mouse.x!==null){
+const dx=mouse.x-this.x,dy=mouse.y-this.y,dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<120){const force=(120-dist)/120*.012;this.x-=dx*force;this.y-=dy*force}
+}
+if(this.x<-10||this.x>w+10||this.y<-10||this.y>h+10)this.reset();
+}
+draw(){
+ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+ctx.fillStyle=`rgba(${this.color},${this.opacity})`;ctx.fill();
+}
+}
+const pCount=Math.min(Math.floor(w*h/18000),80);
+for(let i=0;i<pCount;i++)particles.push(new Particle());
+function drawLines(){
+for(let i=0;i<particles.length;i++){
+for(let j=i+1;j<particles.length;j++){
+const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<90){
+ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
+ctx.lineTo(particles[j].x,particles[j].y);
+ctx.strokeStyle=`rgba(229,57,53,${(1-dist/90)*.04})`;ctx.lineWidth=.5;ctx.stroke();
+}
+}
+}
+}
+function animateParticles(){
+ctx.clearRect(0,0,w,h);
+particles.forEach(p=>{p.update();p.draw()});drawLines();requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// === PROGRESS BAR ===
+const targetProgress=72;
+setTimeout(()=>{
+document.getElementById('progressFill').style.width=targetProgress+'%';
+let current=0;
+const interval=setInterval(()=>{
+current+=1;
+document.getElementById('progressText').textContent=current+'%';
+if(current>=targetProgress)clearInterval(interval);
+},20);
+},500);
+
+// === COUNTDOWN ===
+const targetDate=new Date();
+targetDate.setDate(targetDate.getDate()+14);
+targetDate.setHours(0,0,0,0);
+
+function updateCountdown(){
+const now=new Date();
+const diff=targetDate-now;
+if(diff<=0){
+document.getElementById('cd-days').textContent='00';
+document.getElementById('cd-hours').textContent='00';
+document.getElementById('cd-mins').textContent='00';
+document.getElementById('cd-secs').textContent='00';
+return;
+}
+const days=Math.floor(diff/(1000*60*60*24));
+const hours=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+const mins=Math.floor((diff%(1000*60*60))/(1000*60));
+const secs=Math.floor((diff%(1000*60))/1000);
+document.getElementById('cd-days').textContent=String(days).padStart(2,'0');
+document.getElementById('cd-hours').textContent=String(hours).padStart(2,'0');
+document.getElementById('cd-mins').textContent=String(mins).padStart(2,'0');
+document.getElementById('cd-secs').textContent=String(secs).padStart(2,'0');
+}
+updateCountdown();
+setInterval(updateCountdown,1000);
+</script>
+</body>
+</html>
