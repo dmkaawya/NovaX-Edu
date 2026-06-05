@@ -415,8 +415,10 @@ img{max-width:100%;display:block}
     </p>
     <div style="background:var(--bg); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:24px; width: 100%;">
       <p style="font-size:14px; color:var(--text); margin-bottom:12px; font-weight:600;">To appeal or unblock, contact our hotline:</p>
-      <a href="https://wa.me/94775048455" target="_blank" class="btn btn-success" style="width:100%; justify-content:center; text-decoration:none;"><i class="fab fa-whatsapp"></i> +94 77 504 8455</a>
+      
+      <a href="#" id="blockedWaBtn" target="_blank" class="btn btn-success" style="width:100%; justify-content:center; text-decoration:none;"><i class="fab fa-whatsapp"></i> +94 77 504 8455</a>
     </div>
+    
     <button class="btn btn-outline" style="width:100%; justify-content:center" onclick="App.logoutAndGoHome()"><i class="fas fa-arrow-left"></i> Back to Login</button>
   </div>
 </div>
@@ -596,19 +598,23 @@ const App = {
     this.navigate('dashboard');
     this.logActivity('login', 'User signed in');
   },
-  // 🔥 අලුත් Block Screen එක පෙන්නන Function එක
+  // 🔥 අලුත් Block Screen එක පෙන්නන Function එක (Auto WhatsApp Message එක්ක)
   showBlocked() {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('appScreen').classList.remove('active');
-    const blk = document.getElementById('blockedScreen'); if(blk) blk.style.display = 'flex';
-  },
-  async logoutAndGoHome() {
-    try { 
-      await sb.auth.signOut(); 
-    } catch(e) { 
-      console.error(e); 
+    
+    // ළමයාගේ ඊමේල් එකත් එක්ක Auto මැසේජ් එක හදනවා
+    const userEmail = this.profile ? this.profile.email : 'Unknown Email';
+    const msg = `Hi NovaX Edu, my account is suspended. My Email is: ${userEmail}. Can you please help me check this?`;
+    
+    // ඒ මැසේජ් එක WhatsApp ලින්ක් එකට දානවා
+    const waBtn = document.getElementById('blockedWaBtn');
+    if (waBtn) {
+      waBtn.href = `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(msg)}`;
     }
-    window.location.reload(); // සයිට් එක මුල ඉඳන් ලෝඩ් කරනවා
+    
+    const blk = document.getElementById('blockedScreen'); 
+    if (blk) blk.style.display = 'flex';
   },
 
   showLogin() {
