@@ -2420,16 +2420,30 @@ async loadProfile() {
               <tbody>
                 ${users.map(u => `
                   <tr style="border-bottom:1px solid var(--border)">
-                    <td style="padding:8px;font-weight:600">${this.escHtml(u.name)}</td>
+                    <td style="padding:8px;font-weight:600">
+                      ${this.escHtml(u.name)}
+                      <div style="font-size:11px;color:${u.is_blocked ? 'var(--danger)' : 'var(--success)'};margin-top:4px">
+                         <span class="status-dot ${u.is_blocked ? 'rejected' : 'approved'}"></span> ${u.is_blocked ? 'Blocked' : 'Active'}
+                      </div>
+                    </td>
                     <td style="padding:8px;color:var(--text2)">${this.escHtml(u.email)}</td>
                     <td style="padding:8px"><span class="tag" style="background:${u.role==='owner'?'var(--warning)':u.role==='admin'?'var(--secondary)':'var(--bg3)'};color:${u.role==='owner'?'#333':'#fff'};text-transform:capitalize">${u.role}</span></td>
                     <td style="padding:8px">
                       ${u.id !== this.user.id ? `
-                        <select class="form-input" style="padding:4px 8px;font-size:12px;min-width:100px" onchange="App.changeUserRole('${u.id}',this.value)">
-                          <option value="student" ${u.role==='student'?'selected':''}>Student</option>
-                          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-                          <option value="owner" ${u.role==='owner'?'selected':''}>Owner</option>
-                        </select>
+                        <div class="flex gap-2">
+                          <select class="form-input" style="padding:4px 8px;font-size:12px;min-width:90px" onchange="App.changeUserRole('${u.id}',this.value)">
+                            <option value="student" ${u.role==='student'?'selected':''}>Student</option>
+                            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                            <option value="owner" ${u.role==='owner'?'selected':''}>Owner</option>
+                          </select>
+                          
+                          <button class="btn btn-sm ${u.is_blocked ? 'btn-success' : 'btn-outline'}" style="padding:4px 8px" onclick="App.toggleUserBlock('${u.id}', ${u.is_blocked})" title="${u.is_blocked ? 'Unblock' : 'Block'}">
+                            <i class="fas ${u.is_blocked ? 'fa-unlock' : 'fa-ban text-danger'}"></i>
+                          </button>
+                          <button class="btn btn-ghost btn-sm" style="padding:4px 8px" onclick="App.viewUserSessions('${u.id}', '${this.escAttr(u.name)}')" title="View Sessions">
+                            <i class="fas fa-history text-secondary"></i>
+                          </button>
+                        </div>
                       ` : '<span class="text-muted" style="font-size:11px">You</span>'}
                     </td>
                   </tr>
@@ -2912,6 +2926,37 @@ async loadProfile() {
         browser_info: navigator.userAgent 
       });
     } catch (e) { console.error('Log error:', e); }
+  },
+
+   // ========== User Sessions & Blocking ==========
+  async toggleUserBlock(userId, currentlyBlocked) {
+    if (!confirm(`Are you sure you want to ${currentlyBlocked ? 'UNBLOCK' : 'BLOCK'} this user?`)) return;
+    await sb.from('profiles').update({ is_blocked: !currentlyBlocked }).eq('id', userId);
+    this.toast(`User ${currentlyBlocked ? 'unblocked' : 'blocked'} successfully!`, 'success');
+    this.renderAdmin();
+  },
+
+  async viewUserSessions(userId, userName) {
+    const { data: logs } = await sb.from('log_activities')
+      .select('*').eq('user_id', userId).in('action', ['login', 'logout'])
+      .order('created_at', { ascending: false }).limit(30);
+      
+    let html = '<div class="empty-state" style="padding:20px"><i class="fas fa-history"></i><p>No session data found</p></div>';
+    
+    if (logs && logs.length > 0) {
+      html = logs.map(l => `
+        <div style="padding:12px; border-bottom:1px solid var(--border); font-size:13px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+            <strong style="color:${l.action==='login'?'var(--success)':'var(--text3)'}">${l.action.toUpperCase()}</strong>
+            <span class="text-muted"><i class="fas fa-clock"></i> ${new Date(l.created_at).toLocaleString()}</span>
+          </div>
+          <div style="color:var(--text2); margin-bottom:4px;"><i class="fas fa-network-wired text-primary"></i> IP: <strong>${l.ip_address || 'Unknown'}</strong></div>
+          <div style="color:var(--text3); font-size:11px;"><i class="fas fa-laptop text-secondary"></i> ${this.escHtml(l.browser_info || 'Unknown device')}</div>
+        </div>
+      `).join('');
+    }
+    
+    this.openModal(`Sessions: ${userName}`, `<div style="max-height:60vh;overflow-y:auto;margin:-24px;padding:0">${html}</div>`, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:500px');
   },
 
   // ========== Helpers ==========
