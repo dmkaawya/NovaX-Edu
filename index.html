@@ -2715,8 +2715,8 @@ const App = {
       allNotifs = [...allNotifs, ...mappedAnns];
     }
 
-    // දිනේ අනුව පිළිවෙලට හදනවා
-    allNotifs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    // 🔥 මෙතන තමයි වෙනස: හරියටම අලුත් ඒවා උඩට එන්න Time එකෙන් Sort කළා
+    allNotifs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     this._notifications = allNotifs.slice(0, 15);
     
     const badge = document.getElementById('notifBadge');
@@ -2740,7 +2740,7 @@ const App = {
         let icon = 'fa-info'; let bg = 'var(--secondary)';
         if (n.action === 'content_approved' || n.action === 'unlock_content') { icon = 'fa-check'; bg = 'var(--success)'; }
         if (n.action === 'content_rejected') { icon = 'fa-times'; bg = 'var(--danger)'; }
-        if (n.action === 'announcement') { icon = 'fa-bullhorn'; bg = 'var(--warning)'; } // අලුත් කෑල්ල
+        if (n.action === 'announcement') { icon = 'fa-bullhorn'; bg = 'var(--warning)'; } 
         
         return `
           <div class="notif-item">
