@@ -1,366 +1,581 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - NovaX Edu</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        display: ['Space Grotesk', 'sans-serif'],
-                        body: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        :root {
-            --bg: #faf9f7;
-            --bg-alt: #f0efec;
-            --fg: #1a1a1a;
-            --fg-muted: #6b6b6b;
-            --accent: #e85d04;
-            --accent-light: #f48c06;
-            --primary: #0077b6;
-            --primary-dark: #023e8a;
-            --card: #ffffff;
-            --border: #e5e5e5;
-            --glow: rgba(232, 93, 4, 0.15);
-        }
-        .dark {
-            --bg: #0a0a0b;
-            --bg-alt: #141416;
-            --fg: #f5f5f5;
-            --fg-muted: #a0a0a0;
-            --accent: #f48c06;
-            --accent-light: #ffaa33;
-            --primary: #00b4d8;
-            --primary-dark: #0077b6;
-            --card: #1a1a1c;
-            --border: #2a2a2e;
-            --glow: rgba(244, 140, 6, 0.2);
-        }
-        * { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--fg); overflow-x: hidden; }
-        .font-display { font-family: 'Space Grotesk', sans-serif; }
-        .bg-pattern {
-            background-image: radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 119, 182, 0.1) 0%, transparent 50%);
-        }
-        .dark .bg-pattern {
-            background-image: radial-gradient(circle at 20% 20%, var(--glow) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(0, 180, 216, 0.1) 0%, transparent 50%);
-        }
-        .grid-pattern {
-            background-size: 60px 60px;
-            background-image: linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px);
-            opacity: 0.4;
-        }
-        .floating-shape {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.5;
-            animation: float 20s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(30px, -30px) rotate(90deg); }
-            50% { transform: translate(0, -50px) rotate(180deg); }
-            75% { transform: translate(-30px, -30px) rotate(270deg); }
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-slide-up { animation: slideUp 0.8s ease-out forwards; }
-        .animate-fade-in { animation: fadeIn 1s ease-out forwards; }
-        .delay-100 { animation-delay: 0.1s; }
-        .delay-200 { animation-delay: 0.2s; }
-        .delay-300 { animation-delay: 0.3s; }
-        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 20px 40px -15px var(--glow); }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-light)); color: white; position: relative; overflow: hidden; }
-        .btn-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); transition: left 0.5s ease; }
-        .btn-primary:hover::before { left: 100%; }
-        .btn-secondary { border: 2px solid var(--accent); color: var(--accent); }
-        .btn-secondary:hover { background: var(--accent); color: white; }
-        .nav-link { position: relative; }
-        .nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--accent); transition: width 0.3s ease; }
-        .nav-link:hover::after { width: 100%; }
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-        .mobile-menu { transform: translateX(100%); transition: transform 0.3s ease; }
-        .mobile-menu.open { transform: translateX(0); }
-        .theme-toggle { width: 60px; height: 30px; border-radius: 15px; background: var(--bg-alt); border: 1px solid var(--border); position: relative; cursor: pointer; }
-        .theme-toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); transition: transform 0.3s ease; }
-        .dark .theme-toggle::after { transform: translateX(30px); }
-        *:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: var(--bg-alt); }
-        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 5px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<title>NovaX Edu - About Us</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{
+--primary:#E53935;--primary-glow:rgba(229,57,53,.35);--secondary:#1565C0;--secondary-glow:rgba(21,101,192,.3);
+--accent:#00E676;--accent-glow:rgba(0,230,118,.25);--gold:#FFD740;
+--bg:#06060f;--bg2:#0c0c1e;--bg3:#141430;--bg4:#1a1a3e;
+--text:#f0f0f5;--text2:#a0a0c0;--text3:#606080;
+--border:#1e1e40;--card:#0e0e24;--card-hover:#14143a;
+--shadow:0 4px 24px rgba(0,0,0,.4);--shadow-lg:0 12px 48px rgba(0,0,0,.5);
+--gradient:linear-gradient(135deg,#E53935,#FF6D00,#FFD740);
+--gradient2:linear-gradient(135deg,#1565C0,#00E676);
+--radius:16px;--radius-sm:10px;--radius-xs:6px;
+--transition:all .4s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4,h5{font-family:'Outfit',sans-serif}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;font-family:inherit}
+img{max-width:100%;display:block}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* === NAV === */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 0;transition:var(--transition);background:rgba(6,6,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav.scrolled{padding:10px 0}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Outfit';font-size:26px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:10px}
+.nav-logo-dot{width:10px;height:10px;border-radius:50%;background:var(--primary);box-shadow:0 0 12px var(--primary-glow);animation:pulse-dot 2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 12px var(--primary-glow)}50%{box-shadow:0 0 24px var(--primary-glow),0 0 48px var(--primary-glow)}}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{color:var(--text2);font-size:14px;font-weight:500;padding:8px 16px;border-radius:var(--radius-xs);transition:var(--transition)}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.nav-cta{background:var(--primary)!important;color:#fff!important;font-weight:600!important;box-shadow:0 2px 12px var(--primary-glow)}
+.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--primary-glow)!important}
+.nav-contact{background:var(--secondary)!important;color:#fff!important;font-weight:600!important;box-shadow:0 2px 12px var(--secondary-glow)}
+.nav-contact:hover{transform:translateY(-1px);box-shadow:0 4px 20px var(--secondary-glow)!important}
+.nav-hamburger{display:none;background:none;color:var(--text);font-size:22px;padding:8px}
+
+/* === PARTICLES === */
+#particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* === HERO === */
+.page-hero{min-height:50vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:140px 24px 60px;position:relative;z-index:1;overflow:hidden}
+.page-hero::before{content:'';position:absolute;top:-30%;right:-20%;width:600px;height:600px;background:radial-gradient(circle,rgba(229,57,53,.08),transparent 60%);pointer-events:none}
+.page-hero::after{content:'';position:absolute;bottom:-30%;left:-20%;width:500px;height:500px;background:radial-gradient(circle,rgba(21,101,192,.06),transparent 60%);pointer-events:none}
+.page-hero-content{position:relative;z-index:2}
+.page-hero-tag{display:inline-flex;align-items:center;gap:8px;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.2);border-radius:50px;padding:8px 20px 8px 12px;font-size:13px;color:var(--primary);font-weight:600;margin-bottom:24px;animation:fadeUp .8s ease-out both}
+.page-hero-tag i{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.page-hero-title{font-size:clamp(36px,7vw,64px);font-weight:900;line-height:1.1;margin-bottom:16px;animation:fadeUp .8s ease-out .1s both}
+.page-hero-title .gradient{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-hero-desc{font-size:16px;color:var(--text2);line-height:1.7;max-width:560px;margin:0 auto;animation:fadeUp .8s ease-out .2s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* === BREADCRUMB === */
+.breadcrumb{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;font-size:13px;color:var(--text3);animation:fadeUp .8s ease-out both}
+.breadcrumb a{color:var(--text3);transition:var(--transition)}.breadcrumb a:hover{color:var(--primary)}
+.breadcrumb i{font-size:10px}
+
+/* === SECTIONS === */
+.section{padding:80px 24px;position:relative;z-index:1}
+.section-header{text-align:center;max-width:600px;margin:0 auto 48px}
+.section-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin-bottom:16px}
+.section-tag::before,.section-tag::after{content:'';width:20px;height:1px;background:var(--primary);opacity:.5}
+.section-title{font-size:clamp(26px,4vw,40px);font-weight:900;line-height:1.15;margin-bottom:16px}
+.section-desc{font-size:15px;color:var(--text2);line-height:1.7}
+
+/* === ABOUT STORY === */
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;max-width:1100px;margin:0 auto;align-items:center}
+.story-image{position:relative}
+.story-image-box{width:100%;aspect-ratio:4/3;border-radius:var(--radius);background:linear-gradient(135deg,rgba(229,57,53,.15),rgba(21,101,192,.15));border:1px solid rgba(229,57,53,.2);display:flex;align-items:center;justify-content:center;font-size:80px;position:relative;overflow:hidden}
+.story-image-box::before{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 40%,rgba(255,255,255,.03) 50%,transparent 60%);animation:shimmer 3s ease-in-out infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.story-float-card{position:absolute;bottom:-20px;right:-20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.story-float-icon{width:44px;height:44px;border-radius:12px;background:rgba(0,230,118,.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px}
+.story-float-text{font-family:'Outfit';font-weight:800;font-size:22px;color:var(--accent)}
+.story-float-label{font-size:11px;color:var(--text3)}
+.story-content h2{font-size:32px;font-weight:900;margin-bottom:20px;line-height:1.2}
+.story-content p{font-size:15px;color:var(--text2);line-height:1.8;margin-bottom:16px}
+.story-content .highlight{color:var(--primary);font-weight:600}
+
+/* === VALUES === */
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+.value-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px 28px;text-align:center;transition:var(--transition);position:relative;overflow:hidden}
+.value-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient);opacity:0;transition:var(--transition)}
+.value-card:hover{transform:translateY(-6px);border-color:rgba(229,57,53,.3);box-shadow:var(--shadow-lg)}
+.value-card:hover::before{opacity:1}
+.value-icon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:26px;transition:var(--transition)}
+.value-card:hover .value-icon{transform:scale(1.1) rotate(-5deg)}
+.value-title{font-size:18px;font-weight:700;margin-bottom:10px}
+.value-desc{font-size:14px;color:var(--text2);line-height:1.7}
+
+/* === TIMELINE === */
+.timeline{max-width:700px;margin:0 auto;position:relative;padding-left:40px}
+.timeline::before{content:'';position:absolute;left:15px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--primary),var(--secondary),var(--accent));border-radius:1px}
+.timeline-item{position:relative;margin-bottom:40px}
+.timeline-item:last-child{margin-bottom:0}
+.timeline-dot{position:absolute;left:-33px;top:4px;width:18px;height:18px;border-radius:50%;border:3px solid var(--bg);z-index:2}
+.timeline-dot.red{background:var(--primary);box-shadow:0 0 12px var(--primary-glow)}
+.timeline-dot.blue{background:var(--secondary);box-shadow:0 0 12px var(--secondary-glow)}
+.timeline-dot.green{background:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
+.timeline-year{font-family:'Outfit';font-size:13px;font-weight:700;color:var(--primary);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.timeline-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.timeline-desc{font-size:14px;color:var(--text2);line-height:1.7}
+
+/* === CONTACT SECTION === */
+.contact-section{background:var(--bg2);border-top:1px solid var(--border)}
+.contact-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;max-width:1000px;margin:0 auto}
+.contact-info{display:flex;flex-direction:column;gap:24px}
+.contact-info h3{font-size:28px;font-weight:900;margin-bottom:4px}
+.contact-info>p{font-size:15px;color:var(--text2);line-height:1.7}
+.contact-item{display:flex;gap:16px;align-items:flex-start;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);transition:var(--transition)}
+.contact-item:hover{border-color:rgba(229,57,53,.3);transform:translateX(4px)}
+.contact-item-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.contact-item-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600}
+.contact-item-value{font-size:15px;font-weight:600}
+.contact-item-value a{color:var(--text);transition:var(--transition)}
+.contact-item-value a:hover{color:var(--primary)}
+.contact-socials{display:flex;gap:10px;margin-top:8px}
+.contact-socials a{width:44px;height:44px;border-radius:var(--radius-xs);background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:16px;transition:var(--transition)}
+.contact-socials a:hover{background:var(--primary);border-color:var(--primary);color:#fff;transform:translateY(-3px);box-shadow:0 4px 16px var(--primary-glow)}
+
+/* === FORM === */
+.contact-form{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:36px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:13px;font-weight:600;color:var(--text2)}
+.form-input,.form-textarea,.form-select{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-xs);padding:12px 16px;color:var(--text);font-family:inherit;font-size:14px;transition:var(--transition);outline:none;width:100%}
+.form-input:focus,.form-textarea:focus,.form-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(229,57,53,.1)}
+.form-input::placeholder,.form-textarea::placeholder{color:var(--text3)}
+.form-textarea{resize:vertical;min-height:120px}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23606080' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L2 5h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.form-select option{background:var(--bg3);color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 32px;border-radius:var(--radius-sm);font-weight:600;font-size:15px;transition:var(--transition);position:relative;overflow:hidden}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 20px var(--primary-glow)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 8px 32px var(--primary-glow)}
+.btn-primary:active{transform:scale(.97)!important}
+.btn-full{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.form-msg{margin-top:12px;padding:12px 16px;border-radius:var(--radius-xs);font-size:14px;font-weight:500;display:none}
+.form-msg.success{display:block;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2);color:var(--accent)}
+.form-msg.error{display:block;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.2);color:var(--primary)}
+
+/* === FOOTER === */
+.footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 24px;position:relative;z-index:1}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.footer-logo{font-family:'Outfit';font-size:22px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-size:13px;color:var(--text3);transition:var(--transition)}.footer-links a:hover{color:var(--primary)}
+.footer-copy{font-size:12px;color:var(--text3)}
+
+/* === SCROLL REVEAL === */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s ease-out,transform .8s ease-out}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}.reveal-d3{transition-delay:.3s}.reveal-d4{transition-delay:.4s}
+
+/* === MOBILE === */
+.mobile-menu{position:fixed;inset:0;z-index:200;background:rgba(6,6,15,.95);backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;opacity:0;pointer-events:none;transition:var(--transition)}
+.mobile-menu.open{opacity:1;pointer-events:all}
+.mobile-menu a{font-family:'Outfit';font-size:24px;font-weight:700;color:var(--text);padding:12px 24px;transition:var(--transition)}
+.mobile-menu a:hover{color:var(--primary)}
+.mobile-close{position:absolute;top:20px;right:24px;background:none;color:var(--text);font-size:28px;padding:8px}
+
+@media(max-width:1024px){
+.values-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+.nav-links{display:none}.nav-hamburger{display:block}
+.story-grid{grid-template-columns:1fr;gap:32px}
+.values-grid{grid-template-columns:1fr}
+.contact-grid{grid-template-columns:1fr}
+.form-row{grid-template-columns:1fr}
+.footer-inner{flex-direction:column;text-align:center}
+}
+@media(max-width:480px){
+.page-hero{padding:120px 20px 40px}
+.contact-form{padding:24px}
+}
+</style>
 </head>
-<body class="min-h-screen">
-    <div class="fixed inset-0 bg-pattern pointer-events-none z-0"></div>
-    <div class="fixed inset-0 grid-pattern pointer-events-none z-0"></div>
-    <div class="floating-shape w-96 h-96 bg-gradient-to-br from-orange-500/30 to-yellow-500/30 top-20 -left-48"></div>
-    <div class="floating-shape w-80 h-80 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 bottom-20 -right-40"></div>
+<body>
 
-    <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl" style="background: rgba(250, 249, 247, 0.8);">
-        <div class="absolute inset-0 border-b" style="border-color: var(--border);"></div>
-        <nav class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 lg:h-20">
-                <a href="index.html" class="flex items-center gap-2 group">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    </div>
-                    <span class="font-display font-bold text-xl" style="color: var(--fg);">NovaX <span style="color: var(--accent);">Edu</span></span>
-                </a>
-                <div class="hidden lg:flex items-center gap-8">
-                    <a href="index.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Home</a>
-                    <a href="about.html" class="nav-link font-medium text-sm" style="color: var(--fg);">About</a>
-                    <a href="course.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Courses</a>
-                    <a href="time.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Time Table</a>
-                    <a href="guru.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Teachers</a>
-                    <a href="contact.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Contact Us</a>
-                    <a href="rules.html" class="nav-link font-medium text-sm" style="color: var(--fg-muted);">Terms</a>
-                </div>
-                <div class="flex items-center gap-4">
-                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme"></button>
-                    <a href="login.html" class="hidden sm:inline-flex btn-primary px-5 py-2.5 rounded-xl font-semibold text-sm">Login</a>
-                    <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg" style="color: var(--fg);" aria-label="Menu">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    </button>
-                </div>
-            </div>
-        </nav>
-        <div id="mobileMenu" class="mobile-menu fixed top-0 right-0 h-full w-72 z-50 lg:hidden" style="background: var(--card);">
-            <div class="p-6">
-                <button id="closeMobileMenu" class="absolute top-4 right-4 p-2" style="color: var(--fg);" aria-label="Close">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-                <div class="mt-12 flex flex-col gap-4">
-                    <a href="index.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Home</a>
-                    <a href="about.html" class="py-3 px-4 rounded-xl font-medium" style="background: var(--bg-alt); color: var(--fg);">About</a>
-                    <a href="course.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Courses</a>
-                    <a href="time.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Time Table</a>
-                    <a href="guru.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Teachers</a>
-                    <a href="contact.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Contact Us</a>
-                    <a href="rules.html" class="py-3 px-4 rounded-xl font-medium" style="color: var(--fg-muted);">Terms</a>
-                    <a href="login.html" class="btn-primary py-3 px-4 rounded-xl font-semibold text-center text-white mt-4">Login</a>
-                </div>
-            </div>
-        </div>
-    </header>
+<!-- Particles -->
+<canvas id="particles"></canvas>
 
-    <!-- Hero -->
-    <section class="relative pt-32 pb-20 lg:pt-40 lg:pb-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center">
-                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium animate-slide-up opacity-0" style="background: var(--glow); color: var(--accent); animation-delay: 0.1s;">
-                    Our Story
-                </span>
-                <h1 class="font-display font-bold text-4xl sm:text-5xl lg:text-6xl mt-6 animate-slide-up opacity-0" style="color: var(--fg); animation-delay: 0.2s;">
-                    About <span style="color: var(--accent);">NovaX Edu</span>
-                </h1>
-                <p class="mt-6 text-lg lg:text-xl max-w-3xl mx-auto animate-slide-up opacity-0" style="color: var(--fg-muted); animation-delay: 0.3s;">
-                    Empowering students across Sri Lanka with quality education, expert teachers, and innovative learning experiences since 2020.
-                </p>
-            </div>
-        </div>
-    </section>
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+<button class="mobile-close" onclick="closeMobile()"><i class="fas fa-times"></i></button>
+<a href="index.html">Home</a>
+<a href="#story">Our Story</a>
+<a href="#values">Values</a>
+<a href="#journey">Journey</a>
+<a href="#contact" onclick="closeMobile()" style="color:var(--secondary)">Contact Us</a>
+<a href="login.html" style="color:var(--primary)">Login</a>
+</div>
 
-    <!-- Mission Section -->
-    <section class="py-20 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <div class="reveal">
-                    <div class="rounded-3xl overflow-hidden" style="background: var(--card); border: 1px solid var(--border);">
-                        <div class="aspect-video flex items-center justify-center" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
-                            <svg class="w-24 h-24 text-white/30" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3z"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                <div class="reveal">
-                    <h2 class="font-display font-bold text-3xl lg:text-4xl" style="color: var(--fg);">Our Mission</h2>
-                    <p class="mt-4 text-lg" style="color: var(--fg-muted);">
-                        To democratize education in Sri Lanka by providing accessible, high-quality learning resources to every student, regardless of their location or economic background.
-                    </p>
-                    <p class="mt-4" style="color: var(--fg-muted);">
-                        We believe that quality education should not be a privilege but a right. Through our platform, we connect students with the best teachers across the country, offering both free and premium content to ensure no student is left behind.
-                    </p>
-                    <div class="mt-6 flex flex-wrap gap-4">
-                        <div class="px-4 py-2 rounded-xl" style="background: var(--bg-alt);">
-                            <span class="font-display font-bold" style="color: var(--accent);">15,000+</span>
-                            <span class="text-sm ml-2" style="color: var(--fg-muted);">Students</span>
-                        </div>
-                        <div class="px-4 py-2 rounded-xl" style="background: var(--bg-alt);">
-                            <span class="font-display font-bold" style="color: var(--accent);">200+</span>
-                            <span class="text-sm ml-2" style="color: var(--fg-muted);">Courses</span>
-                        </div>
-                        <div class="px-4 py-2 rounded-xl" style="background: var(--bg-alt);">
-                            <span class="font-display font-bold" style="color: var(--accent);">50+</span>
-                            <span class="text-sm ml-2" style="color: var(--fg-muted);">Teachers</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Nav -->
+<nav class="nav" id="nav">
+<div class="nav-inner">
+<a href="index.html" class="nav-logo"><span class="nav-logo-dot"></span> NovaX Edu</a>
+<div class="nav-links">
+<a href="index.html">Home</a>
+<a href="#story">About</a>
+<a href="#contact" class="nav-contact"><i class="fas fa-envelope" style="margin-right:4px"></i> Contact</a>
+<a href="login.html" class="nav-cta">Get Started</a>
+</div>
+<button class="nav-hamburger" onclick="openMobile()"><i class="fas fa-bars"></i></button>
+</div>
+</nav>
 
-    <!-- Values -->
-    <section class="py-20" style="background: var(--bg-alt);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center reveal">
-                <h2 class="font-display font-bold text-3xl lg:text-4xl" style="color: var(--fg);">Our Core Values</h2>
-                <p class="mt-4 text-lg max-w-2xl mx-auto" style="color: var(--fg-muted);">The principles that guide everything we do at NovaX Edu</p>
-            </div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Excellence</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">We strive for excellence in every course, every lesson, and every interaction.</p>
-                </div>
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Accessibility</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Education for all, breaking barriers of distance and affordability.</p>
-                </div>
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Innovation</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Leveraging technology to create engaging learning experiences.</p>
-                </div>
-                <div class="card-hover p-6 rounded-2xl reveal" style="background: var(--card); border: 1px solid var(--border);">
-                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style="background: linear-gradient(135deg, #9d4edd, #c77dff);">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    </div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Integrity</h3>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Honest, transparent, and committed to our students' success.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Page Hero -->
+<section class="page-hero">
+<div class="page-hero-content">
+<div class="breadcrumb"><a href="index.html">Home</a><i class="fas fa-chevron-right"></i> About Us</div>
+<div class="page-hero-tag"><i class="fas fa-heart"></i> Our Story</div>
+<h1 class="page-hero-title">Built by learners,<br><span class="gradient">for learners</span></h1>
+<p class="page-hero-desc">We started NovaX Edu because we believe everyone deserves access to high-quality Korean language education — free, beautiful, and effective.</p>
+</div>
+</section>
 
-    <!-- Team -->
-    <section class="py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center reveal">
-                <h2 class="font-display font-bold text-3xl lg:text-4xl" style="color: var(--fg);">Meet Our Team</h2>
-                <p class="mt-4 text-lg max-w-2xl mx-auto" style="color: var(--fg-muted);">Dedicated professionals working to transform education in Sri Lanka</p>
-            </div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-                <div class="text-center reveal">
-                    <div class="w-32 h-32 mx-auto rounded-full mb-4" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));"></div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Dr. Nimal Perera</h3>
-                    <p class="text-sm" style="color: var(--accent);">Founder & CEO</p>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">20+ years in education sector, former university lecturer</p>
-                </div>
-                <div class="text-center reveal">
-                    <div class="w-32 h-32 mx-auto rounded-full mb-4" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));"></div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Mrs. Sandhya Fernando</h3>
-                    <p class="text-sm" style="color: var(--accent);">Academic Director</p>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Curriculum specialist with 15 years experience</p>
-                </div>
-                <div class="text-center reveal">
-                    <div class="w-32 h-32 mx-auto rounded-full mb-4" style="background: linear-gradient(135deg, #22c55e, #16a34a);"></div>
-                    <h3 class="font-display font-semibold text-lg" style="color: var(--fg);">Mr. Kasun Silva</h3>
-                    <p class="text-sm" style="color: var(--accent);">Head of Technology</p>
-                    <p class="mt-2 text-sm" style="color: var(--fg-muted);">Tech innovator passionate about EdTech solutions</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Story Section -->
+<section class="section" id="story">
+<div class="story-grid">
+<div class="story-image reveal">
+<div class="story-image-box">🇰🇷</div>
+<div class="story-float-card">
+<div class="story-float-icon"><i class="fas fa-users"></i></div>
+<div>
+<div class="story-float-text">2,400+</div>
+<div class="story-float-label">Active Learners</div>
+</div>
+</div>
+</div>
+<div class="story-content reveal reveal-d2">
+<h2>How NovaX Edu <span style="color:var(--primary)">began</span></h2>
+<p>It started in 2023 when a small group of Korean language enthusiasts — students, teachers, and developers — came together with a simple frustration: <span class="highlight">why is learning Korean so fragmented?</span></p>
+<p>Video lessons on one platform. Flashcards on another. Quizzes somewhere else. No unified experience, no progress tracking, no community. We decided to change that.</p>
+<p>NovaX Edu was born from late-night coding sessions, endless cups of coffee, and a shared passion for making Korean accessible to everyone — whether you're a complete beginner or preparing for TOPIK.</p>
+<p>Today, we're a growing community of <span class="highlight">2,400+ learners</span> across 30+ countries, and we're just getting started. <span class="highlight">한국어를 배우자 — let's learn Korean together.</span></p>
+</div>
+</div>
+</section>
 
-    <!-- Footer -->
-    <footer class="py-16" style="background: var(--bg-alt);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="lg:col-span-1">
-                    <a href="index.html" class="flex items-center gap-2">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, var(--accent), var(--accent-light));">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        </div>
-                        <span class="font-display font-bold text-xl" style="color: var(--fg);">NovaX <span style="color: var(--accent);">Edu</span></span>
-                    </a>
-                    <p class="mt-4 text-sm" style="color: var(--fg-muted);">Sri Lanka's leading online education platform.</p>
-                </div>
-                <div>
-                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Quick Links</h4>
-                    <ul class="space-y-2">
-                        <li><a href="about.html" class="text-sm hover:underline" style="color: var(--fg-muted);">About Us</a></li>
-                        <li><a href="course.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Courses</a></li>
-                        <li><a href="guru.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Teachers</a></li>
-                        <li><a href="time.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Time Table</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Support</h4>
-                    <ul class="space-y-2">
-                        <li><a href="contact.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Contact Us</a></li>
-                        <li><a href="rules.html" class="text-sm hover:underline" style="color: var(--fg-muted);">Terms & Conditions</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-display font-semibold mb-4" style="color: var(--fg);">Contact Us</h4>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-2 text-sm" style="color: var(--fg-muted);"><svg class="w-4 h-4" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg> 0775048455</li>
-                        <li class="flex items-center gap-2 text-sm" style="color: var(--fg-muted);"><svg class="w-4 h-4" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg> 0762717144</li>
-                        <li class="flex items-center gap-2 text-sm" style="color: var(--fg-muted);"><svg class="w-4 h-4" style="color: var(--accent);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> nov.x.team001@gmail.com</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4" style="border-top: 1px solid var(--border);">
-                <p class="text-sm" style="color: var(--fg-muted);">2026 NovaX Edu. All rights reserved.</p>
-                <p class="text-sm" style="color: var(--fg-muted);">Developed by <a href="http://vezlo-web.vercel.app/" target="_blank" class="font-semibold hover:underline" style="color: var(--accent);">Vezlo Web</a></p>
-            </div>
-        </div>
-    </footer>
+<!-- Values -->
+<section class="section" id="values" style="background:var(--bg2)">
+<div class="section-header reveal">
+<div class="section-tag">Our Values</div>
+<h2 class="section-title">What drives us forward</h2>
+<p class="section-desc">These core principles shape every feature, every lesson, and every decision we make.</p>
+</div>
+<div class="values-grid">
+<div class="value-card reveal reveal-d1">
+<div class="value-icon" style="background:rgba(229,57,53,.12);color:var(--primary)"><i class="fas fa-universal-access"></i></div>
+<div class="value-title">Accessibility First</div>
+<div class="value-desc">Korean education should be available to everyone, everywhere — regardless of budget, location, or background. That's why our core content is always free.</div>
+</div>
+<div class="value-card reveal reveal-d2">
+<div class="value-icon" style="background:rgba(21,101,192,.12);color:var(--secondary)"><i class="fas fa-gem"></i></div>
+<div class="value-title">Quality Over Quantity</div>
+<div class="value-desc">Every lesson is carefully crafted, reviewed, and tested. We'd rather have 100 outstanding lessons than 1,000 mediocre ones.</div>
+</div>
+<div class="value-card reveal reveal-d3">
+<div class="value-icon" style="background:rgba(0,230,118,.12);color:var(--accent)"><i class="fas fa-seedling"></i></div>
+<div class="value-title">Continuous Growth</div>
+<div class="value-desc">We ship improvements weekly. New lessons, better features, bug fixes — our platform evolves based on real learner feedback.</div>
+</div>
+<div class="value-card reveal reveal-d1">
+<div class="value-icon" style="background:rgba(255,215,64,.12);color:var(--gold)"><i class="fas fa-heart"></i></div>
+<div class="value-title">Community Driven</div>
+<div class="value-desc">Learners help each other. Our discussion forum, study groups, and peer support make learning Korean a social experience, not a lonely one.</div>
+</div>
+<div class="value-card reveal reveal-d2">
+<div class="value-icon" style="background:rgba(156,39,176,.12);color:#CE93D8"><i class="fas fa-flask"></i></div>
+<div class="value-title">Science-Backed</div>
+<div class="value-desc">Spaced repetition, active recall, interleaving — our tools are built on proven learning science, not guesswork.</div>
+</div>
+<div class="value-card reveal reveal-d3">
+<div class="value-icon" style="background:rgba(229,57,53,.12);color:var(--primary)"><i class="fas fa-shield-alt"></i></div>
+<div class="value-title">Privacy & Trust</div>
+<div class="value-desc">Your data is yours. No ads, no selling data, no tracking. We build a platform you can trust with your learning journey.</div>
+</div>
+</div>
+</section>
 
-    <script>
-        const themeToggle = document.getElementById('themeToggle');
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const closeMobileMenu = document.getElementById('closeMobileMenu');
-        const mobileMenu = document.getElementById('mobileMenu');
+<!-- Journey Timeline -->
+<section class="section" id="journey">
+<div class="section-header reveal">
+<div class="section-tag">Our Journey</div>
+<h2 class="section-title">Milestones along the way</h2>
+<p class="section-desc">From a small idea to a growing movement — here's how we got here.</p>
+</div>
+<div class="timeline">
+<div class="timeline-item reveal">
+<div class="timeline-dot red"></div>
+<div class="timeline-year">January 2023</div>
+<div class="timeline-title">The Idea Was Born</div>
+<div class="timeline-desc">A group of 5 Korean learners and 2 native teachers started brainstorming the ideal Korean learning platform over a weekend hackathon.</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-dot blue"></div>
+<div class="timeline-year">June 2023</div>
+<div class="timeline-title">First 50 Lessons Launched</div>
+<div class="timeline-desc">Video lessons, PDF notes, and quizzes for Hangul basics and elementary Korean went live. Our first 200 users joined in the first month.</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-dot green"></div>
+<div class="timeline-year">December 2023</div>
+<div class="timeline-title">Flashcards & Study Planner</div>
+<div class="timeline-desc">We introduced spaced repetition flashcards and a study planner feature. User engagement increased by 340%.</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-dot red"></div>
+<div class="timeline-year">April 2024</div>
+<div class="timeline-title">Community Hits 1,000</div>
+<div class="timeline-desc">Our discussion forum became the heart of the platform. Learners were helping each other 24/7 across different time zones.</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-dot blue"></div>
+<div class="timeline-year">October 2024</div>
+<div class="timeline-title">TOPIK Prep Courses</div>
+<div class="timeline-desc">Launched comprehensive TOPIK I & II preparation tracks with mock exams. Several students reported passing TOPIK Level 4+.</div>
+</div>
+<div class="timeline-item reveal">
+<div class="timeline-dot green"></div>
+<div class="timeline-year">2025 — Now</div>
+<div class="timeline-title">2,400+ Learners Strong</div>
+<div class="timeline-desc">30+ countries, 500+ lessons, and a mission that's bigger than ever. We're building the future of Korean language education.</div>
+</div>
+</div>
+</section>
 
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            }
-        }
-        initTheme();
+<!-- Contact Section -->
+<section class="section contact-section" id="contact">
+<div class="section-header reveal">
+<div class="section-tag">Get In Touch</div>
+<h2 class="section-title">We'd love to hear from you</h2>
+<p class="section-desc">Have a question, feedback, or partnership idea? Drop us a message and we'll get back to you within 24 hours.</p>
+</div>
+<div class="contact-grid">
+<div class="contact-info reveal">
+<h3>Let's Connect</h3>
+<p>Whether you're a student with questions, a teacher wanting to collaborate, or an organization interested in partnerships — we're all ears.</p>
 
-        themeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-        });
+<div class="contact-item">
+<div class="contact-item-icon" style="background:rgba(229,57,53,.12);color:var(--primary)"><i class="fas fa-envelope"></i></div>
+<div>
+<div class="contact-item-label">Email</div>
+<div class="contact-item-value"><a href="mailto:hello@novaxedu.com">hello@novaxedu.com</a></div>
+</div>
+</div>
 
-        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
-        closeMobileMenu.addEventListener('click', () => mobileMenu.classList.remove('open'));
-        mobileMenu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.remove('open')));
+<div class="contact-item">
+<div class="contact-item-icon" style="background:rgba(21,101,192,.12);color:var(--secondary)"><i class="fab fa-discord"></i></div>
+<div>
+<div class="contact-item-label">Discord</div>
+<div class="contact-item-value"><a href="#">discord.gg/novaxedu</a></div>
+</div>
+</div>
 
-        const reveals = document.querySelectorAll('.reveal');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
-        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-        reveals.forEach(reveal => observer.observe(reveal));
-    </script>
+<div class="contact-item">
+<div class="contact-item-icon" style="background:rgba(0,230,118,.12);color:var(--accent)"><i class="fas fa-map-marker-alt"></i></div>
+<div>
+<div class="contact-item-label">Location</div>
+<div class="contact-item-value">Remote-first, Global Team</div>
+</div>
+</div>
+
+<div class="contact-item">
+<div class="contact-item-icon" style="background:rgba(255,215,64,.12);color:var(--gold)"><i class="fas fa-clock"></i></div>
+<div>
+<div class="contact-item-label">Response Time</div>
+<div class="contact-item-value">Within 24 Hours</div>
+</div>
+</div>
+
+<div class="contact-socials">
+<a href="#" title="YouTube"><i class="fab fa-youtube"></i></a>
+<a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+<a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+<a href="#" title="Discord"><i class="fab fa-discord"></i></a>
+<a href="#" title="Telegram"><i class="fab fa-telegram"></i></a>
+</div>
+</div>
+
+<form class="contact-form reveal reveal-d2" id="contactForm" onsubmit="return handleSubmit(event)">
+<div class="form-row">
+<div class="form-group">
+<label class="form-label">Full Name *</label>
+<input type="text" class="form-input" id="fname" placeholder="Your full name" required>
+</div>
+<div class="form-group">
+<label class="form-label">Email Address *</label>
+<input type="email" class="form-input" id="femail" placeholder="you@example.com" required>
+</div>
+</div>
+<div class="form-row">
+<div class="form-group">
+<label class="form-label">Subject *</label>
+<select class="form-select" id="fsubject" required>
+<option value="" disabled selected>Select a topic</option>
+<option value="general">General Inquiry</option>
+<option value="feedback">Feedback & Suggestions</option>
+<option value="bug">Bug Report</option>
+<option value="teacher">Teacher Collaboration</option>
+<option value="partnership">Partnership</option>
+<option value="other">Other</option>
+</select>
+</div>
+<div class="form-group">
+<label class="form-label">Korean Level</label>
+<select class="form-select" id="flevel">
+<option value="" disabled selected>Select your level</option>
+<option value="none">Complete Beginner</option>
+<option value="hangul">Know Hangul</option>
+<option value="beginner">Beginner (A1-A2)</option>
+<option value="intermediate">Intermediate (B1-B2)</option>
+<option value="advanced">Advanced (C1+)</option>
+<option value="native">Native Speaker</option>
+</select>
+</div>
+</div>
+<div class="form-group full" style="margin-bottom:16px">
+<label class="form-label">Message *</label>
+<textarea class="form-textarea" id="fmessage" placeholder="Tell us what's on your mind..." required></textarea>
+</div>
+<button type="submit" class="btn btn-primary btn-full" id="submitBtn">
+<i class="fas fa-paper-plane"></i> Send Message
+</button>
+<div class="form-msg" id="formMsg"></div>
+</form>
+</div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+<div class="footer-inner">
+<div class="footer-logo">NovaX Edu</div>
+<div class="footer-links">
+<a href="index.html">Home</a>
+<a href="about.html">About</a>
+<a href="#contact">Contact</a>
+<a href="login.html">Login</a>
+<a href="privacy.html">Privacy</a>
+<a href="terms.html">Terms</a>
+</div>
+<div class="footer-copy">&copy; 2025 NovaX Edu. All rights reserved.</div>
+</div>
+</footer>
+
+<script>
+// === PARTICLES ===
+const canvas=document.getElementById('particles'),ctx=canvas.getContext('2d');
+let w,h,particles=[],mouse={x:null,y:null};
+function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+document.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+document.addEventListener('mouseleave',()=>{mouse.x=null;mouse.y=null});
+class Particle{
+constructor(){this.reset()}
+reset(){
+this.x=Math.random()*w;this.y=Math.random()*h;
+this.size=Math.random()*1.5+.5;
+this.speedX=(Math.random()-.5)*.25;this.speedY=(Math.random()-.5)*.25;
+this.opacity=Math.random()*.35+.08;
+const colors=['229,57,53','21,101,192','0,230,118'];
+this.color=colors[Math.floor(Math.random()*colors.length)];
+}
+update(){
+this.x+=this.speedX;this.y+=this.speedY;
+if(mouse.x!==null){
+const dx=mouse.x-this.x,dy=mouse.y-this.y,dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<120){const force=(120-dist)/120*.015;this.x-=dx*force;this.y-=dy*force}
+}
+if(this.x<-10||this.x>w+10||this.y<-10||this.y>h+10)this.reset();
+}
+draw(){
+ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+ctx.fillStyle=`rgba(${this.color},${this.opacity})`;ctx.fill();
+}
+}
+const pCount=Math.min(Math.floor(w*h/15000),100);
+for(let i=0;i<pCount;i++)particles.push(new Particle());
+function drawLines(){
+for(let i=0;i<particles.length;i++){
+for(let j=i+1;j<particles.length;j++){
+const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+if(dist<100){
+ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
+ctx.lineTo(particles[j].x,particles[j].y);
+ctx.strokeStyle=`rgba(229,57,53,${(1-dist/100)*.05})`;ctx.lineWidth=.5;ctx.stroke();
+}
+}
+}
+}
+function animateParticles(){
+ctx.clearRect(0,0,w,h);
+particles.forEach(p=>{p.update();p.draw()});drawLines();requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+// === NAV ===
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>50)});
+
+// === MOBILE ===
+function openMobile(){document.getElementById('mobileMenu').classList.add('open')}
+function closeMobile(){document.getElementById('mobileMenu').classList.remove('open')}
+
+// === SCROLL REVEAL ===
+const reveals=document.querySelectorAll('.reveal');
+const revealObs=new IntersectionObserver((entries)=>{
+entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target)}});
+},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+reveals.forEach(el=>revealObs.observe(el));
+
+// === CONTACT FORM ===
+function handleSubmit(e){
+e.preventDefault();
+const btn=document.getElementById('submitBtn');
+const msg=document.getElementById('formMsg');
+const name=document.getElementById('fname').value.trim();
+const email=document.getElementById('femail').value.trim();
+const subject=document.getElementById('fsubject').value;
+const message=document.getElementById('fmessage').value.trim();
+
+if(!name||!email||!subject||!message){
+msg.className='form-msg error';msg.textContent='Please fill in all required fields.';return false;
+}
+if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+msg.className='form-msg error';msg.textContent='Please enter a valid email address.';return false;
+}
+
+btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+setTimeout(()=>{
+msg.className='form-msg success';
+msg.innerHTML='<i class="fas fa-check-circle" style="margin-right:6px"></i> Message sent successfully! We\'ll get back to you within 24 hours.';
+btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i> Send Message';
+document.getElementById('contactForm').reset();
+setTimeout(()=>{msg.className='form-msg';msg.textContent=''},5000);
+},1500);
+return false;
+}
+
+// === SMOOTH ANCHOR ===
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+a.addEventListener('click',e=>{
+const id=a.getAttribute('href');if(id==='#')return;
+e.preventDefault();const target=document.querySelector(id);
+if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+});
+});
+
+// === TILT ON VALUE CARDS ===
+document.querySelectorAll('.value-card,.contact-item').forEach(card=>{
+card.addEventListener('mousemove',e=>{
+const rect=card.getBoundingClientRect();
+const x=e.clientX-rect.left,y=e.clientY-rect.top;
+const cx=rect.width/2,cy=rect.height/2;
+const rotateX=((y-cy)/cy*-3).toFixed(1),rotateY=((x-cx)/cx*3).toFixed(1);
+card.style.transform=`translateY(-6px) perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+});
+card.addEventListener('mouseleave',()=>{card.style.transform=''});
+});
+</script>
 </body>
 </html>
