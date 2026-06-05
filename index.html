@@ -1308,18 +1308,26 @@ const App = {
     `, '', 'max-width:700px');
   },
 
-  // වීඩියෝ එක ප්ලේ කරන අලුත් මොඩල් එක
+// වීඩියෝ එක ප්ලේ කරන මොඩල් එක
   playVideo(title, url) {
-    this.closeModal();
-    this.openModal(`Now Playing: ${title}`, `
-      <div style="text-align:center;padding:10px 0;background:#000;border-radius:8px">
-        ${url ? `<video controls controlsList="nodownload" style="width:100%;max-height:60vh;border-radius:8px;" autoplay><source src="${this.escAttr(url)}">Your browser does not support video.</video>` : '<p class="text-muted">No video file available</p>'}
-      </div>
-    `, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:800px');
+    this.closeModal(); // පරණ මොඩල් එක මුලින්ම වහනවා
+    
+    // තත්පර බාගෙකින් අලුත් මොඩල් එක අරිනවා (එතකොට Modal හිර වෙන්නේ නෑ)
+    setTimeout(() => { 
+      this.openModal(`Now Playing: ${title}`, `
+        <div style="text-align:center;padding:10px 0;background:#000;border-radius:8px">
+          ${url ? `<video controls controlsList="nodownload" style="width:100%;max-height:60vh;border-radius:8px;" autoplay>
+            <source src="${this.escAttr(url)}">
+            Your browser does not support video.
+          </video>
+          <div style="margin-top:12px;">
+            <a href="${this.escAttr(url)}" target="_blank" class="btn btn-outline btn-sm" style="color:#aaa;border-color:#444"><i class="fas fa-external-link-alt"></i> If video buffering is slow, click here to open</a>
+          </div>
+          ` : '<p class="text-muted">No video file available</p>'}
+        </div>
+      `, '<button class="btn btn-outline btn-full" onclick="App.closeModal()">Close</button>', 'max-width:800px');
+    }, 300);
   },
- async previewContent(id) {
-  const { data: item } = await sb.from('content').select('*').eq('id', id).single();
-  if (!item || (!item.thumbnail_url && !item.file_url)) return this.toast('No preview available', 'error');
   
   // Database එකේ කොමාවෙන් වෙන් කරලා තියෙන පින්තූර ලින්ක් ටික වෙන් කරගැනීම
   let urls = [];
