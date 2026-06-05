@@ -646,9 +646,19 @@ const App = {
     this.toast('Signed out', 'info');
   },
 
-  async loadProfile() {
+async loadProfile() {
     if (!this.user) return;
     const { data } = await sb.from('profiles').select('*').eq('id', this.user.id).single();
+    
+    // ළමයා Block කරලා නම් එලියට විසි කරනවා
+    if (data && data.is_blocked) {
+      await sb.auth.signOut();
+      this.user = null;
+      this.profile = null;
+      this.showAuth();
+      alert("🚫 Your account has been blocked!\nPlease contact the hotline to unblock.");
+      return;
+    }
     this.profile = data;
   },
 
@@ -2887,7 +2897,20 @@ const App = {
   // ========== Activity Log ==========
   async logActivity(action, details) {
     try {
-      await sb.from('log_activities').insert({ user_id: this.user.id, action, details });
+      let ip = 'Unknown';
+      try { 
+        const res = await fetch('https://api.ipify.org?format=json'); 
+        const ipData = await res.json(); 
+        ip = ipData.ip; 
+      } catch(e) {}
+      
+      await sb.from('log_activities').insert({ 
+        user_id: this.user.id, 
+        action, 
+        details, 
+        ip_address: ip, 
+        browser_info: navigator.userAgent 
+      });
     } catch (e) { console.error('Log error:', e); }
   },
 
