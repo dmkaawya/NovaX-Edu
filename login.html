@@ -444,7 +444,14 @@ img{max-width:100%;display:block}
 <div class="nav-item" data-tab="pdfs"><i class="fas fa-file-pdf"></i><span>PDFs</span></div>
 <div class="nav-item" data-tab="audio"><i class="fas fa-headphones"></i><span>Audio</span></div>
 <div class="nav-item" data-tab="articles"><i class="fas fa-newspaper"></i><span>Articles</span></div>
-<div class="nav-item" data-tab="store"><i class="fas fa-shopping-cart"></i><span>NovaX Store</span></div>
+<div class="nav-item" data-tab="store"><i class="fas fa-shopping-cart"></i><span>Store</span></div>
+  <div class="sidebar-label" style="margin-top:20px; font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; padding:0 20px; font-weight:700;">Admin Tools</div>
+<div class="nav-item" data-tab="content-manager"><i class="fas fa-server"></i><span>Content</span></div>
+<div class="nav-item" data-tab="users"><i class="fas fa-users-cog"></i><span>Users Profile</span></div>
+<div class="nav-item" data-tab="finance"><i class="fas fa-wallet"></i><span>Finance</span></div>
+<div class="nav-item" data-tab="reports"><i class="fas fa-flag"></i><span>Reports</span></div>
+<div class="nav-item" data-tab="mock-exams"><i class="fas fa-file-signature"></i><span>Mock Exams</span></div>
+<div class="nav-item" data-tab="settings"><i class="fas fa-cog"></i><span>Settings</span></div>
 </div>
 <div class="nav-section">
 <div class="nav-section-title">Practice</div>
@@ -730,7 +737,13 @@ const App = {
         case 'pdfs': await this.renderContent('pdf'); break;
         case 'audio': await this.renderContent('audio'); break;
         case 'articles': await this.renderContent('article'); break;
-        case 'store': await this.renderStore(); break;  
+        case 'store': await this.renderStore(); break;
+        case 'content-manager': await this.renderContentManager(); break;
+        case 'users': await this.renderUsersTab(); break;
+        case 'finance': await this.renderFinance(); break;
+        case 'reports': await this.renderReportsTab(); break;
+        case 'mock-exams': await this.renderMockExams(); break;
+        case 'settings': await this.renderSettings(); break;  
         case 'quizzes': await this.renderQuizzes(); break;
         case 'flashcards': await this.renderFlashcards(); break;
         case 'discussion': await this.renderDiscussion(); break;
@@ -2193,6 +2206,106 @@ const App = {
           <h3 style="font-size: 16px; margin-bottom: 8px; color: var(--text); font-weight: 700;">${title}</h3>
           <p style="font-size: 13px; color: var(--text2); line-height: 1.5;">${desc}</p>
         </div>
+      </div>
+    `;
+  },
+
+  // ========== New Admin Tabs (Coming Soon / Placeholders) ==========
+  
+  async renderContentManager() {
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `
+      <div class="section-header"><h1 class="section-title">Content Manager</h1></div>
+      <div class="dash-card mb-6" style="border-left: 4px solid var(--primary);">
+        <h3 style="margin-bottom:16px"><i class="fas fa-server text-primary"></i> Content Dashboard (Under Construction)</h3>
+        <p class="text-muted">This dedicated space will allow Content Managers to approve videos, upload PDFs, and manage the course structure separately from other admin tools.</p>
+      </div>
+      <div class="cards-grid">
+        ${this.renderComingSoonCard('Video Approvals', 'Review and approve newly uploaded video lessons.', 'fa-video')}
+        ${this.renderComingSoonCard('Study Materials', 'Manage PDF notes, articles, and audio files.', 'fa-file-pdf')}
+        ${this.renderComingSoonCard('Content Organization', 'Drag and drop lessons into modules and chapters.', 'fa-sitemap')}
+      </div>
+    `;
+  },
+
+  async renderUsersTab() {
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `
+      <div class="section-header"><h1 class="section-title">Users Profile & Access</h1></div>
+      <div class="dash-card mb-6" style="border-left: 4px solid var(--secondary);">
+        <h3 style="margin-bottom:16px"><i class="fas fa-users-cog text-secondary"></i> User Management (Under Construction)</h3>
+        <p class="text-muted">Here you will be able to manage student profiles, assign Admin Roles, change tab access, and monitor user activity logs.</p>
+      </div>
+      <div class="cards-grid">
+        ${this.renderComingSoonCard('Role Management', 'Assign dynamic roles and tab access to staff.', 'fa-user-shield')}
+        ${this.renderComingSoonCard('Student Profiles', 'View student progress, marks, and device logs.', 'fa-user-graduate')}
+        ${this.renderComingSoonCard('Access Control', 'Lock or unlock specific features for individual users.', 'fa-lock')}
+      </div>
+    `;
+  },
+
+  async renderFinance() {
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `
+      <div class="section-header"><h1 class="section-title">Finance & Sales</h1></div>
+      <div class="dash-card mb-6" style="background: linear-gradient(135deg, #1565C0, #00E676); color: #fff; text-align: center; padding: 40px 20px; border-radius: 16px;">
+        <i class="fas fa-wallet" style="font-size: 60px; margin-bottom: 16px; opacity: 0.9;"></i>
+        <h2 style="font-family:'Outfit'; font-size: 28px; font-weight: 800; margin-bottom: 8px;">Advanced Finance Tools</h2>
+        <p style="opacity: 0.8; font-size: 15px; max-width: 550px; margin: 0 auto;">Dedicated workspace for accountants to manage payment slips, track revenue, and handle promo codes securely.</p>
+      </div>
+      <div class="cards-grid">
+        ${this.renderComingSoonCard('Payment Approvals', 'Verify and approve manual bank transfer slips.', 'fa-file-invoice-dollar')}
+        ${this.renderComingSoonCard('Revenue Charts', 'Monthly income and growth analytics.', 'fa-chart-bar')}
+        ${this.renderComingSoonCard('Promo Codes', 'Manage discount campaigns and limits.', 'fa-tags')}
+      </div>
+    `;
+  },
+
+  async renderReportsTab() {
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `
+      <div class="section-header"><h1 class="section-title">System Reports</h1></div>
+      <div class="dash-card mb-6" style="border-left: 4px solid var(--danger);">
+        <h3 style="margin-bottom:16px"><i class="fas fa-flag text-danger"></i> Moderation & Reports (Under Construction)</h3>
+        <p class="text-muted">View auto-blocked content, handle student complaints, and moderate the discussion forum.</p>
+      </div>
+      <div class="cards-grid">
+        ${this.renderComingSoonCard('Flagged Content', 'Review videos or comments reported by students.', 'fa-ban')}
+        ${this.renderComingSoonCard('Error Logs', 'Track system errors and broken links.', 'fa-bug')}
+        ${this.renderComingSoonCard('Security Alerts', 'Multiple failed login attempts and suspicious IPs.', 'fa-shield-alt')}
+      </div>
+    `;
+  },
+
+  async renderMockExams() {
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `
+      <div class="section-header"><h1 class="section-title">Mock Exams</h1></div>
+      <div class="dash-card mb-6" style="background: linear-gradient(135deg, #E53935, #FF6D00); color: #fff; text-align: center; padding: 40px 20px; border-radius: 16px;">
+        <i class="fas fa-file-signature" style="font-size: 60px; margin-bottom: 16px; opacity: 0.9;"></i>
+        <h2 style="font-family:'Outfit'; font-size: 28px; font-weight: 800; margin-bottom: 8px;">TOPIK Simulator</h2>
+        <p style="opacity: 0.8; font-size: 15px; max-width: 550px; margin: 0 auto;">A strict, timed examination environment simulating the real Korean language exams.</p>
+      </div>
+      <div class="cards-grid">
+        ${this.renderComingSoonCard('Timed Sessions', 'Strict 2-hour countdown timers that cannot be paused.', 'fa-stopwatch')}
+        ${this.renderComingSoonCard('Anti-Cheat System', 'Prevents opening other tabs during the exam.', 'fa-user-secret')}
+        ${this.renderComingSoonCard('Result Analysis', 'Detailed breakdown of grammar vs vocabulary marks.', 'fa-chart-pie')}
+      </div>
+    `;
+  },
+
+  async renderSettings() {
+    const area = document.getElementById('contentArea');
+    area.innerHTML = `
+      <div class="section-header"><h1 class="section-title">System Settings</h1></div>
+      <div class="dash-card mb-6" style="border-left: 4px solid var(--text2);">
+        <h3 style="margin-bottom:16px"><i class="fas fa-cog text-muted"></i> Platform Configuration (Under Construction)</h3>
+        <p class="text-muted">Global settings to manage the website's behavior without editing code.</p>
+      </div>
+      <div class="cards-grid">
+        ${this.renderComingSoonCard('Maintenance Mode', 'Temporarily lock the site for updates.', 'fa-tools')}
+        ${this.renderComingSoonCard('Global Announcements', 'Change the top scrolling marquee text.', 'fa-bullhorn')}
+        ${this.renderComingSoonCard('Email Templates', 'Customize auto-reply emails and welcome messages.', 'fa-envelope-open-text')}
       </div>
     `;
   },
